@@ -16,6 +16,7 @@ source /home/lspencer/venv/bin/activate
 
 # run fastqc on each raw read file
 fastqc \
+--threads 8 \
 *.fastq.gz \
 --outdir /home/lspencer/2022-redking-OA/fastqc/concat/
 
