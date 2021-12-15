@@ -38,6 +38,7 @@ do
         -q 15,10 \
         -m 50 \
         --trim-n \
+        --cores=8 \
         ${IN}/${sample}_R1.fastq.gz \
         ${IN}/${sample}_R2.fastq.gz \
         &> ${OUT}/cutadapt.${sample}.v${VER}.log
