@@ -33,11 +33,11 @@ do
     cutadapt \
         -o ${OUT}/${sample}.trimmed.R1.v${VER}.fastq.gz \
         -p ${OUT}/${sample}.trimmed.R2.v${VER}.fastq.gz \
-        -a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA \
-        -A AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT \
-        -q 15,10 \
-        -m 50 \
-        --trim-n \
+        -a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA \ # Read 1 adpater
+        -A AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT \ # Read 3 adapter
+        -q 15,10 \  # quality-trim  5’ end with cutoff=15 & 3’ end with cutoff=10
+        -m 50 \     # discard reads shorter than 50bp
+        --trim-n \  # Remove flanking N bases from each read
         --cores=8 \
         ${IN}/${sample}_R1.fastq.gz \
         ${IN}/${sample}_R2.fastq.gz \

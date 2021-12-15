@@ -1,0 +1,650 @@
+[2021-12-14 00:18:33,053] multiqc                                            [DEBUG  ]  This is MultiQC v1.11
+[2021-12-14 00:18:33,053] multiqc                                            [DEBUG  ]  No MultiQC config found: /home/lspencer/venv/lib/python3.6/site-packages/multiqc_config.yaml
+[2021-12-14 00:18:33,053] multiqc                                            [DEBUG  ]  No MultiQC config found: /home/lspencer/.multiqc_config.yaml
+[2021-12-14 00:18:33,054] multiqc                                            [DEBUG  ]  No MultiQC config found: multiqc_config.yaml
+[2021-12-14 00:18:33,054] multiqc                                            [DEBUG  ]  Command used: /home/lspencer/venv/bin/multiqc /home/lspencer/2022-redking-OA/fastqc/concat/ --outdir /home/lspencer/2022-redking-OA/fastqc/concat/
+[2021-12-14 00:18:34,488] multiqc                                            [DEBUG  ]  Latest MultiQC version is v1.11
+[2021-12-14 00:18:34,488] multiqc                                            [DEBUG  ]  Command     : /home/lspencer/venv/bin/multiqc /home/lspencer/2022-redking-OA/fastqc/concat/ --outdir /home/lspencer/2022-redking-OA/fastqc/concat/
+[2021-12-14 00:18:34,488] multiqc                                            [DEBUG  ]  Working dir : /share/nwfsc/ggoetz/red_king_crab/illumina
+[2021-12-14 00:18:34,488] multiqc                                            [DEBUG  ]  Template    : default
+[2021-12-14 00:18:34,488] multiqc                                            [DEBUG  ]  Running Python 3.6.8 (default, Apr 16 2020, 01:36:27)  [GCC 8.3.1 20191121 (Red Hat 8.3.1-5)]
+[2021-12-14 00:18:34,488] multiqc                                            [DEBUG  ]  Analysing modules: custom_content, ccs, ngsderive, purple, conpair, lima, peddy, somalier, methylQA, mosdepth, phantompeakqualtools, qualimap, preseq, quast, qorts, rna_seqc, rockhopper, rsem, rseqc, busco, bustools, goleft_indexcov, gffcompare, disambiguate, supernova, deeptools, sargasso, verifybamid, mirtrace, happy, mirtop, sambamba, homer, hops, macs2, theta2, snpeff, gatk, htseq, bcftools, featureCounts, fgbio, dragen, dedup, damageprofiler, biobambam2, jcvi, mtnucratio, picard, vep, sentieon, prokka, qc3C, nanostat, samblaster, samtools, sexdeterrmine, eigenstratdatabasetools, bamtools, jellyfish, vcftools, longranger, stacks, varscan2, snippy, bbmap, bismark, biscuit, hicexplorer, hicup, hicpro, salmon, kallisto, slamdunk, star, hisat2, tophat, bowtie2, bowtie1, snpsplit, odgi, pangolin, kat, leehom, adapterRemoval, clipandmerge, cutadapt, flexbar, kaiju, kraken, malt, trimmomatic, sickle, skewer, sortmerna, biobloomtools, fastq_screen, afterqc, fastp, fastqc, pychopper, pycoqc, minionqc, multivcfanalyzer, clusterflow, bcl2fastq, bclconvert, interop, ivar, flash, seqyclean, optitype
+[2021-12-14 00:18:34,488] multiqc                                            [DEBUG  ]  Using temporary directory for creating report: /tmp/tmpm6k27yq3
+[2021-12-14 00:18:35,422] multiqc                                            [INFO   ]  Search path : /home/lspencer/2022-redking-OA/fastqc/concat
+[2021-12-14 00:18:35,478] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_11_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:35,481] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_11_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:35,481] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_11_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:35,481] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_11_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:35,486] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_11_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:35,486] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_11_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:35,546] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_11_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:35,547] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_11_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:35,548] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_11_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:35,548] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_11_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:35,551] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_11_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:35,551] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_11_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:35,604] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_10_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:35,606] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_10_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:35,606] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_10_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:35,606] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_10_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:35,610] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_10_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:35,610] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_10_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:35,662] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_10_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:35,664] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_10_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:35,664] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_10_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:35,664] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_10_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:35,667] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_10_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:35,667] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_10_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:35,726] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_10_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:35,728] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_10_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:35,728] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_10_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:35,728] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_10_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:35,732] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_10_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:35,732] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_10_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:35,777] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_10_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:35,779] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_10_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:35,779] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_10_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:35,779] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_10_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:35,782] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_10_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:35,783] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_10_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:35,839] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_10_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:35,840] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_10_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:35,841] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_10_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:35,841] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_10_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:35,844] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_10_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:35,844] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_10_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:35,899] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_10_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:35,900] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_10_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:35,901] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_10_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:35,901] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_10_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:35,904] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_10_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:35,904] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_10_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:35,958] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_11_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:35,960] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_11_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:35,960] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_11_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:35,960] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_11_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:35,963] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_11_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:35,963] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_11_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:36,015] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_11_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:36,017] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_11_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:36,017] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_11_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:36,017] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_11_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:36,020] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_11_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:36,021] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_11_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:36,058] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_11_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:36,060] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_11_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:36,060] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_11_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:36,060] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_11_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:36,063] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_11_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:36,064] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_11_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:36,105] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_11_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:36,107] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_11_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:36,107] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_11_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:36,107] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_11_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:36,110] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_11_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:36,110] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_11_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:36,149] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_13_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:36,150] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_13_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:36,150] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_13_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:36,150] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_13_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:36,154] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_13_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:36,154] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_13_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:36,235] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_13_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:36,237] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_13_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:36,237] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_13_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:36,237] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_13_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:36,240] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_13_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:36,240] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_13_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:36,295] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_13_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:36,297] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_13_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:36,297] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_13_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:36,297] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_13_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:36,300] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_13_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:36,300] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_13_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:36,366] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_13_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:36,367] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_13_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:36,368] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_13_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:36,368] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_13_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:36,371] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_13_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:36,371] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_13_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:36,408] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_13_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:36,410] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_13_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:36,410] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_13_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:36,410] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_13_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:36,413] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_13_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:36,413] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_13_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:36,473] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_13_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:36,475] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_13_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:36,475] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_13_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:36,475] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_13_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:36,478] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_13_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:36,478] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_13_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:36,516] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_15_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:36,517] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_15_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:36,518] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_15_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:36,518] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_15_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:36,521] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_15_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:36,521] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_15_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:36,560] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_15_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:36,561] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_15_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:36,562] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_15_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:36,562] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_15_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:36,565] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_15_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:36,565] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_15_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:36,638] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_15_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:36,640] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_15_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:36,640] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_15_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:36,640] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_15_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:36,644] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_15_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:36,644] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_15_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:36,681] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_15_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:36,683] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_15_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:36,683] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_15_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:36,683] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_15_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:36,686] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_15_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:36,687] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_15_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:36,724] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_15_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:36,725] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_15_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:36,726] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_15_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:36,726] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_15_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:36,729] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_15_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:36,729] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_15_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:36,773] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_15_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:36,775] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_15_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:36,775] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_15_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:36,775] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_15_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:36,778] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_15_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:36,778] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_15_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:36,821] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_16_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:36,822] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_16_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:36,822] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_16_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:36,823] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_16_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:36,826] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_16_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:36,826] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_16_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:36,863] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_16_Crab_4_R1_fastqc.html
+[2021-12-14 00:18:36,865] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_16_Crab_4_R1_fastqc.html
+[2021-12-14 00:18:36,865] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_16_Crab_4_R1_fastqc.html
+[2021-12-14 00:18:36,865] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_16_Crab_4_R1_fastqc.html
+[2021-12-14 00:18:36,869] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_16_Crab_4_R1_fastqc.html
+[2021-12-14 00:18:36,869] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_16_Crab_4_R1_fastqc.html
+[2021-12-14 00:18:36,931] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_16_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:36,933] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_16_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:36,933] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_16_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:36,933] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_16_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:36,937] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_16_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:36,937] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_16_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:37,015] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_16_Crab_4_R2_fastqc.html
+[2021-12-14 00:18:37,017] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_16_Crab_4_R2_fastqc.html
+[2021-12-14 00:18:37,017] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_16_Crab_4_R2_fastqc.html
+[2021-12-14 00:18:37,017] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_16_Crab_4_R2_fastqc.html
+[2021-12-14 00:18:37,020] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_16_Crab_4_R2_fastqc.html
+[2021-12-14 00:18:37,020] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_16_Crab_4_R2_fastqc.html
+[2021-12-14 00:18:37,069] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_16_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:37,071] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_16_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:37,071] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_16_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:37,071] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_16_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:37,074] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_16_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:37,074] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_16_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:37,130] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_16_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:37,132] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_16_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:37,132] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_16_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:37,132] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_16_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:37,135] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_16_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:37,135] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_16_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:37,196] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_18_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:37,198] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_18_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:37,198] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_18_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:37,198] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_18_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:37,202] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_18_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:37,202] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_18_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:37,279] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_18_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:37,281] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_18_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:37,281] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_18_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:37,281] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_18_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:37,284] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_18_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:37,284] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_18_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:37,330] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_18_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:37,332] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_18_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:37,332] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_18_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:37,332] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_18_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:37,335] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_18_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:37,335] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_18_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:37,406] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_18_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:37,408] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_18_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:37,408] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_18_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:37,408] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_18_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:37,411] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_18_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:37,411] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_18_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:37,449] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_1_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:37,450] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_1_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:37,451] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_1_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:37,451] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_1_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:37,454] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_1_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:37,454] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_1_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:37,511] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_1_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:37,512] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_1_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:37,513] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_1_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:37,513] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_1_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:37,516] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_1_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:37,516] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_1_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:37,553] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_1_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:37,555] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_1_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:37,555] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_1_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:37,555] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_1_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:37,558] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_1_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:37,558] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_1_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:37,622] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_1_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:37,624] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_1_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:37,624] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_1_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:37,624] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_1_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:37,627] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_1_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:37,627] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_1_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:37,676] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_18_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:37,678] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_18_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:37,678] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_18_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:37,678] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_18_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:37,682] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_18_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:37,682] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_18_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:37,731] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_18_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:37,732] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_18_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:37,733] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_18_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:37,733] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_18_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:37,736] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_18_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:37,736] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_18_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:37,780] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_1_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:37,782] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_1_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:37,782] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_1_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:37,782] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_1_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:37,786] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_1_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:37,786] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_1_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:37,837] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_1_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:37,839] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_1_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:37,839] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_1_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:37,839] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_1_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:37,843] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_1_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:37,843] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_1_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:37,889] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_20_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:37,890] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_20_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:37,891] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_20_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:37,891] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_20_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:37,894] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_20_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:37,894] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_20_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:37,941] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_20_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:37,943] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_20_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:37,943] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_20_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:37,943] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_20_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:37,946] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_20_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:37,946] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_20_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:37,984] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_20_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:37,986] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_20_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:37,986] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_20_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:37,986] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_20_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:37,989] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_20_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:37,989] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_20_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:38,035] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_20_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:38,037] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_20_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:38,037] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_20_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:38,037] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_20_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:38,041] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_20_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:38,041] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_20_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:38,078] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_2_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:38,080] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_2_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:38,080] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_2_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:38,080] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_2_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:38,084] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_2_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:38,084] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_2_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:38,125] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_2_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:38,127] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_2_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:38,127] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_2_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:38,127] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_2_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:38,131] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_2_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:38,131] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_2_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:38,182] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_20_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:38,184] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_20_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:38,184] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_20_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:38,184] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_20_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:38,187] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_20_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:38,188] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_20_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:38,233] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_20_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:38,235] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_20_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:38,236] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_20_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:38,236] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_20_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:38,239] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_20_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:38,239] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_20_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:38,278] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_2_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:38,279] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_2_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:38,279] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_2_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:38,279] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_2_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:38,283] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_2_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:38,283] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_2_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:38,327] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_2_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:38,328] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_2_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:38,329] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_2_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:38,329] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_2_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:38,332] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_2_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:38,332] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_2_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:38,383] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_2_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:38,385] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_2_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:38,385] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_2_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:38,385] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_2_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:38,389] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_2_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:38,389] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_2_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:38,426] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_2_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:38,428] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_2_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:38,428] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_2_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:38,428] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_2_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:38,431] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_2_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:38,431] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_2_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:38,468] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_3_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:38,470] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_3_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:38,470] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_3_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:38,470] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_3_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:38,473] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_3_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:38,473] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_3_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:38,510] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_3_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:38,512] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_3_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:38,512] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_3_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:38,512] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_3_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:38,515] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_3_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:38,516] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_3_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:38,553] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_3_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:38,555] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_3_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:38,555] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_3_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:38,555] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_3_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:38,558] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_3_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:38,558] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_3_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:38,602] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_3_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:38,604] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_3_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:38,604] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_3_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:38,604] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_3_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:38,607] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_3_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:38,607] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_3_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:38,644] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_3_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:38,646] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_3_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:38,646] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_3_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:38,646] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_3_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:38,650] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_3_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:38,650] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_3_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:38,687] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_3_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:38,688] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_3_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:38,689] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_3_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:38,689] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_3_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:38,692] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_3_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:38,692] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_3_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:38,729] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_4_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:38,731] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_4_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:38,731] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_4_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:38,731] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_4_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:38,734] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_4_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:38,734] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_4_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:38,771] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_4_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:38,773] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_4_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:38,773] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_4_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:38,773] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_4_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:38,776] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_4_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:38,776] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_4_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:38,813] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_4_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:38,815] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_4_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:38,815] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_4_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:38,815] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_4_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:38,818] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_4_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:38,818] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_4_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:38,855] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_4_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:38,857] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_4_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:38,857] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_4_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:38,857] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_4_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:38,861] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_4_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:38,861] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_4_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:38,897] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_4_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:38,899] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_4_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:38,899] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_4_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:38,899] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_4_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:38,903] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_4_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:38,903] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_4_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:38,940] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_4_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:38,942] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_4_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:38,942] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_4_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:38,942] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_4_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:38,946] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_4_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:38,946] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_4_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:38,982] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_5_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:38,984] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_5_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:38,984] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_5_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:38,984] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_5_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:38,988] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_5_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:38,988] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_5_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:39,024] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_5_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:39,026] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_5_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:39,026] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_5_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:39,026] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_5_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:39,029] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_5_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:39,029] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_5_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:39,067] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_5_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:39,069] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_5_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:39,069] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_5_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:39,069] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_5_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:39,073] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_5_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:39,073] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_5_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:39,109] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_5_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:39,110] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_5_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:39,111] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_5_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:39,111] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_5_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:39,114] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_5_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:39,114] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_5_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:39,149] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_5_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:39,151] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_5_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:39,151] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_5_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:39,151] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_5_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:39,155] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_5_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:39,155] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_5_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:39,192] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_5_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:39,194] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_5_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:39,194] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_5_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:39,194] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_5_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:39,197] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_5_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:39,197] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_5_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:39,234] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_7_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:39,235] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_7_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:39,236] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_7_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:39,236] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_7_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:39,239] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_7_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:39,239] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_7_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:39,276] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_7_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:39,278] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_7_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:39,278] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_7_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:39,278] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_7_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:39,282] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_7_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:39,282] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_7_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:39,319] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_7_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:39,320] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_7_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:39,321] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_7_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:39,321] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_7_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:39,324] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_7_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:39,324] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_7_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:39,362] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_7_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:39,364] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_7_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:39,364] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_7_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:39,364] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_7_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:39,368] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_7_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:39,368] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_7_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:39,404] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_7_Crab_4_R1_fastqc.html
+[2021-12-14 00:18:39,406] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_7_Crab_4_R1_fastqc.html
+[2021-12-14 00:18:39,406] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_7_Crab_4_R1_fastqc.html
+[2021-12-14 00:18:39,406] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_7_Crab_4_R1_fastqc.html
+[2021-12-14 00:18:39,409] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_7_Crab_4_R1_fastqc.html
+[2021-12-14 00:18:39,410] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_7_Crab_4_R1_fastqc.html
+[2021-12-14 00:18:39,447] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_7_Crab_4_R2_fastqc.html
+[2021-12-14 00:18:39,449] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_7_Crab_4_R2_fastqc.html
+[2021-12-14 00:18:39,449] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_7_Crab_4_R2_fastqc.html
+[2021-12-14 00:18:39,450] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_7_Crab_4_R2_fastqc.html
+[2021-12-14 00:18:39,453] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_7_Crab_4_R2_fastqc.html
+[2021-12-14 00:18:39,453] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_7_Crab_4_R2_fastqc.html
+[2021-12-14 00:18:39,492] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_9_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:39,494] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_9_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:39,494] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_9_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:39,494] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_9_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:39,497] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_9_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:39,498] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_9_Crab_2_R1_fastqc.html
+[2021-12-14 00:18:39,535] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_9_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:39,537] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_9_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:39,537] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_9_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:39,537] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_9_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:39,540] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_9_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:39,540] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_9_Crab_2_R2_fastqc.html
+[2021-12-14 00:18:39,580] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_9_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:39,582] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_9_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:39,582] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_9_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:39,582] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_9_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:39,585] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_9_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:39,585] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_9_Crab_1_R1_fastqc.html
+[2021-12-14 00:18:39,622] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_9_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:39,624] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_9_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:39,624] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_9_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:39,624] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_9_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:39,628] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_9_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:39,628] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_9_Crab_1_R2_fastqc.html
+[2021-12-14 00:18:39,665] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_9_Crab_4_R1_fastqc.html
+[2021-12-14 00:18:39,666] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_9_Crab_4_R1_fastqc.html
+[2021-12-14 00:18:39,667] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_9_Crab_4_R1_fastqc.html
+[2021-12-14 00:18:39,667] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_9_Crab_4_R1_fastqc.html
+[2021-12-14 00:18:39,670] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_9_Crab_4_R1_fastqc.html
+[2021-12-14 00:18:39,670] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_9_Crab_4_R1_fastqc.html
+[2021-12-14 00:18:39,705] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_9_Crab_4_R2_fastqc.html
+[2021-12-14 00:18:39,707] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_9_Crab_4_R2_fastqc.html
+[2021-12-14 00:18:39,707] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_9_Crab_4_R2_fastqc.html
+[2021-12-14 00:18:39,707] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_9_Crab_4_R2_fastqc.html
+[2021-12-14 00:18:39,710] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_9_Crab_4_R2_fastqc.html
+[2021-12-14 00:18:39,710] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_9_Crab_4_R2_fastqc.html
+[2021-12-14 00:18:39,746] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_9_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:39,747] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_9_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:39,748] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_9_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:39,748] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_9_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:39,751] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_9_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:39,751] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_9_Crab_3_R1_fastqc.html
+[2021-12-14 00:18:39,787] multiqc                                            [DEBUG  ]  File ignored by ccs/v4 because it exceeded search pattern filesize limit: Tank_9_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:39,789] multiqc                                            [DEBUG  ]  File ignored by hicexplorer because it exceeded search pattern filesize limit: Tank_9_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:39,789] multiqc                                            [DEBUG  ]  File ignored by nanostat because it exceeded search pattern filesize limit: Tank_9_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:39,789] multiqc                                            [DEBUG  ]  File ignored by lima/summary because it exceeded search pattern filesize limit: Tank_9_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:39,792] multiqc                                            [DEBUG  ]  File ignored by vep/vep_txt because it exceeded search pattern filesize limit: Tank_9_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:39,793] multiqc                                            [DEBUG  ]  File ignored by longranger/invocation because it exceeded search pattern filesize limit: Tank_9_Crab_3_R2_fastqc.html
+[2021-12-14 00:18:41,105] multiqc.plots.bargraph                             [DEBUG  ]  Using matplotlib version 3.3.4
+[2021-12-14 00:18:41,106] multiqc.plots.linegraph                            [DEBUG  ]  Using matplotlib version 3.3.4
+[2021-12-14 00:18:41,107] multiqc                                            [DEBUG  ]  No samples found: custom_content
+[2021-12-14 00:18:41,123] multiqc                                            [DEBUG  ]  No samples found: ccs
+[2021-12-14 00:18:41,141] multiqc                                            [DEBUG  ]  No samples found: ngsderive
+[2021-12-14 00:18:41,163] multiqc                                            [DEBUG  ]  No samples found: purple
+[2021-12-14 00:18:41,168] multiqc                                            [DEBUG  ]  No samples found: conpair
+[2021-12-14 00:18:41,183] multiqc                                            [DEBUG  ]  No samples found: lima
+[2021-12-14 00:18:41,208] multiqc                                            [DEBUG  ]  No samples found: peddy
+[2021-12-14 00:18:41,232] multiqc                                            [DEBUG  ]  No samples found: somalier
+[2021-12-14 00:18:41,264] multiqc                                            [DEBUG  ]  No samples found: methylQA
+[2021-12-14 00:18:41,321] multiqc.modules.mosdepth.mosdepth                  [DEBUG  ]  include_contigs: []
+[2021-12-14 00:18:41,321] multiqc.modules.mosdepth.mosdepth                  [DEBUG  ]  exclude_contigs: []
+[2021-12-14 00:18:41,321] multiqc                                            [DEBUG  ]  No samples found: mosdepth
+[2021-12-14 00:18:41,341] multiqc                                            [DEBUG  ]  No samples found: phantompeakqualtools
+[2021-12-14 00:18:41,350] multiqc                                            [DEBUG  ]  No samples found: qualimap
+[2021-12-14 00:18:41,376] multiqc                                            [DEBUG  ]  No samples found: preseq
+[2021-12-14 00:18:41,391] multiqc                                            [DEBUG  ]  No samples found: quast
+[2021-12-14 00:18:41,415] multiqc                                            [DEBUG  ]  No samples found: qorts
+[2021-12-14 00:18:41,439] multiqc                                            [DEBUG  ]  No samples found: rna_seqc
+[2021-12-14 00:18:41,468] multiqc                                            [DEBUG  ]  No samples found: rockhopper
+[2021-12-14 00:18:41,504] multiqc                                            [DEBUG  ]  No samples found: rsem
+[2021-12-14 00:18:41,631] multiqc                                            [DEBUG  ]  No samples found: rseqc
+[2021-12-14 00:18:41,663] multiqc                                            [DEBUG  ]  No samples found: busco
+[2021-12-14 00:18:41,692] multiqc                                            [DEBUG  ]  No samples found: bustools
+[2021-12-14 00:18:41,698] multiqc                                            [DEBUG  ]  No samples found: goleft_indexcov
+[2021-12-14 00:18:41,728] multiqc                                            [DEBUG  ]  No samples found: gffcompare
+[2021-12-14 00:18:41,741] multiqc                                            [DEBUG  ]  No samples found: disambiguate
+[2021-12-14 00:18:41,771] multiqc                                            [DEBUG  ]  No samples found: supernova
+[2021-12-14 00:18:41,848] multiqc                                            [DEBUG  ]  No samples found: deeptools
+[2021-12-14 00:18:41,873] multiqc                                            [DEBUG  ]  No samples found: sargasso
+[2021-12-14 00:18:41,888] multiqc                                            [DEBUG  ]  No samples found: verifybamid
+[2021-12-14 00:18:41,905] multiqc                                            [DEBUG  ]  No samples found: mirtrace
+[2021-12-14 00:18:41,923] multiqc                                            [DEBUG  ]  No samples found: happy
+[2021-12-14 00:18:41,928] multiqc                                            [DEBUG  ]  No samples found: mirtop
+[2021-12-14 00:18:41,955] multiqc                                            [DEBUG  ]  No samples found: sambamba
+[2021-12-14 00:18:41,973] multiqc                                            [DEBUG  ]  No samples found: homer
+[2021-12-14 00:18:41,991] multiqc                                            [DEBUG  ]  No samples found: hops
+[2021-12-14 00:18:41,997] multiqc                                            [DEBUG  ]  No samples found: macs2
+[2021-12-14 00:18:42,014] multiqc                                            [DEBUG  ]  No samples found: theta2
+[2021-12-14 00:18:42,035] multiqc                                            [DEBUG  ]  No samples found: snpeff
+[2021-12-14 00:18:42,059] multiqc                                            [DEBUG  ]  No samples found: gatk
+[2021-12-14 00:18:42,077] multiqc                                            [DEBUG  ]  No samples found: htseq
+[2021-12-14 00:18:42,097] multiqc                                            [DEBUG  ]  No samples found: bcftools
+[2021-12-14 00:18:42,127] multiqc                                            [DEBUG  ]  No samples found: featureCounts
+[2021-12-14 00:18:42,152] multiqc                                            [DEBUG  ]  No samples found: fgbio
+[2021-12-14 00:18:42,239] multiqc                                            [DEBUG  ]  No samples found: dragen
+[2021-12-14 00:18:42,254] multiqc                                            [DEBUG  ]  No samples found: dedup
+[2021-12-14 00:18:42,268] multiqc                                            [DEBUG  ]  No samples found: damageprofiler
+[2021-12-14 00:18:42,502] multiqc                                            [DEBUG  ]  No samples found: biobambam2
+[2021-12-14 00:18:42,554] multiqc                                            [DEBUG  ]  No samples found: jcvi
+[2021-12-14 00:18:42,624] multiqc                                            [DEBUG  ]  No samples found: mtnucratio
+[2021-12-14 00:18:42,628] multiqc                                            [DEBUG  ]  No samples found: picard
+[2021-12-14 00:18:42,664] multiqc                                            [DEBUG  ]  No samples found: vep
+[2021-12-14 00:18:42,689] multiqc                                            [DEBUG  ]  No samples found: sentieon
+[2021-12-14 00:18:42,710] multiqc                                            [DEBUG  ]  No samples found: prokka
+[2021-12-14 00:18:42,735] multiqc                                            [DEBUG  ]  No samples found: qc3C
+[2021-12-14 00:18:42,748] multiqc                                            [DEBUG  ]  No samples found: nanostat
+[2021-12-14 00:18:42,753] multiqc                                            [DEBUG  ]  No samples found: samblaster
+[2021-12-14 00:18:42,788] multiqc                                            [DEBUG  ]  No samples found: samtools
+[2021-12-14 00:18:42,792] multiqc                                            [DEBUG  ]  No samples found: sexdeterrmine
+[2021-12-14 00:18:42,837] multiqc                                            [DEBUG  ]  No samples found: eigenstratdatabasetools
+[2021-12-14 00:18:42,850] multiqc                                            [DEBUG  ]  No samples found: bamtools
+[2021-12-14 00:18:42,855] multiqc                                            [DEBUG  ]  No samples found: jellyfish
+[2021-12-14 00:18:42,891] multiqc                                            [DEBUG  ]  No samples found: vcftools
+[2021-12-14 00:18:42,963] multiqc                                            [DEBUG  ]  No samples found: longranger
+[2021-12-14 00:18:42,980] multiqc                                            [DEBUG  ]  No samples found: stacks
+[2021-12-14 00:18:43,030] multiqc                                            [DEBUG  ]  No samples found: varscan2
+[2021-12-14 00:18:43,057] multiqc                                            [DEBUG  ]  No samples found: snippy
+[2021-12-14 00:18:43,089] multiqc                                            [DEBUG  ]  No samples found: bbmap
+[2021-12-14 00:18:43,119] multiqc                                            [DEBUG  ]  No samples found: bismark
+[2021-12-14 00:18:43,132] multiqc                                            [DEBUG  ]  No samples found: biscuit
+[2021-12-14 00:18:43,152] multiqc                                            [DEBUG  ]  No samples found: hicexplorer
+[2021-12-14 00:18:43,171] multiqc                                            [DEBUG  ]  No samples found: hicup
+[2021-12-14 00:18:43,240] multiqc                                            [DEBUG  ]  No samples found: hicpro
+[2021-12-14 00:18:43,260] multiqc                                            [DEBUG  ]  No samples found: salmon
+[2021-12-14 00:18:43,287] multiqc                                            [DEBUG  ]  No samples found: kallisto
+[2021-12-14 00:18:43,361] multiqc                                            [DEBUG  ]  No samples found: slamdunk
+[2021-12-14 00:18:43,371] multiqc                                            [DEBUG  ]  No samples found: star
+[2021-12-14 00:18:43,376] multiqc                                            [DEBUG  ]  No samples found: hisat2
+[2021-12-14 00:18:43,391] multiqc                                            [DEBUG  ]  No samples found: tophat
+[2021-12-14 00:18:43,436] multiqc                                            [DEBUG  ]  No samples found: bowtie2
+[2021-12-14 00:18:43,457] multiqc                                            [DEBUG  ]  No samples found: bowtie1
+[2021-12-14 00:18:43,480] multiqc                                            [DEBUG  ]  No samples found: snpsplit
+[2021-12-14 00:18:43,501] multiqc                                            [DEBUG  ]  No samples found: odgi
+[2021-12-14 00:18:43,591] multiqc                                            [DEBUG  ]  No samples found: pangolin
+[2021-12-14 00:18:43,596] multiqc                                            [DEBUG  ]  No samples found: kat
+[2021-12-14 00:18:43,620] multiqc                                            [DEBUG  ]  No samples found: leehom
+[2021-12-14 00:18:43,653] multiqc                                            [DEBUG  ]  No samples found: adapterRemoval
+[2021-12-14 00:18:43,667] multiqc                                            [DEBUG  ]  No samples found: clipandmerge
+[2021-12-14 00:18:43,681] multiqc                                            [DEBUG  ]  No samples found: cutadapt
+[2021-12-14 00:18:43,700] multiqc                                            [DEBUG  ]  No samples found: flexbar
+[2021-12-14 00:18:43,716] multiqc                                            [DEBUG  ]  No samples found: kaiju
+[2021-12-14 00:18:43,721] multiqc                                            [DEBUG  ]  No samples found: kraken
+[2021-12-14 00:18:43,755] multiqc                                            [DEBUG  ]  No samples found: malt
+[2021-12-14 00:18:43,770] multiqc                                            [DEBUG  ]  No samples found: trimmomatic
+[2021-12-14 00:18:43,780] multiqc                                            [DEBUG  ]  No samples found: sickle
+[2021-12-14 00:18:43,806] multiqc                                            [DEBUG  ]  No samples found: skewer
+[2021-12-14 00:18:43,842] multiqc                                            [DEBUG  ]  No samples found: sortmerna
+[2021-12-14 00:18:43,855] multiqc                                            [DEBUG  ]  No samples found: biobloomtools
+[2021-12-14 00:18:43,872] multiqc                                            [DEBUG  ]  No samples found: fastq_screen
+[2021-12-14 00:18:43,927] multiqc                                            [DEBUG  ]  No samples found: afterqc
+[2021-12-14 00:18:43,945] multiqc                                            [DEBUG  ]  No samples found: fastp
+[2021-12-14 00:18:47,033] multiqc.modules.fastqc.fastqc                      [INFO   ]  Found 86 reports
+[2021-12-14 00:18:48,033] multiqc                                            [DEBUG  ]  No samples found: pychopper
+[2021-12-14 00:18:48,046] multiqc                                            [DEBUG  ]  No samples found: pycoqc
+[2021-12-14 00:18:48,059] multiqc                                            [DEBUG  ]  No samples found: minionqc
+[2021-12-14 00:18:48,077] multiqc                                            [DEBUG  ]  No samples found: multivcfanalyzer
+[2021-12-14 00:18:48,091] multiqc                                            [DEBUG  ]  No samples found: clusterflow
+[2021-12-14 00:18:48,107] multiqc                                            [DEBUG  ]  No samples found: bcl2fastq
+[2021-12-14 00:18:48,141] multiqc                                            [DEBUG  ]  No samples found: bclconvert
+[2021-12-14 00:18:48,156] multiqc                                            [DEBUG  ]  No samples found: interop
+[2021-12-14 00:18:48,162] multiqc                                            [DEBUG  ]  No samples found: ivar
+[2021-12-14 00:18:48,178] multiqc                                            [DEBUG  ]  No samples found: flash
+[2021-12-14 00:18:48,189] multiqc                                            [DEBUG  ]  No samples found: seqyclean
+[2021-12-14 00:18:48,212] multiqc                                            [DEBUG  ]  No samples found: optitype
+[2021-12-14 00:18:48,303] multiqc                                            [INFO   ]  Compressing plot data
+[2021-12-14 00:18:49,617] multiqc                                            [INFO   ]  Report      : ../../../../../home/lspencer/2022-redking-OA/fastqc/concat/multiqc_report.html
+[2021-12-14 00:18:49,617] multiqc                                            [INFO   ]  Data        : ../../../../../home/lspencer/2022-redking-OA/fastqc/concat/multiqc_data
+[2021-12-14 00:18:49,617] multiqc                                            [DEBUG  ]  Moving data file from '/tmp/tmpm6k27yq3/multiqc_data' to '/home/lspencer/2022-redking-OA/fastqc/concat/multiqc_data'
+[2021-12-14 00:18:49,992] multiqc                                            [INFO   ]  MultiQC complete
