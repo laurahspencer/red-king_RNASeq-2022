@@ -16,8 +16,8 @@ source /home/lspencer/venv/bin/activate
 
 IN=/share/nwfsc/ggoetz/red_king_crab/illumina
 OUT=/home/lspencer/2022-redking-OA/trimmed
-FASTQC=/home/lspencer/2022-redking-OA/fastqc/trimmed
-VER=1
+FASTQC=/home/lspencer/2022-redking-OA/fastqc/trimmed/v2
+VER=2
 
 SAMPLES=$(ls ${IN}/*_R1.fastq.gz | \
 awk -F "/" '{print $NF}' | \
@@ -27,17 +27,17 @@ sed -e 's/_R1//')
 for sample in ${SAMPLES}
 do
     # Trimming the Illumina adapters
-    # Trimming for quality at the beginning and end of reads
+    # Quality-trim  5’ end with cutoff=20 & 3’ end with cutoff=15
     # Trimming out leftover N's
     # Filtering out sequences shorter then 50bp
     cutadapt \
         -o ${OUT}/${sample}.trimmed.R1.v${VER}.fastq.gz \
         -p ${OUT}/${sample}.trimmed.R2.v${VER}.fastq.gz \
-        -a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA \ # Read 1 adpater
-        -A AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT \ # Read 3 adapter
-        -q 15,10 \  # quality-trim  5’ end with cutoff=15 & 3’ end with cutoff=10
-        -m 50 \     # discard reads shorter than 50bp
-        --trim-n \  # Remove flanking N bases from each read
+        -a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA \
+        -A AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT \
+        -q 20,15 \
+        -m 50 \
+        --trim-n \
         --cores=8 \
         ${IN}/${sample}_R1.fastq.gz \
         ${IN}/${sample}_R2.fastq.gz \
