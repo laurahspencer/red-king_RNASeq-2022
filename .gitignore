@@ -1,0 +1,8 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+*fastq.gz
+*fasta.gz
+*.fasta
+*fasta.tar
