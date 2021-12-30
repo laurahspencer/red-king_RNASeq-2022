@@ -1,0 +1,185 @@
+Settings:
+  Output files: "Paralithodes_platypus.*.bt2l"
+  Line rate: 7 (line is 128 bytes)
+  Lines per side: 1 (side is 128 bytes)
+  Offset rate: 4 (one in 16)
+  FTable chars: 10
+  Strings: unpacked
+  Max bucket size: default
+  Max bucket size, sqrt multiplier: default
+  Max bucket size, len divisor: 4
+  Difference-cover sample period: 1024
+  Endianness: little
+  Actual local endianness: little
+  Sanity checking: disabled
+  Assertions: disabled
+  Random seed: 0
+  Sizeofs: void*:8, int:4, long:8, size_t:8
+Input files DNA, FASTA:
+  GCA_013283005.1_ASM1328300v1_genomic.fna.gz
+Building a LARGE index
+Reading reference sizes
+  Time reading reference sizes: 00:00:53
+Calculating joined length
+Writing header
+Reserving space for joined string
+Joining reference sequences
+  Time to join reference sequences: 00:00:44
+bmax according to bmaxDivN setting: 1192523251
+Using parameters --bmax 894392439 --dcv 1024
+  Doing ahead-of-time memory usage test
+  Passed!  Constructing with these parameters: --bmax 894392439 --dcv 1024
+Constructing suffix-array element generator
+Building DifferenceCoverSample
+  Building sPrime
+  Building sPrimeOrder
+  V-Sorting samples
+  V-Sorting samples time: 00:03:29
+  Allocating rank array
+  Ranking v-sort output
+  Ranking v-sort output time: 00:00:48
+  Invoking Larsson-Sadakane on ranks
+  Invoking Larsson-Sadakane on ranks time: 00:00:58
+  Sanity-checking and returning
+Building samples
+Reserving space for 12 sample suffixes
+Generating random suffixes
+QSorting 12 sample offsets, eliminating duplicates
+QSorting sample offsets, eliminating duplicates time: 00:00:00
+Multikey QSorting 12 samples
+  (Using difference cover)
+  Multikey QSorting samples time: 00:00:00
+Calculating bucket sizes
+Splitting and merging
+  Splitting and merging time: 00:00:00
+Avg bucket size: 4.77009e+09 (target: 894392438)
+Converting suffix-array elements to index image
+Allocating ftab, absorbFtab
+Entering Ebwt loop
+Getting block 1 of 1
+  No samples; assembling all-inclusive block
+  Sorting block of length 4770093004 for bucket 1
+  (Using difference cover)
+  Sorting block time: 01:53:34
+Returning block of 4770093005 for bucket 1
+Exited Ebwt loop
+fchr[A]: 0
+fchr[C]: 1393651118
+fchr[G]: 2384917964
+fchr[T]: 3376545821
+fchr[$]: 4770093004
+Exiting Ebwt::buildToDisk()
+Returning from initFromVector
+Wrote 1601098832 bytes to primary EBWT file: Paralithodes_platypus.1.bt2l
+Wrote 2385046508 bytes to secondary EBWT file: Paralithodes_platypus.2.bt2l
+Re-opening _in1 and _in2 as input streams
+Returning from Ebwt constructor
+Headers:
+    len: 4770093004
+    bwtLen: 4770093005
+    sz: 1192523251
+    bwtSz: 1192523252
+    lineRate: 7
+    offRate: 4
+    offMask: 0xfffffffffffffff0
+    ftabChars: 10
+    eftabLen: 20
+    eftabSz: 160
+    ftabLen: 1048577
+    ftabSz: 8388616
+    offsLen: 298130813
+    offsSz: 2385046504
+    lineSz: 128
+    sideSz: 128
+    sideBwtSz: 96
+    sideBwtLen: 384
+    numSides: 12422118
+    numLines: 12422118
+    ebwtTotLen: 1590031104
+    ebwtTotSz: 1590031104
+    color: 0
+    reverse: 0
+Total time for call to driver() for forward index: 02:14:19
+Reading reference sizes
+  Time reading reference sizes: 00:00:45
+Calculating joined length
+Writing header
+Reserving space for joined string
+Joining reference sequences
+  Time to join reference sequences: 00:00:42
+  Time to reverse reference sequence: 00:00:03
+bmax according to bmaxDivN setting: 1192523251
+Using parameters --bmax 894392439 --dcv 1024
+  Doing ahead-of-time memory usage test
+  Passed!  Constructing with these parameters: --bmax 894392439 --dcv 1024
+Constructing suffix-array element generator
+Building DifferenceCoverSample
+  Building sPrime
+  Building sPrimeOrder
+  V-Sorting samples
+  V-Sorting samples time: 00:02:49
+  Allocating rank array
+  Ranking v-sort output
+  Ranking v-sort output time: 00:00:37
+  Invoking Larsson-Sadakane on ranks
+  Invoking Larsson-Sadakane on ranks time: 00:01:10
+  Sanity-checking and returning
+Building samples
+Reserving space for 12 sample suffixes
+Generating random suffixes
+QSorting 12 sample offsets, eliminating duplicates
+QSorting sample offsets, eliminating duplicates time: 00:00:00
+Multikey QSorting 12 samples
+  (Using difference cover)
+  Multikey QSorting samples time: 00:00:00
+Calculating bucket sizes
+Splitting and merging
+  Splitting and merging time: 00:00:00
+Avg bucket size: 4.77009e+09 (target: 894392438)
+Converting suffix-array elements to index image
+Allocating ftab, absorbFtab
+Entering Ebwt loop
+Getting block 1 of 1
+  No samples; assembling all-inclusive block
+  Sorting block of length 4770093004 for bucket 1
+  (Using difference cover)
+  Sorting block time: 00:57:09
+Returning block of 4770093005 for bucket 1
+Exited Ebwt loop
+fchr[A]: 0
+fchr[C]: 1393651118
+fchr[G]: 2384917964
+fchr[T]: 3376545821
+fchr[$]: 4770093004
+Exiting Ebwt::buildToDisk()
+Returning from initFromVector
+Wrote 1601098832 bytes to primary EBWT file: Paralithodes_platypus.rev.1.bt2l
+Wrote 2385046508 bytes to secondary EBWT file: Paralithodes_platypus.rev.2.bt2l
+Re-opening _in1 and _in2 as input streams
+Returning from Ebwt constructor
+Headers:
+    len: 4770093004
+    bwtLen: 4770093005
+    sz: 1192523251
+    bwtSz: 1192523252
+    lineRate: 7
+    offRate: 4
+    offMask: 0xfffffffffffffff0
+    ftabChars: 10
+    eftabLen: 20
+    eftabSz: 160
+    ftabLen: 1048577
+    ftabSz: 8388616
+    offsLen: 298130813
+    offsSz: 2385046504
+    lineSz: 128
+    sideSz: 128
+    sideBwtSz: 96
+    sideBwtLen: 384
+    numSides: 12422118
+    numLines: 12422118
+    ebwtTotLen: 1590031104
+    ebwtTotSz: 1590031104
+    color: 0
+    reverse: 1
+Total time for backward call to driver() for mirror index: 01:09:58
