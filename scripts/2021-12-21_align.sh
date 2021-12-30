@@ -33,7 +33,7 @@ do
 sample="$(basename -a ${file} | cut -d "." -f 1)"
 file_R1="${sample}.trimmed.R1.v2.fastq.gz"
 file_R2="${sample}.trimmed.R2.v2.fastq.gz"
-map_file="${sample}.bowtie.sam"
+map_file="${sample}.bowtie.v${VER}.sam"
 
 # run Bowtie2 on each file
 bowtie2 \
@@ -43,5 +43,5 @@ bowtie2 \
 --no-unal \
 -1 ${IN}/${file_R1} \
 -2 ${IN}/${file_R2} \
--S ${OUT}/${map_file}.v${VER}; \
+-S ${OUT}/${map_file}; \
 done >> ${OUT}/bowtieout.v${VER}.txt 2>&1
