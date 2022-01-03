@@ -17,7 +17,7 @@ conda activate gatk
 IN=/scratch/lspencer/2022-redking-OA/aligned-bowtie
 OUT=/scratch/lspencer/2022-redking-OA/aligned-bowtie/sorted-deduped
 
-#Convert .sam files to .bam files & sort
+#Convert .sam files to .bam files & sort by coordinate
 for file in ${IN}/*.bowtie.sam.v1
 do
 sample="$(basename -a $file | cut -d "." -f 1)"
