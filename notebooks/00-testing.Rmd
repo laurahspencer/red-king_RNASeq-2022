@@ -1,0 +1,45 @@
+---
+title: "00-testing"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Install packages 
+```{r}
+install.packages("tidyverse")
+require(tidyverse)
+```
+
+Import genome feature file 
+```{r}
+gff <- read.delim(file = "references/EVM.out_new.gff3", sep = "", header = F)
+```
+
+# 
+```{r}
+# Histo showing frequency of features listed on scaffold 1-104 
+gff %>% separate(V1,sep = "_", into = c("a","b","scaffold_n")) %>% 
+  mutate(scaffold_n=as.numeric(scaffold_n)) %>% filter(scaffold_n<105) %>% 
+  pull(scaffold_n) %>% hist(breaks=100)
+
+# 271,164 features located on scaffold1-104 
+a <- gff %>% separate(V1,sep = "_", into = c("a","b","scaffold_n")) %>% 
+  mutate(scaffold_n=as.numeric(scaffold_n)) %>% filter(scaffold_n<105) %>% 
+  nrow()
+paste("Number of features located on scaffolds 1-104:", prettyNum(a,big.mark = ","))
+
+# Histo showing frequency of features listed on scaffolds 105-6958
+gff %>% separate(V1,sep = "_", into = c("a","b","scaffold_n")) %>% 
+  mutate(scaffold_n=as.numeric(scaffold_n)) %>% filter(scaffold_n>104) %>% 
+  pull(scaffold_n) %>% hist(breaks=100)
+
+# 3,974 features located on scaffolds 105-6958
+b <- gff %>% separate(V1,sep = "_", into = c("a","b","scaffold_n")) %>% 
+  mutate(scaffold_n=as.numeric(scaffold_n)) %>% filter(scaffold_n>104) %>% 
+  nrow()
+paste("Number of features located on scaffolds 104-6958:", prettyNum(b,big.mark = ","))
+```
+
