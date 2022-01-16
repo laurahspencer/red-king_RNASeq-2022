@@ -178,11 +178,24 @@ P.plat.blast <- read_delim(file = "../references/P.platypus.gene_blastx.tab", de
   separate(saccver, sep="\\|", into=c("na", "SPID", "gene.Uni"), remove = F) %>% 
   select(-na) %>% separate(gene.Uni, sep="_", into=c("gene.Uni", "species"), remove=T) %>% 
   group_by(geneID, Chr, Start, End) %>% slice(which.min(evalue))   # where multiple blast hits for same gene, select one with minimum e-value
+
+write.table(P.plat.blast, file = "../references/P.platypus.gene_blastx_split.tab",quote = F, sep = "\t")
 ```
+
+## NOTE:  I needed GO IDs and gene functions, which weren't included in the blast file.  So I opened the P.platypus.gene_blastx_split.tab file in Excel, copied the column containing all Uniprot IDs, then pasted those into the tool Uniprot batch retrieval tool (https://www.uniprot.org/uploadlists/), and selected the columns: Entry, Entry name, Reviewed(?), Protein names, Gene names, Organism, Gene ontology (biological process), Gene ontology (GO), Gene ontology Ids. I then downloaded all entries to a tab file, saved as: /references/P.platypus_genes_GO.tab. Now I'll read that into R and join with the P.plat.blast dataframe to link GO IDs with genes for exploration and enrichment analyses. 
+
+```{r}
+P.plat.blast.GO <- left_join(P.plat.blast, read_delim(file = "../references/P.platypus_genes_GO.tab", delim = "\t"),
+                             by = c("SPID"="Entry")) %>% ungroup()
+```
+
+
 ```{r}
 counts.annot <- right_join(
   P.plat.blast %>% select(geneID, Chr, Start, End, saccver, SPID, gene.Uni, evalue), 
   counts %>% rownames_to_column(var = "geneID"), "geneID") %>% filter(!is.na(SPID))
+write.csv(counts.annot, file = "../results/counts.annotated.csv", row.names = F, quote = F)
+View(counts.annot)
 ```
 
 

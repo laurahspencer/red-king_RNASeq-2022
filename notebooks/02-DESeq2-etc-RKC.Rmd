@@ -174,6 +174,8 @@ vsd.treat.tank <- varianceStabilizingTransformation(dds.treat.tank, blind=FALSE)
 NOTE: Hover over points to see the sample numbers
 
 ```{r}
+sample.info
+
 # PCA with points color coded by pH Treatment 
 ggplotly(
   plotPCA(vsd.pH, intgroup="Treatment") + 
@@ -195,7 +197,9 @@ ggplotly(
     geom_point(size=3, aes(text=colnames(vsd.treat.tank))) + 
    theme_minimal(), tooltip = "text")
 
-
+# Ambient pH (8.0) tanks:  1,2,7,10,11
+# Moderate pH (7.8) tanks: 3,4,9,20
+# Low pH (7.5) tanks: 5,13,15,16,18
 
 PCA.data.pH <- plotPCA(vsd.pH, intgroup=c("Treatment"), returnData=TRUE)
 save(PCA.data.pH, file="../results/PCA.data.pH")
@@ -256,19 +260,10 @@ pheatmap(sampleDistMatrixs,
 dds.DESeq.pH <- DESeq(dds.pH) 
 ```
 
-### Reformat DESeqDataSet as multifactor design - DO NOT NEED, REMOVE 
-
-```{r}
-# dds.multi.DESeq <- dds.DESeq #duplicate DESeq object for multi-factor design 
-# colData(dds.multi.DESeq) # check out treatments 
-# design(dds.multi.DESeq) <- formula(~ population + pCO2.parent) # define experimental design as multi-factor 
-# dds.multi.DESeq <- DESeq(dds.multi.DESeq)  #re-run DESeq to update analysis for multi-factor design 
-```
-
 ## Any DEGs between pH treatment? 
 
 ```{r}
-colData(dds.DESeq.pH)
+#colData(dds.DESeq.pH)
 print("Comparison: Ambient pH vs. Moderate pH")
 summary(res.pco2.AM <- results(dds.DESeq.pH, contrast=c("Treatment", "Ambient", "Moderate"), alpha=0.05))
 paste("No. of genes differentially expressed (padj<0.05) by pH, Ambient vs. Moderate:",  sum(res.pco2.AM$padj < 0.05, na.rm=TRUE))
@@ -282,28 +277,84 @@ summary(res.pco2.ML <- results(dds.DESeq.pH, contrast=c("Treatment", "Moderate",
 paste("No. of genes differentially expressed (padj<0.05) by pH, Moderate vs. Low:",  sum(res.pco2.ML$padj < 0.05, na.rm=TRUE))
 ```
 
-Heatmaps
+# START HERE
+
+Create heatmaps with DEGs 
 
 ```{r}
-dds.pH.df <- as.data.frame(colData(dds.pH)[,c("Treatment"), drop=FALSE])
-
-
-
+#Subset the DESeq results for only those statistically sign. ones 
 diffex.AM <- subset(res.pco2.AM, padj < 0.05)
-diffex.AM.counts <- subset(counts(dds.DESeq.pH), rownames(dds.DESeq.pH) %in% rownames(diffex.AM))
+diffex.AL <- subset(res.pco2.AL, padj < 0.05)
+diffex.ML <- subset(res.pco2.ML, padj < 0.05)
 
-dds.pH.AM <- dds.pH.df[match(colnames(diffex.AM.counts), rownames(dds.pH.df)),]
-all(colnames(diffex.AM.counts) == rownames(dds.pH.df)) #double check that samples are still in same order 
+### Generate counts matrix With DEGs among any pH treatment
+diffex.pH.counts <- subset(counts(dds.DESeq.pH), rownames(dds.DESeq.pH) %in% unique(c(rownames(diffex.AM),rownames(diffex.AL),rownames(diffex.ML))))
 
-pheatmap(diffex.AM.counts[rownames(diffex.AM[order(diffex.AM$padj),]),], cluster_rows=F, 
-         show_rownames=FALSE, cluster_columns=TRUE, na.rm=TRUE, 
-         scale="row", main = "(Adults) DEGs by direct pCO2 exposure (all pops), sorted by p-value", 
-         annotation_col=dds.pH.df, color=c("dodgerblue3", "goldenrod1"))
+# Create a dataframe to annotate heatmap with treatments 
+dds.pH.df <- sample.info[match(colnames(diffex.pH.counts), sample.info$Sample),c("Sample", "Treatment", "Tank")] %>%
+  remove_rownames() %>% column_to_rownames(var = "Sample")
 
-pheatmap(diffex.counts, cluster_rows=T, show_rownames=F, cluster_columns=T, na.rm=TRUE, 
-         scale="row", main = "(Adults) DEGs by direct pCO2 exposure, clustered", fontsize_col = 7, fontsize_row = 7, 
-         annotation_col=dds.df, color=c("dodgerblue3", "goldenrod1"))
+# Make sure treatment order is correct
+all(colnames(diffex.pH.counts) == rownames(dds.pH.df)) #double check that samples are still in same order 
+
+# All DEGs among any pH treatment 
+pheatmap(diffex.pH.counts, cluster_rows=TRUE, cluster_cols=FALSE,
+         show_rownames=FALSE, na.rm=TRUE, annotation_colors = list(Treatment=c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c")),
+         scale="row", main = "Differentially expressed genes (DEGs) among any pH treatment", 
+         annotation_col=dds.pH.df[,"Treatment", drop=FALSE], fontsize = 8)
+
+# another way to do a heatmap 
+heatmap(diffex.pH.counts, Colv = NA, scale="row", ColSideColors = brewer.pal(3, "Set1")[dds.pH.df$Treatment])
 ```
+
+
+```{r}
+### ----- Generate pairwise comparison heatmaps 
+
+# Create count matrices containing DEGs for each pairwise treatment comparison, rows (genes) ordered by pvalue, 
+
+diffex.AM.counts <- subset(counts(dds.DESeq.pH), rownames(dds.DESeq.pH) %in% rownames(diffex.AM)) %>% as.data.frame() %>%
+  dplyr::select((sample.info %>% arrange(Treatment) %>% 
+                   filter(Treatment=="Ambient" | Treatment== "Moderate"))$Sample) %>% 
+  rownames_to_column(var = "gene") %>% arrange(match(gene, c(as.data.frame(diffex.AM) %>% arrange(padj) %>% rownames()))) %>%
+  column_to_rownames(var = "gene") %>% as.matrix()
+  
+diffex.AL.counts <- subset(counts(dds.DESeq.pH), rownames(dds.DESeq.pH) %in% rownames(diffex.AL)) %>% as.data.frame() %>%
+  dplyr::select((sample.info %>% arrange(Treatment) %>% 
+                   filter(Treatment=="Ambient" | Treatment== "Low"))$Sample) %>% 
+  rownames_to_column(var = "gene") %>% arrange(match(gene, c(as.data.frame(diffex.AL) %>% arrange(padj) %>% rownames()))) %>% 
+  column_to_rownames(var = "gene") %>% as.matrix()
+
+diffex.ML.counts <- subset(counts(dds.DESeq.pH), rownames(dds.DESeq.pH) %in% rownames(diffex.ML)) %>% as.data.frame() %>%
+  dplyr::select((sample.info %>% arrange(Treatment) %>% 
+                   filter(Treatment=="Moderate" | Treatment== "Low"))$Sample) %>% 
+  rownames_to_column(var = "gene") %>%
+  arrange(match(gene, c(as.data.frame(diffex.ML) %>% arrange(padj) %>% rownames()))) %>% 
+  column_to_rownames(var = "gene") %>% as.matrix()
+
+
+pheatmap(diffex.AM.counts, cluster_cols = FALSE, cluster_rows=TRUE, 
+         show_rownames=FALSE, na.rm=TRUE, scale="row", 
+         main = "DEGs among pH 8.0 (ambient) & pH 7.8 (moderate), sorted by p-value",
+         fontsize = 8, cutree_rows = 2, 
+         annotation_colors = list(Treatment=c(Ambient="#2c7bb6", Moderate="#fdae61")),
+         annotation_col=dds.pH.df[colnames(diffex.AM.counts),"Treatment", drop=FALSE])
+
+pheatmap(diffex.AL.counts, cluster_cols = FALSE, cluster_rows=TRUE, 
+         show_rownames=FALSE, na.rm=TRUE, scale="row", 
+         main = "DEGs among pH 8.0 (ambient) & pH 7.5 (low), sorted by p-value",
+         fontsize = 8, cutree_rows = 2,
+         annotation_colors = list(Treatment=c(Ambient="#2c7bb6", Low="#d7191c")),
+         annotation_col=dds.pH.df[colnames(diffex.AL.counts),"Treatment", drop=FALSE])
+
+pheatmap(diffex.ML.counts, cluster_cols = FALSE, cluster_rows=TRUE, 
+         show_rownames=TRUE, na.rm=TRUE, scale="row", 
+         main = "DEGs among pH 7.8 (moderate) & pH 7.5 (low), sorted by p-value",
+         fontsize = 8, cutree_rows = 2, 
+         annotation_colors = list(Treatment=c(Moderate="#fdae61", Low="#d7191c")),
+         annotation_col=dds.pH.df[colnames(diffex.ML.counts),"Treatment", drop=FALSE])
+```
+
 
 # Plot counts for DEGs across all populations 
 
