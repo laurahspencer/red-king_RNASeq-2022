@@ -1,0 +1,87 @@
+---
+title: "00-Genome-prep"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Install packages 
+```{r}
+require(tidyverse)
+```
+
+## Here I explore the genome feature files provided by the Tang et al. 2020 group 
+
+Import genome feature file .gff
+```{r}
+gff <- read.delim(file = "../references/EVM.out_new.gff3", sep = "", header = F) %>% 
+  separate(V1,sep = "_", into = c("a","b","scaffold_n"))
+```
+
+# 
+```{r}
+# Histo showing frequency of features listed on scaffold 1-104 
+gff %>% 
+  mutate(scaffold_n=as.numeric(scaffold_n)) %>% filter(scaffold_n<105) %>% 
+  pull(scaffold_n) %>% hist(breaks=100)
+
+# 271,164 features located on scaffold1-104 
+a <- gff %>% 
+  mutate(scaffold_n=as.numeric(scaffold_n)) %>% filter(scaffold_n<105) %>% 
+  nrow()
+paste("Number of features located on scaffolds 1-104:", prettyNum(a,big.mark = ","))
+
+# How many unique scaffolds <105?
+gff %>% 
+  mutate(scaffold_n=as.numeric(scaffold_n)) %>% filter(scaffold_n<105) %>% 
+  pull(scaffold_n) %>% unique() %>% sort() %>% length()
+
+# Histo showing frequency of features listed on scaffolds 105-6958
+gff %>% 
+  mutate(scaffold_n=as.numeric(scaffold_n)) %>% filter(scaffold_n>104) %>% 
+  pull(scaffold_n) %>% hist(breaks=100)
+
+# 3,974 features located on scaffolds 105-6958
+b <- gff %>% 
+  mutate(scaffold_n=as.numeric(scaffold_n)) %>% filter(scaffold_n>104) %>% 
+  nrow()
+paste("Number of features located on scaffolds 104-6958:", prettyNum(b,big.mark = ","))
+
+# How many unique scaffolds >104?
+gff %>% 
+  mutate(scaffold_n=as.numeric(scaffold_n)) %>% filter(scaffold_n>104) %>% 
+  pull(scaffold_n) %>% unique() %>% sort() %>% length()
+```
+
+
+```{r}
+(fasta.lengths <- read.delim(file = "../references/P.platypus_lengths_tab.txt", sep = "", header = F, col.names = c("scaffold", "length")) %>% 
+  separate(scaffold,sep = "_", into = c("a","b","scaffold_n"), remove = F) %>% select(scaffold, length, scaffold_n) %>% 
+  mutate(scaffold_n=as.numeric(scaffold_n)))
+
+fasta.lengths %>% filter(scaffold_n<=104) %>% pull(length) %>% summary() 
+fasta.lengths %>% filter(scaffold_n>104) %>% pull(length) %>% summary()
+
+
+plot(x=log(fasta.lengths$scaffold_n), y=log(fasta.lengths$length), xlab = "log(scaffold number)", ylab="log(scaffold length)")
+
+```
+
+
+Create bed file for just genes, which I will use with getfasta to extract gene sequences, which I will use with blast to identify gene function
+
+NOTE: GFF format use a 1-based coordinate system, while BED format uses a 0-based coordinate system. I therefore need to convert my coordinates. Check out this helpful coordinate system summary. 
+```{r}
+read.delim(file = "../references/EVM.out_new.gff3", sep = "", header = F) %>% 
+  mutate(V3=as.factor(V3)) %>% filter(V3=="gene") %>% 
+  select(V1, V4, V5, V9) %>%
+  mutate(V4=V4-1) %>% #convert from 1-based to 0-based by subtracting 1 from the start position 
+  mutate(ID=str_extract(V9, "ID=(.*?);")) %>% 
+  mutate(ID=str_remove(ID, ";")) %>% mutate(ID=str_remove(ID, "ID=")) %>%
+  select(V1,V4,V5,ID) %>%
+  write.table(., "../references/P.platypus_genes.bed", sep = "\t",
+              col.names = F, row.names = F, quote = F)
+```
+

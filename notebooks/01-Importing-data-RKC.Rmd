@@ -18,7 +18,7 @@ getwd()
 ```{r, message=FALSE, warning=FALSE, results=FALSE}
 source("../references/biostats.R")
 
-list.of.packages <- c("DESeq2", "RCurl", "tidyverse", "vegan", "pheatmap", "pastecs", "factoextra", "FactoMineR", "RColorBrewer", "tibble", "reshape2", "plotly", "corrplot", "PerformanceAnalytics", "cowplot", "here") #add new libraries here 
+list.of.packages <- c("DESeq2", "RCurl", "tidyverse", "vegan", "pheatmap", "pastecs", "factoextra", "FactoMineR", "RColorBrewer", "tibble", "reshape2", "plotly", "corrplot", "PerformanceAnalytics", "cowplot", "here", "janitor") #add new libraries here 
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages)
 
@@ -37,17 +37,40 @@ lapply(list.of.packages, FUN = function(X) {
 ### Import sample info, library/file names, and then join 
 
 ```{r}
+library.stats <- read.csv("../data/library-prep-stats.csv", header=T) %>% clean_names %>%
+  mutate_at(vars(tank, p_h, batch, date_extracted), as.factor)
+
 sample.info <- read.csv("../data/RCK-exp-design.csv", header=T, na.strings = NA) %>%
-          mutate_at(vars(Tank, Treatment, Treatment_Tank), as.factor)
+          mutate_at(vars(Tank, Treatment, Treatment_Tank), as.factor) %>%
+  left_join( ., library.stats, by=c("Sample"="tank_crab"))
+
 save(sample.info, file="../data/sample.info")
+```
+
+## Import library stats from MultiQC and from library prep
+
+```{r}
+multiqc.stats <- read.delim(file="../results/fastqc/multiqc_data_trimmed-v2/multiqc_general_stats.txt", sep = "\t") 
+colnames(multiqc.stats) <- gsub("FastQC_mqc.generalstats.fastqc.", "", colnames(multiqc.stats)) 
+multiqc.stats <- multiqc.stats %>% 
+  mutate(total_unique = total_sequences*(100-percent_duplicates)/100) %>%
+  left_join(sample.info)
+```
+
+## Investigate possible correlations among # reads and prep stuff 
+
+```{r}
+cor(multiqc.stats %>% mutate(Tank=as.numeric(Tank)) %>% dplyr::select_if(is.numeric) %>% 
+      dplyr::select(-Crab, -crab, -initial_volume, -volume_used_at_start_of_library_prep, -water_to_add_to_bring_to_50u_l, 
+                    -diluted_concentration, -pcr_cycles, -volume_used_in_qc), use="complete.obs") %>% corrplot::corrplot(tl.cex=.75)
 ```
 
 ### Import counts matrix file as dataframe, extract sample # from file/column names to simplify them 
 
 ```{r}
-counts <- data.frame(read.table("../results/featureCounts/featurecounts_redking_gene-v2", header = T, stringsAsFactors = F, fill = FALSE)) %>%
-          column_to_rownames(var="Geneid") %>% 
-  rename_all(~as.character(str_sub(colnames(counts)) %>% 
+counts <- data.frame(read.table("../results/featureCounts/featurecounts_redking_gene-v1", header = T, stringsAsFactors = F, fill = FALSE))
+counts <- counts %>%  column_to_rownames(var="Geneid")
+counts <- counts %>% rename_all(~as.character(str_sub(colnames(counts)) %>% 
                              gsub("X.scratch.lspencer.2022.redking.OA.aligned.bowtie.sorted.deduped.", "", .) %>% 
                              gsub(".sorted.bam", "", .)))
 
@@ -72,24 +95,6 @@ print(paste("Total counts, all samples:", prettyNum(sum(colSums(counts %>% selec
               theme(axis.text.x = element_blank(), axis.ticks.x = element_blank())) 
 ```
 
-# Filter sample sequencing stats 
-
-## Inspect total # reads, set minimum for retaining samples 
-
-```{r}
-multiqc.stats <- read.delim(file="../results/fastqc/multiqc_data_trimmed-v2/multiqc_general_stats.txt", sep = "\t") 
-colnames(multiqc.stats) <- gsub("FastQC_mqc.generalstats.fastqc.", "", colnames(multiqc.stats)) 
-multiqc.stats <- multiqc.stats %>% 
-  mutate(total_unique = total_sequences*(100-percent_duplicates)/100) %>%
-  left_join(sample.info)
-```
-## Investigate possible correlations among # reads and prep stuff 
-
-# TO DO: Get library prep stats from facility, and any other possible factors from Chris 
-
-```{r}
-cor(multiqc.stats %>% mutate(Tank=as.numeric(Tank)) %>% dplyr::select_if(is.numeric), use="complete.obs") %>% corrplot::corrplot(tl.cex=.45)
-```
 
 ## OPTIONAL: FILTER WHOLE SAMPLES. RemovE whole samples from the data set here if needed  
 
@@ -105,9 +110,20 @@ cor(multiqc.stats %>% mutate(Tank=as.numeric(Tank)) %>% dplyr::select_if(is.nume
 ```
 
 
+## OPTIONAL: FILTER WHOLE SCAFFOLDS 
+
+This code provides the option to remove data that mapped to scaffolds 105+. This is possibly beneficial because I don't know whether or not those scaffolds are also included within scaffolds 1-104 (i.e. the chromosomes). 
+
+NOTE:  For exploration purposes I will NOT remove them, and will see if expressed data mapping to scaffolds 105+ have the exact same genes/counts as on chromosomes. 
+
+```{r}
+# counts <- counts %>% separate(Chr, into = c("X", "Y", "scaffold"), sep = "_", remove = F) %>%
+#   mutate(scaffold=as.integer(scaffold)) %>% filter(scaffold<=104) %>% dplyr::select(-X, -Y, -scaffold)
+```
+
 ### Remove extraneous gene info, then transpose dataframe so each row = a sample (aka "objects"), and each column = genes (aka "variables") 
 ```{r}
-str(counts) #columns #1-#5 contain extraneous gene info (chr, start, end, strand, length). 
+#str(counts) #columns #1-#5 contain extraneous gene info (chr, start, end, strand, length). 
 counts.t <- t(counts[,-1:-5]) #remove extraneous columns, transform data to have each sample a row, each column a gene 
 
 # # do the same for filtered datasets 
@@ -124,7 +140,7 @@ save(counts.t, file = "../results/gene-counts-trans")
 # NEED TO FIX THE STRING EXTRACT, ISSUE WITH VARIOUS ";" AFTER EACH ITEM IN "notes" 
 
 ```{r}
-# # Read in O. lurida gene file that connects OLUR gene ID to uniprot accession number 
+# # Read in file that connects OLUR gene ID to uniprot accession number 
 # P.plat.gff <- read_delim(file = "../references/EVM.out_new.gff3", delim = "\t", col_names = c("scaffold", "source", "feature", "start", "end", "unknown1", "strand", "unknown2", "notes")) %>%
 # # Split giant gene "Notes" column into separate columns 
 #   mutate(ID=str_extract(notes, "ID=(.*?);"),
@@ -137,3 +153,36 @@ save(counts.t, file = "../results/gene-counts-trans")
 # 
 # save(P.plat.gff, file = "../references/P.plat.genes")
 ```
+
+## Import Uniprot/Swissprot annotated blue king crab genes 
+
+blastx output format 6 is tab file with the following columns: 
+1. qaccver = Query accesion.version
+2. saccver = Subject accession.version
+3. pident = Percentage of identical matches
+4. length = Alignment length
+5. mismatch = Number of mismatches
+6. gapopen = Number of gap openings
+7. qstart = Start of alignment in query
+8. qend = End of alignment in query
+9. sstart =  Start of alignment in subject
+10. send = End of alignment in subject
+11. evalue =  Expect value
+12. bitscore = Bit score
+
+```{r}
+P.plat.blast <- read_delim(file = "../references/P.platypus.gene_blastx.tab", delim = "\t", col_names = c("qaccver", "saccver", "pident", "length", "mismatch", "gapopen", "qstart", "qend", "sstart", "send", "evalue", "bitscore")) %>% 
+  separate(qaccver, sep = ":", into = c("geneID","na","Chr", "range")) %>%
+  separate(range, sep="-", into=c("Start", "End")) %>% select(-na) %>%
+  mutate_at(vars(Start, End), as.numeric) %>%
+  separate(saccver, sep="\\|", into=c("na", "SPID", "gene.Uni"), remove = F) %>% 
+  select(-na) %>% separate(gene.Uni, sep="_", into=c("gene.Uni", "species"), remove=T) %>% 
+  group_by(geneID, Chr, Start, End) %>% slice(which.min(evalue))   # where multiple blast hits for same gene, select one with minimum e-value
+```
+```{r}
+counts.annot <- right_join(
+  P.plat.blast %>% select(geneID, Chr, Start, End, saccver, SPID, gene.Uni, evalue), 
+  counts %>% rownames_to_column(var = "geneID"), "geneID") %>% filter(!is.na(SPID))
+```
+
+
