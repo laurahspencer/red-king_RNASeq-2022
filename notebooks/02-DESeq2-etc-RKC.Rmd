@@ -355,195 +355,80 @@ pheatmap(diffex.ML.counts, cluster_cols = FALSE, cluster_rows=TRUE,
          annotation_col=dds.pH.df[colnames(diffex.ML.counts),"Treatment", drop=FALSE])
 ```
 
+# Enrichment analysis
 
-# Plot counts for DEGs across all populations 
-
-```{r}
-adult.p05.names <-rownames(diffex[order(diffex$padj),])
-count_plots = list()
-
-#plot FB DEGs to find any 
-for (i in 1:length(adult.p05.names)) {
-a <-  plotCounts(dds.DESeq, gene=adult.p05.names[i], intgroup=c("pCO2.parent"), returnData = TRUE)
-b <- ggplot(a %>% rownames_to_column("sample"),
-       aes(x=pCO2.parent, y=count, color=pCO2.parent, label=sample)) +
-  geom_point(position=position_jitter(w = 0.1,h = 0)) +
-    geom_text() +
-    theme_bw() +
-    ggtitle(adult.p05.names[i]) +
-    theme(plot.title = element_text(hjust = 0.5))
-count_plots[[i]] <- b
-}
-count_plots
-```
+Here I will do a quick enrichment analysis using the online tool DAVID. I copy the Uniprot SPIDs for the annotated DEGs and all annotated genes examined into the DAVID Functional Annotation Tools. I do so for each pairwise pH comparison. 
 
 ```{r}
-p <- plotPCA(vsd[adult.p05.names,], intgroup=c("pCO2.parent", "population"), returnData=T)
-
-p <- plotPCA(vsd, intgroup=c("pCO2.parent", "population"), returnData=T)
-ggplot(p, aes(x=PC1, y=PC2, group=pCO2.parent, colour=pCO2.parent, shape=population)) + geom_point(size=4, alpha=0.8) + 
-  theme_minimal() + stat_ellipse() + ggtitle(expression(paste("PCA of all gene counts in adults by cohort & ", pCO[2], " exposure"))) +
-  xlab("PC1: 14% variance") + ylab("PC2: 10% variance") +
-  scale_shape_discrete(name="Cohort") + scale_color_discrete(name=expression(paste(pCO[2], " exposure")))
-```
-
-# Enrichment analysis, DEGs among pCO2 across all populations 
-
-Enrichment Analysis! 
-
-```{r}
-# DEGs between pCO2 
-diffex %>% as.data.frame() %>% rownames_to_column("gene") %>% dplyr::select(gene, padj) %>% 
-  left_join(Olurida_gene_uniprot %>% dplyr::select(Name, SPID, Note), by = c("gene"="Name")) %>% 
+# DEGs between Ambient & Moderate (includes 733 annotated genes)
+diffex.AM %>% as.data.frame() %>% rownames_to_column("gene") %>% dplyr::select(gene, padj) %>% 
+  left_join(P.plat.blast.GO %>% dplyr::select(geneID, SPID, `Protein names`), by = c("gene"="geneID")) %>% 
   dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
 
-# All genes (background)
-res.pco2 %>% as.data.frame() %>% rownames_to_column("gene") %>% dplyr::select(gene, padj) %>% 
-  left_join(Olurida_gene_uniprot %>% dplyr::select(Name, SPID), by = c("gene"="Name")) %>% 
+
+# DEGs between Ambient & Low (includes 967 annotated genes)
+diffex.AL %>% as.data.frame() %>% rownames_to_column("gene") %>% dplyr::select(gene, padj) %>% 
+  left_join(P.plat.blast.GO %>% dplyr::select(geneID, SPID, `Protein names`), by = c("gene"="geneID")) %>% 
   dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
+
+
+# DEGs between Moderate & Low (includes just 2 annotated genes) <----- Neither of these were registered by DAVID 
+diffex.ML %>% as.data.frame() %>% rownames_to_column("gene") %>% dplyr::select(gene, padj) %>% 
+  left_join(P.plat.blast.GO %>% dplyr::select(geneID, SPID, `Protein names`), by = c("gene"="geneID")) %>% 
+  dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
+
+# All genes (background, includes 7,238 annotated genes)
+res.pco2.AM %>% as.data.frame() %>% rownames_to_column("gene") %>% dplyr::select(gene, padj) %>% 
+  left_join(P.plat.blast.GO %>% dplyr::select(geneID, SPID, `Protein names`), by = c("gene"="geneID")) %>%
+  dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
+
 ```
 
-| Term | Count | Fold Enrichment | FDR |
-|-|-|-|-|
-| GO:0055114~oxidation-reduction process | 16 | 7.798607888631091 | 8.243364733269016E-8 |
-| GO:0006805~xenobiotic metabolic process | 3 | 27.401086956521738 | 0.3923019577707598 |
-| GO:0098869~cellular oxidant detoxification | 3 | 21.007499999999997 | 0.3923019577707598 |
-| GO:0006749~glutathione metabolic process | 3 | 19.097727272727273 | 0.3923019577707598 |
-| GO:0097267~omega-hydroxylase P450 pathway | 2 | 140.05 | 0.3923019577707598 |
-| GO:0060315~negative regulation of ryanodine-sensitive calcium-release channel activity | 2 | 140.05 | 0.3923019577707598 |
-| GO:0060316~positive regulation of ryanodine-sensitive calcium-release channel activity | 2 | 140.05 | 0.3923019577707598 |
-| GO:0002489~antigen processing and presentation of endogenous peptide antigen via MHC class Ib via ER pathway, TAP-dependent | 2 | 105.0375 | 0.3923019577707598 |
-| GO:0002485~antigen processing and presentation of endogenous peptide antigen via MHC class I via ER pathway, TAP-dependent | 2 | 105.0375 | 0.3923019577707598 |
-| GO:0002591~positive regulation of antigen processing and presentation of peptide antigen via MHC class I | 2 | 105.0375 | 0.3923019577707598 |
-| GO:0002481~antigen processing and presentation of exogenous protein antigen via MHC class Ib, TAP-dependent | 2 | 105.0375 | 0.3923019577707598 |
-| GO:0055085~transmembrane transport | 5 | 4.752828054298643 | 0.3923019577707598 |
-| GO:0008202~steroid metabolic process | 3 | 13.700543478260869 | 0.3923019577707598 |
-| GO:0006869~lipid transport | 3 | 13.40904255319149 | 0.3923019577707598 |
-| GO:0006629~lipid metabolic process | 4 | 6.513953488372094 | 0.3923019577707598 |
-| GO:0071243~cellular response to arsenic-containing substance | 2 | 84.03 | 0.3923019577707598 |
-| GO:0010880~regulation of release of sequestered calcium ion into cytosol by sarcoplasmic reticulum | 2 | 84.03 | 0.3923019577707598 |
-| GO:0042178~xenobiotic catabolic process | 2 | 70.025 | 0.4202584895201619 |
-| GO:0019852~L-ascorbic acid metabolic process | 2 | 70.025 | 0.4202584895201619 |
-| GO:0009812~flavonoid metabolic process | 2 | 52.51875 | 0.5299315105884214 |
-| GO:0045909~positive regulation of vasodilation | 2 | 46.68333333333334 | 0.5665058796300599 |
-| GO:0042446~hormone biosynthetic process | 2 | 42.015 | 0.5734235070083432 |
-| GO:0045332~phospholipid translocation | 2 | 42.015 | 0.5734235070083432 |
-| GO:0042403~thyroid hormone metabolic process | 2 | 38.195454545454545 | 0.5997213086754268 |
-| GO:0008152~metabolic process | 4 | 4.617032967032967 | 0.5997213086754268 |
-| GO:0006091~generation of precursor metabolites and energy | 2 | 35.0125 | 0.605978858881677 |
-| GO:0006855~drug transmembrane transport | 2 | 32.31923076923077 | 0.6307442328553533 |
-| GO:0006810~transport | 6 | 2.7048283261802575 | 0.6309987973836262 |
-| GO:0008544~epidermis development | 2 | 30.010714285714286 | 0.6309987973836262 |
-| GO:0051923~sulfation | 2 | 28.01 | 0.6520696101522573 |
-| GO:0019373~epoxygenase P450 pathway | 2 | 24.714705882352945 | 0.711973967729552 |
-| GO:0055088~lipid homeostasis | 2 | 20.00714285714286 | 0.8188345087017934 |
-| GO:0019369~arachidonic acid metabolic process | 2 | 20.00714285714286 | 0.8188345087017934 |
 
-Read in GO terms 
+## DAVID Results 
+
+Enriched biological processes (and associated gene lists) are saved to GitHub: 
+-- Ambient pH vs. Moderate pH, [results/DAVID-Enriched-BP_Amb-Mod.txt](https://raw.githubusercontent.com/laurahspencer/red-king_RNASeq-2022/main/results/DAVID-Enriched-BP_Amb-Mod.txt)  
+-- Ambient pH vs. Moderate pH, [results/DAVID-Enriched-BP_Amb-Low.txt](https://raw.githubusercontent.com/laurahspencer/red-king_RNASeq-2022/main/results/DAVID-Enriched-BP_Amb-Low.txt)  
+-- Moderate pH vs. Low pH, NONE 
+
+Visualize with REVIGO - read in DAVID enrichment results, extract GO terms and PValues and copy to clipboard to paste into [REVIGO](http://revigo.irb.hr/)  
 
 ```{r}
-load(file="../references/GOslim")
+read_delim(file="../results/DAVID-Enriched-BP_Amb-Mod.txt", delim = "\t") %>% 
+  mutate(GO = str_extract(Term, "GO(.*?)~")) %>% 
+  mutate(GO = gsub("~", "", GO)) %>% dplyr::select(GO, PValue) %>% na.omit() %>% write_clip()
 
-# For REVIGO 
-read_delim(file="../results/Adult_allpops_DEGs_EnrichedBP.txt", delim = "\t") %>% 
+read_delim(file="../results/DAVID-Enriched-BP_Amb-Low.txt", delim = "\t") %>% 
   mutate(GO = str_extract(Term, "GO(.*?)~")) %>% 
   mutate(GO = gsub("~", "", GO)) %>% dplyr::select(GO, PValue) %>% na.omit() %>% write_clip()
 ```
 
-
-## Now do comparisons of genes by parental pCO2 within populations: 
-
+### How many GO terms are enriched? 
 ```{r}
-# Now add factor that defines interaction group 
-dds.DESeq$group <- factor(paste0(dds.DESeq$population, dds.DESeq$pCO2.parent))
-design(dds.DESeq) <- ~ group 
-dds.grp.DESeq <- DESeq(dds.DESeq)
-```
-# 
+# Between ambient and moderate pH 
+read_delim(file="../results/DAVID-Enriched-BP_Amb-Mod.txt", delim = "\t") %>% 
+  mutate(GO = str_extract(Term, "GO(.*?)~")) %>% 
+  mutate(GO = gsub("~", "", GO)) %>% nrow()
 
-```{r}
-# Check Cooks distances to see if one sample is consistently higher than others (i.e. has many outliers)
-par(mar=c(8,5,2,2))
-boxplot(log10(assays(dds.grp.DESeq)[["cooks"]]), range=0, las=2)
-# looks pretty good  
+# Between ambient and low pH 
+read_delim(file="../results/DAVID-Enriched-BP_Amb-Low.txt", delim = "\t") %>% 
+  mutate(GO = str_extract(Term, "GO(.*?)~")) %>% 
+  mutate(GO = gsub("~", "", GO)) %>% nrow()
 
-# plot dispersion estimates 
-plotDispEsts(dds.grp.DESeq) #looks like the example in the tutorial - not worried about dispersion
 ```
 
 
-## Extract differential expression results / comparisons among different factors 
 
-Create results objects, but summary of results are also shown
 
-NOTE: can only compare two treatments at a time
 
-```{r}
-# Here are all the possible contrasts I can make 
-levels(dds.grp.DESeq$group)
 
-print("Comparison: parental pCO2 - Fidalgo Bay")
-summary(res.FB <- results(dds.grp.DESeq, contrast=c("group", "Fidalgo BayHigh", "Fidalgo BayAmbient"), alpha=0.05))
 
-print("Comparison: parental pCO2 - Dabob Bay")
-summary(res.DB <- results(dds.grp.DESeq, contrast=c("group", "Dabob BayHigh", "Dabob BayAmbient"), alpha=0.05))
 
-print("Comparison: parental pCO2 - Oyster Bay Cohort 1")
-summary(res.OB1 <- results(dds.grp.DESeq, contrast=c("group", "Oyster Bay C1High", "Oyster Bay C1Ambient"), alpha=0.05))
-```
 
-## Count # of genes diff expressed  (p-value <0.05) in each comparison 
 
-```{r}
-paste("No. of genes differentially expressed (padj<0.05) by parental pCO2, Fidalgo Bay adult ctenidia:",  sum(res.FB$padj < 0.05, na.rm=TRUE))
-paste("No. of genes differentially expressed (padj<0.05) by parental pCO2, Dabob Bay adult ctenidia:",  sum(res.DB$padj < 0.05, na.rm=TRUE))
-paste("No. of genes differentially expressed (padj<0.05) by parental pCO2, Oyster Bay Cohort1 adult ctenidia:",  sum(res.OB1$padj < 0.05, na.rm=TRUE))
-```
 
-## Extract stats for significantly different genes for each comparison 
 
-```{r}
-diffex.FB <- subset(res.FB, padj < 0.05)
-diffex.DB <- subset(res.DB, padj < 0.05)
-diffex.OB1 <- subset(res.OB1, padj < 0.05)
-```
-
-## Extract counts for differentially expressed genes for each comparison 
-
-```{r}
-diffex.FB.counts <- subset(counts(dds.grp.DESeq), rownames(dds.grp.DESeq) %in% rownames(diffex.FB)) 
-diffex.FB.counts <- diffex.FB.counts[,subset(key.filtered, stage=="adult" & population=="Fidalgo Bay")$sample]
-
-diffex.DB.counts <- subset(counts(dds.grp.DESeq), rownames(dds.grp.DESeq) %in% rownames(diffex.DB))
-diffex.DB.counts <- diffex.DB.counts[,subset(key.filtered, stage=="adult" & population=="Dabob Bay")$sample]
-
-diffex.OB1.counts <- subset(counts(dds.grp.DESeq), rownames(dds.grp.DESeq) %in% rownames(diffex.OB1))
-diffex.OB1.counts <- diffex.OB1.counts[,subset(key.filtered, stage=="adult" & population=="Oyster Bay C1")$sample]
-```
-
-# generate heatmap with differentially expressed genes within FB 
-
-```{r}
-dds.df.FB <- as.data.frame(colData(dds)[colData(dds)$population=="Fidalgo Bay",c("population", "pCO2.parent")])
-dds.df.FB <- dds.df.FB[match(colnames(diffex.FB.counts), rownames(dds.df.FB)),]
-all(colnames(diffex.FB.counts) == rownames(dds.df.FB)) #double check that samples are still in same order 
-
-pheatmap(diffex.FB.counts, cluster_rows=T, show_rownames=FALSE, cluster_columns=T, na.rm=TRUE, 
-         scale="row", main = "(Adults) FB DEGs by direct pCO2 exposure, clustered", 
-         annotation_col=dds.df.FB[2], color=c("dodgerblue3", "goldenrod1"))
-```
-
-# generate heatmap with differentially expressed genes within DB
-
-```{r}
-dds.df.DB <- as.data.frame(colData(dds)[colData(dds)$population=="Dabob Bay",c("population", "pCO2.parent")])
-dds.df.DB <- dds.df.DB[match(colnames(diffex.DB.counts), rownames(dds.df.DB)),]
-all(colnames(diffex.DB.counts) == rownames(dds.df.DB)) #double check that samples are still in same order 
-
-pheatmap(diffex.DB.counts, cluster_rows=T, show_rownames=FALSE, cluster_columns=T, na.rm=TRUE, scale="row", 
-         main = "(Adults) DB DEGs by direct pCO2 exposure, clustered", annotation_col=dds.df.DB[2], 
-         color=c("dodgerblue3", "goldenrod1"))
-```
 
 ```{r}
 adult.FB.p05.names <-rownames(diffex.FB[order(diffex.FB$padj),])
@@ -579,70 +464,8 @@ count_plots[[i]] <- b
 count_plots
 ```
 
-## Genes that aren't convincing (aka only 1 or 2 samples had higher expression in a treatment): 
 
-### Fidalgo Bay
-- OLUR_00026074  
-- OLUR_00015132  
-- OLUR_00018477    
-- OLUR_00024224  
 
-### Dabob Bay 
-- OLUR_00004613  
-- OLUR_00013617  
-- OLUR_00021421  
-- OLUR_00020678
-- OLUR_00031169  
-- OLUR_00016878  
-- OLUR_00000822  
-- OLUR_00003610  
-- OLUR_00000097  
-- OLUR_00001769  
-- OLUR_00019562  
-- OLUR_00004194  
-
-# Plot single differentially expressed genes within OB1
-
-```{r}
-diffex.OB1.counts <- subset(counts(dds.grp.DESeq), rownames(dds.grp.DESeq) %in% rownames(diffex.OB1))
-#diffex.OB1.counts <- diffex.OB1.counts[,subset(key.filtered, stage=="adult" & population=="Oyster Bay C1")$sample]
-
-a <-  plotCounts(dds.DESeq, gene=rownames(diffex.OB1.counts), intgroup=c("pCO2.parent"), returnData = TRUE)
-ggplotly(ggplot(subset(a, population!="Oyster Bay C1") %>% rownames_to_column("sample") %>% drop_na(),
-       aes(x=pCO2.parent, y=count, color=pCO2.parent, label=sample)) +
-  geom_point(size=3, position=position_jitter(w = 0.2,h = 0)) +
-    #geom_text(size=3) +
-    theme_bw() +
-    ggtitle(rownames(diffex.OB1.counts)) +
-    theme(plot.title = element_text(hjust = 0.5, size = 12), axis.text.x = element_blank(),
-          axis.text.y = element_text(size=6),
-          axis.title = element_blank(), axis.ticks.x = element_blank(), legend.position = "none"))
-```
-
-# Heat map of any pCO2-related DEG (all pops, DB, and FB) combined, showing all 3 populations. 
-
-```{r}
-diffex.counts <- subset(counts(dds.DESeq), rownames(dds.DESeq) %in% unique(c(rownames(diffex), rownames(diffex.DB), rownames(diffex.FB))))
-diffex.counts <- diffex.counts[,subset(key.filtered, stage=="adult")$sample]
-dds.df <- as.data.frame(colData(dds)[,c("population", "pCO2.parent")])
-dds.df <- dds.df[match(colnames(diffex.counts), rownames(dds.df)),]
-all(colnames(diffex.counts) == rownames(dds.df)) #double check that samples are still in same order 
-
-pheatmap(diffex.counts[,rownames(dds.df %>% filter(population=="Dabob Bay"))], cluster_rows=T, cluster_cols = F,
-         show_rownames=FALSE, show_colnames = FALSE, na.rm=TRUE, 
-         scale="row", main = "(Adults) All DEGs by direct pCO2 exposure, Dabob Bay", 
-         annotation_col=dds.df[2])
-
-pheatmap(diffex.counts[,rownames(dds.df %>% filter(population=="Fidalgo Bay"))], cluster_rows=T, cluster_cols = F,
-         show_rownames=FALSE, show_colnames = FALSE, na.rm=TRUE, 
-         scale="row", main = "(Adults) All DEGs by direct pCO2 exposure, Fidalgo Bay", 
-         annotation_col=dds.df[2])
-
-pheatmap(diffex.counts[,rownames(dds.df %>% filter(population=="Oyster Bay C1"))], cluster_rows=T, cluster_cols = F,
-         show_rownames=FALSE, show_colnames = FALSE, na.rm=TRUE, 
-         scale="row", main = "(Adults) All DEGs by direct pCO2 exposure, Oyster Bay", 
-         annotation_col=dds.df[2])
-```
 
 
 ## Identify functions of DEGs 
