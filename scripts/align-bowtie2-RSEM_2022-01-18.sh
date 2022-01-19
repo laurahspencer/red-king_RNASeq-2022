@@ -4,11 +4,13 @@
 #SBATCH --output=/home/lspencer/2022-redking-OA/sbatch_logs/redking_Bowtie2-RSEM.txt
 #SBATCH --mail-user=laura.spencer@noaa.gov
 #SBATCH --mail-type=ALL
-#SBATCH -c 24
+#SBATCH -c 20
 #SBATCH -t 10-0:0:0
 
-module load bio/rsem/
+module load bio/rsem/1.3.3
 module load aligners/bowtie2/2.4.2
+source /home/lspencer/venv/bin/activate
+module load bio/samtools/1.11
 
 BASE=/scratch/lspencer/2022-redking-OA
 REF=/home/lspencer/references/bluekingcrab
@@ -22,7 +24,7 @@ SAMPLES=$(ls ${IN}/*.trimmed.R1.v2.fastq.gz | \
 rsem-prepare-reference \
 --gff3 ${REF}/EVM.out_new.gff3 \
 	--bowtie2 \
-	-p 24 \
+	-p 20 \
 	${REF}/Paralithodes_platypus_genome.fasta \
 	${REF}/P.plat_rsem_ref \
 	&> ${REF}/prep_rsem_ref.log
@@ -36,7 +38,7 @@ do
 	echo ${SAMPLE}
 	rsem-calculate-expression \
     	--bowtie2 \
-    	-p 24 \
+    	-p 20 \
     	--paired-end \
     	--calc-pme \
     	--calc-ci \

@@ -96,17 +96,21 @@ print(paste("Total counts, all samples:", prettyNum(sum(colSums(counts %>% selec
 ```
 
 
-## OPTIONAL: FILTER WHOLE SAMPLES. RemovE whole samples from the data set here if needed  
+## OPTIONAL: FILTER WHOLE SAMPLES. 
+Remove whole samples from the data set and sample info here if needed
+
+January 19th, 2022:  Removing sample "Tank_7_Crab_4", which is an outlier in the PCAs and heat maps 
 
 ```{r}
 # remove.list <- c("Undetermined", (multiqc.stats %>% filter(pcr.cycles>17))$Sample) 
-# counts.filtered <- counts[ , -which(names(counts) %in% remove.list)] %>% mutate_at(vars(starts_with("feature")), as.character)
-# ncol(counts.filtered)
-# key.filtered <- key[ -which(key$sample %in% remove.list), ]
-# nrow(key.filtered)
-# nrow(key.filtered) == ncol(counts.filtered) #should = TRUE.
-# save(key.filtered, file="../raw-data/key.filtered") #save key object. IMPORTANT: this needs to be done here AFTER filtering out whole samples 
-#save(counts.filtered, file = "../results/gene-counts-filtered")
+remove.list <- c("Tank_7_Crab_4") 
+counts <- counts[ , -which(names(counts) %in% remove.list)]
+sample.info <- sample.info[ -which(sample.info$Sample %in% remove.list), ]
+
+# resave sample info object
+save(sample.info, file="../data/sample.info")
+
+nrow(sample.info) == ncol(counts)-5 #should = TRUE.
 ```
 
 
@@ -125,9 +129,6 @@ NOTE:  For exploration purposes I will NOT remove them, and will see if expresse
 ```{r}
 #str(counts) #columns #1-#5 contain extraneous gene info (chr, start, end, strand, length). 
 counts.t <- t(counts[,-1:-5]) #remove extraneous columns, transform data to have each sample a row, each column a gene 
-
-# # do the same for filtered datasets 
-# counts.t <- t(counts.filtered[,-1:-5]) #transform data to have each sample a row, each column a gene 
 ```
 
 ### Save counts file, and transformed counts file 
