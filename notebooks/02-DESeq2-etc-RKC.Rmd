@@ -27,7 +27,7 @@ lapply(list.of.packages, FUN = function(X) {
 if (!requireNamespace("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
 
-BiocManager::install("DESeq2")
+#BiocManager::install("DESeq2")
 require(DESeq2)
 ```
 
@@ -353,7 +353,7 @@ pheatmap(diffex.ML.counts, cluster_cols = FALSE, cluster_rows=TRUE,
 
 Here I will do a quick enrichment analysis using the online tool DAVID. I copy the Uniprot SPIDs for the annotated DEGs and all annotated genes examined into the DAVID Functional Annotation Tools. I do so for each pairwise pH comparison. 
 
-```{r}
+```{r, eval=FALSE}
 # DEGs between Ambient & Moderate (includes 733 annotated genes, when outlier removed it's 344)
 diffex.AM %>% as.data.frame() %>% rownames_to_column("gene") %>% dplyr::select(gene, padj) %>% 
   left_join(P.plat.blast.GO %>% dplyr::select(geneID, SPID, `Protein names`), by = c("gene"="geneID")) %>% 
@@ -394,7 +394,7 @@ Updated Enriched biological processes with outlier sample removed (Tank 7 Crab 4
 
 Visualize with REVIGO - read in DAVID enrichment results, extract GO terms and PValues and copy to clipboard to paste into [REVIGO](http://revigo.irb.hr/)  
 
-```{r}
+```{r, eval=FALSE}
 # With all samples 
 read_delim(file="../results/DAVID-Enriched-BP_Amb-Mod.txt", delim = "\t") %>% 
   mutate(GO = str_extract(Term, "GO(.*?)~")) %>% 
@@ -408,36 +408,12 @@ read_delim(file="../results/DAVID-Enriched-BP_Amb-Low.txt", delim = "\t") %>%
 # Between ambient and moderate pH 
 read_delim(file="../results/DAVID-Enriched-BP_Amb-Mod_no-outlier-T7C4.txt", delim = "\t") %>% 
   mutate(GO = str_extract(Term, "GO(.*?)~")) %>% 
-  mutate(GO = gsub("~", "", GO))
+  mutate(GO = gsub("~", "", GO)) %>% dplyr::select(GO, PValue) %>% na.omit() %>% write_clip()
 
 # Between ambient and low pH 
 read_delim(file="../results/DAVID-Enriched-BP_Amb-Low_no-outlier-T7C4.txt", delim = "\t") %>% 
   mutate(GO = str_extract(Term, "GO(.*?)~")) %>% 
-  mutate(GO = gsub("~", "", GO)) %>% select(Term, Count) %>% write_clip()
+  mutate(GO = gsub("~", "", GO)) %>% dplyr::select(GO, PValue) %>% na.omit() %>% write_clip()
 ```
 
-### How many GO terms are enriched? 
-```{r}
-# Between ambient and moderate pH 
-read_delim(file="../results/DAVID-Enriched-BP_Amb-Mod.txt", delim = "\t") %>% 
-  mutate(GO = str_extract(Term, "GO(.*?)~")) %>% 
-  mutate(GO = gsub("~", "", GO)) %>% select(Term, Count) %>% write_clip()
 
-# Between ambient and low pH 
-read_delim(file="../results/DAVID-Enriched-BP_Amb-Low.txt", delim = "\t") %>% 
-  mutate(GO = str_extract(Term, "GO(.*?)~")) %>% 
-  mutate(GO = gsub("~", "", GO)) %>% select(Term, Count) %>% write_clip()
-```
-### Enriched functions when outliers are removed 
-
-```{r}
-# Between ambient and moderate pH 
-read_delim(file="../results/DAVID-Enriched-BP_Amb-Mod_no-outlier-T7C4.txt", delim = "\t") %>% 
-  mutate(GO = str_extract(Term, "GO(.*?)~")) %>% 
-  mutate(GO = gsub("~", "", GO))
-
-# Between ambient and low pH 
-read_delim(file="../results/DAVID-Enriched-BP_Amb-Low_no-outlier-T7C4.txt", delim = "\t") %>% 
-  mutate(GO = str_extract(Term, "GO(.*?)~")) %>% 
-  mutate(GO = gsub("~", "", GO)) %>% select(Term, Count) %>% write_clip()
-```
