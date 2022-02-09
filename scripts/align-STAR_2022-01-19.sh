@@ -20,7 +20,6 @@ OUT=${BASE}/aligned/star
 # specify path to save STAR genome directory. Must already exist, --genomeDir
 # specify path to genome, --genomeFastaFiles
 # specify path to annotation file, --sjdbGTFfile
-# specify that my annotation file is GFF3, --sjdbGTFtagExonParentTranscript Parent
 # specify length of the genomic sequence around the annotated junction to be used in constructing the splice junctions database.
 #    Ideally, this length should be equal to the ReadLength-1, where ReadLength is the length of the reads.
 #    My reads are 100bp, so I'll use 99 (Default is 100). --sjdbOverhang 99
@@ -28,10 +27,9 @@ OUT=${BASE}/aligned/star
 STAR \
 --runThreadN 20 \
 --runMode genomeGenerate \
---genomeDir ${REF} \
+--genomeDir ${REF}/STAR/ \
 --genomeFastaFiles ${REF}/Paralithodes_platypus_genome.fasta \
---sjdbGTFfile ${REF}/EVM.out_new.gff3 \
---sjdbGTFtagExonParentTranscript Parent \
+--sjdbGTFfile ${REF}/EVM.out_new.gtf \
 --sjdbOverhang 99 \
 done
 
@@ -50,9 +48,10 @@ do
 echo "Started mapping ${sample}"
 STAR \
 --runThreadN 20 \
---genomeDir ${REF} \
+--genomeDir ${REF}/STAR/ \
 --readFilesIn ${IN}/${sample}.trimmed.R1.v2.fastq.gz ${IN}/${sample}.trimmed.R2.v2.fastq.gz \
 --readFilesCommand gunzip -c \
+--outFilterMultimapNmax 50 \
 --outFileNamePrefix ${OUT}/${sample}. \
 --outSAMtype BAM SortedByCoordinate \
 --quantMode GeneCounts \
