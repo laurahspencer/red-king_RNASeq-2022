@@ -1,5 +1,5 @@
 ---
-title: "01-Importing-data-RKC"
+title: "01-Importing-data-Bowtie2"
 author: "Laura H Spencer"
 date: "01/09/2022"
 output: html_document
@@ -68,13 +68,23 @@ cor(multiqc.stats %>% mutate(Tank=as.numeric(Tank)) %>% dplyr::select_if(is.nume
 ### Import counts matrix file as dataframe, extract sample # from file/column names to simplify them 
 
 ```{r}
-counts <- data.frame(read.table("../results/featureCounts/featurecounts_redking_gene-v1", header = T, stringsAsFactors = F, fill = FALSE))
+# counts <- data.frame(read.table("../results/featureCounts/featurecounts_redking_gene-v3", header = T, stringsAsFactors = F, fill = FALSE))
+# counts <- counts %>%  column_to_rownames(var="Geneid")
+# counts <- counts %>% rename_all(~as.character(str_sub(colnames(counts)) %>%
+#                              gsub("X.scratch.lspencer.2022.redking.OA.aligned.bowtie.sorted.deduped.", "", .) %>%
+#                              gsub(".sorted.bam", "", .)))
+# 
+# save(counts, file = "../results/gene-counts-v2") #save R object with all gene counts
+
+# FOR v6 ONLY: (DIFFERENT FILE NAMES)
+counts <- data.frame(read.table("../results/featureCounts/featurecounts_redking_gene-v6", header = T, stringsAsFactors = F, fill = FALSE))
 counts <- counts %>%  column_to_rownames(var="Geneid")
-counts <- counts %>% rename_all(~as.character(str_sub(colnames(counts)) %>% 
-                             gsub("X.scratch.lspencer.2022.redking.OA.aligned.bowtie.sorted.deduped.", "", .) %>% 
+counts <- counts %>% rename_all(~as.character(str_sub(colnames(counts)) %>%
+                             gsub("X.scratch.lspencer.2022.redking.OA.aligned.bowtie2.sorted.", "", .) %>%
                              gsub(".sorted.bam", "", .)))
 
-save(counts, file = "../results/gene-counts-v2") #save R object with all gene counts 
+save(counts, file = "../results/gene-counts-v2") #save R object with all gene counts
+
 ```
 
 ### Summarize counts and visualize (remove last column - that's undetermined counts)
@@ -97,22 +107,20 @@ print(paste("Total counts, all samples:", prettyNum(sum(colSums(counts %>% selec
 
 
 ## OPTIONAL: FILTER WHOLE SAMPLES. 
+
+## DECISION FEBRUARY 9TH, 2022: Removing sample "Tank_7_Crab_4", which is an outlier in the PCAs and heat maps 
 Remove whole samples from the data set and sample info here if needed
 
-January 19th, 2022:  Removing sample "Tank_7_Crab_4", which is an outlier in the PCAs and heat maps 
-
 ```{r}
-# remove.list <- c("Undetermined", (multiqc.stats %>% filter(pcr.cycles>17))$Sample) 
-remove.list <- c("Tank_7_Crab_4") 
+remove.list <- c("Tank_7_Crab_4")
 counts <- counts[ , -which(names(counts) %in% remove.list)]
 sample.info <- sample.info[ -which(sample.info$Sample %in% remove.list), ]
 
 # resave sample info object
 save(sample.info, file="../data/sample.info")
 
-nrow(sample.info) == ncol(counts)-5 #should = TRUE.
+nrow(sample.info) == ncol(counts)-5 #should = TRUE
 ```
-
 
 ## OPTIONAL: FILTER WHOLE SCAFFOLDS 
 
@@ -120,15 +128,45 @@ This code provides the option to remove data that mapped to scaffolds 105+. This
 
 NOTE:  For exploration purposes I will NOT remove them, and will see if expressed data mapping to scaffolds 105+ have the exact same genes/counts as on chromosomes. 
 
+After preliminary examination of blast results (by looking at genes, lengths, and counts) it's difficult to tell whether the scaffolds 105+ are subsets of the chromosomes 1-104. For now I will retain scaffolds 105+. 
+
+
 ```{r}
 # counts <- counts %>% separate(Chr, into = c("X", "Y", "scaffold"), sep = "_", remove = F) %>%
 #   mutate(scaffold=as.integer(scaffold)) %>% filter(scaffold<=104) %>% dplyr::select(-X, -Y, -scaffold)
 ```
 
+## Optional: FILTER GENES THAT ARE OUTLIERS IN OUTLIER SAMPLE (TANK_7_CRAB_4)  
+
+## DECISION FEBRUARY 9TH, 2022: DO NOT REMOVE INDIVIDUAL GENES, INSTEAD REMOVE OUTLIER SAMPLE (ABOVE)
+
+The sample Tank 7 Crab 4 is weird, and has outlier counts in many genes. I identified them in my Outlier notebook, so here I will remove them from the count matrix. 
+
+NOTE: you cannot simply replace counts for some samples with NA. DESeq2 doesn't accept those. 
+
+```{r}
+# counts <- counts[-which(rownames(counts) %in% outliers),]
+```
+
 ### Remove extraneous gene info, then transpose dataframe so each row = a sample (aka "objects"), and each column = genes (aka "variables") 
 ```{r}
 #str(counts) #columns #1-#5 contain extraneous gene info (chr, start, end, strand, length). 
-counts.t <- t(counts[,-1:-5]) #remove extraneous columns, transform data to have each sample a row, each column a gene 
+counts.t <- as.data.frame(t(counts[,-1:-5])) #remove extraneous columns, transform data to have each sample a row, each column a gene 
+```
+
+## Optional 
+
+### Pre-filtering - remove low-frequency genes 
+
+NOTE: Should i do this? DESeq2 throws out low-frequency genes anyway, BUT other folks do pre-filter. For example in https://doi.org/10.1186/s12864-017-4392-0 "Genes with mean count less than ten across all samples were removed."
+
+```{r}
+# keep <- colSums(counts.t, na.rm=TRUE) >= 10 #use sum
+# keep <- colMeans(counts.t, na.rm=TRUE) >= 10 #use mean
+# counts.ts <- counts.t[,keep]
+# 
+# print(paste("# genes remaining after pre-filtering:", ncol(counts.ts)))
+# print(paste("# of genes dropped:", ncol(counts.t) - ncol(counts.ts), sep=" "))
 ```
 
 ### Save counts file, and transformed counts file 
@@ -137,23 +175,56 @@ save(counts, file = "../results/gene-counts")
 save(counts.t, file = "../results/gene-counts-trans")
 ```
 
-### Import gene feature file to get gene ID info for GO enrichment analysis, etc. 
-# NEED TO FIX THE STRING EXTRACT, ISSUE WITH VARIOUS ";" AFTER EACH ITEM IN "notes" 
+## Import Blue king crab Best Blast results 
+
+Description of columns: 
+```
+ ID                 Sequence ID from the reference
+ BlastType     BestBlast Hit, basically did the hit originate from the nr (X) or nt (N) database
+ SeqLength   Length of the sequence being blasted  
+ HitAcc          Accession number of the hit
+ HitDesc        Description of the hit
+ Score           Score of the alignment between the query and hit
+ E.Value        E-Value of the alignment between the query and hit
+ PercentIdent  The percent identity of the alignment (how well did they match)
+ QueryStart    The base pair point were the alignment starts for the query
+ QueryEnd      The base pair point were the alignment ends for the query
+ HitStart       The base pair point were the alignment starts for the hit
+ HitEnd        The base pair point were the alignment ends for the hit
+```
+
+I believe the accession numbers are the GenBank Accessions. 
+Mutate "id" slightly - the gene IDs have different strings in the blast results (contains the string "model") and the counts file (contains the string "TU").
+Mutate "pecent_ident" to create new column with numeric proportion
 
 ```{r}
-# # Read in file that connects OLUR gene ID to uniprot accession number 
-# P.plat.gff <- read_delim(file = "../references/EVM.out_new.gff3", delim = "\t", col_names = c("scaffold", "source", "feature", "start", "end", "unknown1", "strand", "unknown2", "notes")) %>%
-# # Split giant gene "Notes" column into separate columns 
-#   mutate(ID=str_extract(notes, "ID=(.*?);"),
-#        Parent=str_extract(notes, "Parent=(.*?)"), 
-#   Name=str_extract(notes, "Name=(.*?)")) %>% 
-#   
-#   #remove extraneous info from gene ID
-#   mutate(ID=str_remove(ID, "ID=")) %>% mutate(ID=str_remove(ID, ";")) %>% 
-#   mutate(Parent=str_remove(Parent, "Parent=")) %>% mutate(Parent=str_remove(Parent, ";"))
-# 
-# save(P.plat.gff, file = "../references/P.plat.genes")
+P.plat.blast <- read_delim(file = "../references/bestblast.bkc_ref.tab", delim = "\t") %>% clean_names() %>% 
+  mutate(id=gsub("model", "TU", id)) %>%
+  separate(percent_ident, sep=" ", into=c("ratio", "percent_ident.num"), remove = F) %>% 
+  mutate(percent_ident.num=gsub("\\(", "", percent_ident.num)) %>% mutate(percent_ident.num=gsub("\\%)", "", percent_ident.num)) %>% 
+  mutate(percent_ident.num=as.numeric(percent_ident.num)/100) %>%
+  mutate_at(vars(blast_type), as.factor) %>%
+  select(-ratio)
+View(P.plat.blast)
+
+# How many genes have hits with various e-values? 
+paste("Total number of genes = ", P.plat.blast %>% nrow())
+paste("Proportion of annotated genes with e-value < 1e-20 = ", (P.plat.blast %>% filter(e_value<1e-20) %>% nrow())/(P.plat.blast %>% nrow()))
+paste("Proportion of annotated genes with e-value < 1e-10 = ", (P.plat.blast %>% filter(e_value<1e-10) %>% nrow())/(P.plat.blast %>% nrow()))
+paste("Proportion of annotated genes with e-value < 1e-5 = ", (P.plat.blast %>% filter(e_value<1e-5) %>% nrow())/(P.plat.blast %>% nrow()))
 ```
+## Annotate gene counts dataframe 
+
+```{r}
+counts.annot <- right_join(P.plat.blast %>% select(id, blast_type, hit_acc, hit_desc, e_value, percent_ident.num),
+                           counts %>% rownames_to_column(var = "id"), "id")
+write.csv(counts.annot, file = "../results/counts.annotated.csv", row.names = F, quote = F)
+```
+
+
+# BONEYARD 
+
+The below gene annotations were generated by Laura Spencer using blast with the Uniprot/Swissprot database. It is no longer needed, as Giles provided annotations using his Best Blast protocol
 
 ## Import Uniprot/Swissprot annotated blue king crab genes 
 
@@ -172,12 +243,12 @@ blastx output format 6 is tab file with the following columns:
 12. bitscore = Bit score
 
 ```{r}
-P.plat.blast <- read_delim(file = "../references/P.platypus.gene_blastx.tab", delim = "\t", col_names = c("qaccver", "saccver", "pident", "length", "mismatch", "gapopen", "qstart", "qend", "sstart", "send", "evalue", "bitscore")) %>% 
+P.plat.blast <- read_delim(file = "../references/P.platypus.gene_blastx.tab", delim = "\t", col_names = c("qaccver", "saccver", "pident", "length", "mismatch", "gapopen", "qstart", "qend", "sstart", "send", "evalue", "bitscore")) %>%
   separate(qaccver, sep = ":", into = c("geneID","na","Chr", "range")) %>%
   separate(range, sep="-", into=c("Start", "End")) %>% select(-na) %>%
   mutate_at(vars(Start, End), as.numeric) %>%
-  separate(saccver, sep="\\|", into=c("na", "SPID", "gene.Uni"), remove = F) %>% 
-  select(-na) %>% separate(gene.Uni, sep="_", into=c("gene.Uni", "species"), remove=T) %>% 
+  separate(saccver, sep="\\|", into=c("na", "SPID", "gene.Uni"), remove = F) %>%
+  select(-na) %>% separate(gene.Uni, sep="_", into=c("gene.Uni", "species"), remove=T) %>%
   group_by(geneID, Chr, Start, End) %>% slice(which.min(evalue))   # where multiple blast hits for same gene, select one with minimum e-value
 
 write.table(P.plat.blast, file = "../references/P.platypus.gene_blastx_split.tab",quote = F, sep = "\t")
@@ -190,13 +261,12 @@ P.plat.blast.GO <- left_join(P.plat.blast, read_delim(file = "../references/P.pl
                              by = c("SPID"="Entry")) %>% ungroup()
 ```
 
+## Save DEG lists identified using Bowtie2 aligned data 
 
 ```{r}
-counts.annot <- right_join(
-  P.plat.blast %>% select(geneID, Chr, Start, End, saccver, SPID, gene.Uni, evalue), 
-  counts %>% rownames_to_column(var = "geneID"), "geneID") %>% filter(!is.na(SPID))
-write.csv(counts.annot, file = "../results/counts.annotated.csv", row.names = F, quote = F)
-View(counts.annot)
+res.pco2.Bowtie <- res.pco2.AM # save list of all genes in DESeq2 analysis regardless of p-value
+res.pco2.AM.Bowtie <- subset(res.pco2.AM, padj < 0.05)
+res.pco2.AL.Bowtie <- subset(res.pco2.AL, padj < 0.05)
+res.pco2.ML.Bowtie <- subset(res.pco2.ML, padj < 0.05)
 ```
-
 
