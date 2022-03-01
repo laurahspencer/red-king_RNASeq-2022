@@ -1,0 +1,445 @@
+---
+title: "02b-Outlier-tests"
+author: "Laura H Spencer"
+date: "1/29/2022"
+output: html_document
+---
+
+### Load libraries and source scripts 
+
+```{r, message=FALSE, warning=FALSE, results=FALSE}
+source("../references/biostats.R")
+
+list.of.packages <- c("DESeq2", "RCurl", "tidyverse", "vegan", "pheatmap", "pastecs", "factoextra", "FactoMineR", "RColorBrewer", "tibble", "reshape2", "plotly", "corrplot", "PerformanceAnalytics", "cowplot", "here", "janitor", "clipr", "ggpubr", "forcats") #add new libraries here 
+new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+if(length(new.packages)) install.packages(new.packages)
+
+# Load all libraries 
+lapply(list.of.packages, FUN = function(X) {
+  do.call("require", list(X)) 
+})
+
+# Need these packages for SNP assessment 
+# if (!requireNamespace("BiocManager", quietly=TRUE))
+#     install.packages("BiocManager")
+# BiocManager::install("gdsfmt")
+# BiocManager::install("SNPRelate")
+```
+
+
+### Import sample info, library/file names, and then join 
+
+```{r}
+library.stats <- read.csv("../data/library-prep-stats.csv", header=T) %>% clean_names %>%
+  mutate_at(vars(tank, p_h, batch, date_extracted), as.factor)
+
+sample.info <- read.csv("../data/RCK-exp-design.csv", header=T, na.strings = NA) %>%
+          mutate_at(vars(Tank, Treatment, Treatment_Tank), as.factor) %>%
+  left_join( ., library.stats, by=c("Sample"="tank_crab"))
+```
+
+### Import counts matrix file as dataframe, extract sample # from file/column names to simplify them 
+
+```{r}
+# FOR v6 ONLY: (DIFFERENT FILE NAMES)
+# counts <- data.frame(read.table("../results/featureCounts/featurecounts_redking_gene-v6", header = T, stringsAsFactors = F, fill = FALSE))
+# counts <- counts %>%  column_to_rownames(var="Geneid")
+# counts <- counts %>% rename_all(~as.character(str_sub(colnames(counts)) %>% 
+#                              gsub("X.scratch.lspencer.2022.redking.OA.aligned.bowtie2.sorted.", "", .) %>% 
+#                              gsub(".sorted.bam", "", .)))
+```
+
+### Summarize counts and visualize (remove last column - that's undetermined counts)
+
+```{r}
+LOO.res <- setNames(data.frame(matrix(ncol = 8, nrow = 0)), c("counts.total", "genes.total", "genes.ave", "genes.dropped", "genes.remain", "diff.AmbMod", "diff.AmbLow", "Diff.ModLow"))
+LOO.PCA <- list()
+
+for (i in 1:nrow(sample.info)) {
+
+sample.info <- read.csv("../data/RCK-exp-design.csv", header=T, na.strings = NA) %>%
+          mutate_at(vars(Tank, Treatment, Treatment_Tank), as.factor)
+
+counts <- data.frame(read.table("../results/featureCounts/featurecounts_redking_gene-v1", header = T, stringsAsFactors = F, fill = FALSE))
+counts <- counts %>%  column_to_rownames(var="Geneid")
+counts <- counts %>% rename_all(~as.character(str_sub(colnames(counts)) %>%
+                             gsub("X.scratch.lspencer.2022.redking.OA.aligned.bowtie.sorted.deduped.", "", .) %>%
+                             gsub(".sorted.bam", "", .)))
+
+## FILTER WHOLE SAMPLES. 
+remove.list <- sample.info$Sample[i]
+counts <- counts[ , -which(names(counts) %in% remove.list)]
+sample.info <- sample.info[ -which(sample.info$Sample %in% remove.list), ]
+
+### Remove extraneous gene info, then transpose dataframe so each row = a sample (aka "objects"), and each column = genes (aka "variables") 
+counts.t <- t(counts[,-1:-5]) #remove extraneous columns, transform data to have each sample a row, each column a gene 
+
+keep <- colSums(counts.t) >= 10
+counts.ts <- counts.t[,keep]
+
+# merge count data with sample key, reset row names as sample names, and arrange by infection, then temperature, then day 
+counts.tk <- merge(x=sample.info[,c("Sample", "Tank", "Treatment", "Treatment_Tank")], by.x="Sample", y=counts.ts, by.y="row.names") %>% 
+  arrange(Treatment, Tank)  %>% column_to_rownames(var="Sample") %>% droplevels()
+
+# Run DESeq2 analysis
+dds.pH <- DESeqDataSetFromMatrix(countData = counts.tk[,grepl("evm", colnames(counts.tk))] %>% t(),
+                              colData = counts.tk[,"Treatment", drop=FALSE] ,
+                              design = ~ Treatment)
+vsd.pH <- varianceStabilizingTransformation(dds.pH, blind=FALSE)
+dds.DESeq.pH <- DESeq(dds.pH) 
+
+res.pco2.AM <- results(dds.DESeq.pH, contrast=c("Treatment", "Ambient", "Moderate"), alpha=0.05)
+res.pco2.AL <- results(dds.DESeq.pH, contrast=c("Treatment", "Ambient", "Low"), alpha=0.05)
+res.pco2.ML <- results(dds.DESeq.pH, contrast=c("Treatment", "Moderate", "Low"), alpha=0.05)
+
+
+LOO.res[i,1] <- sum(colSums(counts %>% select(contains("Tank"))))
+LOO.res[i,2] <- nrow(counts)
+LOO.res[i,3] <- mean(colSums(counts %>% select(contains("Tank")) != 0))
+LOO.res[i,4] <- ncol(counts.t) - ncol(counts.ts)
+LOO.res[i,5] <- ncol(counts.ts)
+LOO.res[i,6] <- sum(res.pco2.AM$padj < 0.05, na.rm=TRUE)
+LOO.res[i,7] <- sum(res.pco2.AL$padj < 0.05, na.rm=TRUE)
+LOO.res[i,8] <- sum(res.pco2.ML$padj < 0.05, na.rm=TRUE)
+
+p <- ggplotly(
+  plotPCA(vsd.pH, intgroup="Treatment") + 
+           ggtitle("PCA by Treatment (var-stabilizing transformed)") + 
+    geom_point(size=3, aes(text=colnames(vsd.pH))) + 
+    theme_minimal()+ stat_ellipse(), tooltip = "text")
+LOO.PCA[[i]] <- p
+}
+LOO.PCA
+
+LOO.res[,9] <- sample.info$Sample
+LOO.res <- LOO.res %>% left_join(sample.info[c("Sample", "Treatment")], by=c("V9"="Sample"))
+
+LOO.stats <- list()
+for (i in 1:8) {
+  p <-  ggplotly(ggplot(data = LOO.res) +
+           geom_bar(aes_string(x=noquote(names(LOO.res)[9]), 
+                               y=noquote(names(LOO.res)[i]),
+                               fill=noquote(names(LOO.res)[10]),
+                               text=noquote(names(LOO.res)[9])), stat = "identity") + 
+    ggtitle(colnames(LOO.res)[i]) + 
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)), 
+    tooltip = "text")
+LOO.stats[[i]] <- p  
+}
+LOO.stats
+
+#LOO.res[c(colnames(LOO.res[i]))]
+
+LOO.res %>% write_clip()
+```
+
+
+
+```{r}
+sample.info$Sample
+```
+## Inspect DEGs dropped when Tank 7 Crab 4 is removed. 
+
+```{r}
+sample.info <- read.csv("../data/RCK-exp-design.csv", header=T, na.strings = NA) %>%
+          mutate_at(vars(Tank, Treatment, Treatment_Tank), as.factor)
+counts <- data.frame(read.table("../results/featureCounts/featurecounts_redking_gene-v1", header = T, stringsAsFactors = F, fill = FALSE))
+counts <- counts %>%  column_to_rownames(var="Geneid")
+counts <- counts %>% rename_all(~as.character(str_sub(colnames(counts)) %>%
+                             gsub("X.scratch.lspencer.2022.redking.OA.aligned.bowtie.sorted.deduped.", "", .) %>%
+                             gsub(".sorted.bam", "", .)))
+
+
+# Generate DEG list with no samples removed 
+
+### Remove extraneous gene info, then transpose dataframe so each row = a sample (aka "objects"), and each column = genes (aka "variables") 
+counts.t <- t(counts[,-1:-5]) #remove extraneous columns, transform data to have each sample a row, each column a gene 
+
+keep <- colSums(counts.t) >= 10
+counts.ts <- counts.t[,keep]
+
+# merge count data with sample key, reset row names as sample names, and arrange by infection, then temperature, then day 
+counts.tk <- merge(x=sample.info[,c("Sample", "Tank", "Treatment", "Treatment_Tank")], by.x="Sample", y=counts.ts, by.y="row.names") %>% 
+  arrange(Treatment, Tank)  %>% column_to_rownames(var="Sample") %>% droplevels()
+
+# Run DESeq2 analysis
+dds.pH <- DESeqDataSetFromMatrix(countData = counts.tk[,grepl("evm", colnames(counts.tk))] %>% t(),
+                              colData = counts.tk[,"Treatment", drop=FALSE] ,
+                              design = ~ Treatment)
+
+#vsd.pH <- varianceStabilizingTransformation(dds.pH, blind=FALSE)
+dds.DESeq.pH <- DESeq(dds.pH) 
+
+res.pco2.AM <- results(dds.DESeq.pH, contrast=c("Treatment", "Ambient", "Moderate"), alpha=0.05)
+res.pco2.AL <- results(dds.DESeq.pH, contrast=c("Treatment", "Ambient", "Low"), alpha=0.05)
+res.pco2.ML <- results(dds.DESeq.pH, contrast=c("Treatment", "Moderate", "Low"), alpha=0.05)
+
+# =======================================
+# Not re-do that with Tank7.Crab4 removed 
+
+## FILTER WHOLE SAMPLES. 
+remove.list <- "Tank_7_Crab_4"
+counts.noout <- counts[ , -which(names(counts) %in% remove.list)]
+sample.info.noout <- sample.info[ -which(sample.info$Sample %in% remove.list), ]
+
+# Remove extraneous gene info, then transpose dataframe so each row = a sample (aka "objects"), and each column = genes (aka "variables") 
+counts.t.noout <- t(counts[,-1:-5]) #remove extraneous columns, transform data to have each sample a row, each column a gene 
+
+keep.noout <- colSums(counts.t.noout) >= 10
+counts.ts.noout <- counts.t.noout[,keep.noout]
+
+# merge count data with sample key, reset row names as sample names, and arrange by infection, then temperature, then day 
+counts.tk.noout <- merge(x=sample.info.noout[,c("Sample", "Tank", "Treatment", "Treatment_Tank")], by.x="Sample", y=counts.ts.noout, by.y="row.names") %>% 
+  arrange(Treatment, Tank)  %>% column_to_rownames(var="Sample") %>% droplevels()
+
+# Run DESeq2 analysis
+dds.pH.noout <- DESeqDataSetFromMatrix(countData = counts.tk.noout[,grepl("evm", colnames(counts.tk.noout))] %>% t(),
+                              colData = counts.tk.noout[,"Treatment", drop=FALSE] ,
+                              design = ~ Treatment)
+
+#vsd.pH <- varianceStabilizingTransformation(dds.pH, blind=FALSE)
+dds.DESeq.pH.noout <- DESeq(dds.pH.noout) 
+
+res.pco2.AM.noout <- results(dds.DESeq.pH.noout, contrast=c("Treatment", "Ambient", "Moderate"), alpha=0.05)
+res.pco2.AL.noout <- results(dds.DESeq.pH.noout, contrast=c("Treatment", "Ambient", "Low"), alpha=0.05)
+res.pco2.ML.noout <- results(dds.DESeq.pH.noout, contrast=c("Treatment", "Moderate", "Low"), alpha=0.05)
+
+# ===============
+# Not identify genes that aren't on both results lists 
+
+setdiff(rownames(subset(res.pco2.AM, padj < 0.05)),
+        rownames(subset(res.pco2.AM.noout, padj < 0.05))) %>% length()
+
+setdiff(rownames(subset(res.pco2.AL, padj < 0.05)),
+        rownames(subset(res.pco2.AL.noout, padj < 0.05))) %>% length()
+
+setdiff(rownames(subset(res.pco2.ML, padj < 0.05)),
+        rownames(subset(res.pco2.ML.noout, padj < 0.05))) %>% length()
+
+
+test <- setdiff(rownames(subset(res.pco2.AL, padj < 0.05)),
+        rownames(subset(res.pco2.AM.noout, padj < 0.05)))
+
+diff_plots_AL = list()
+for (i in 1:length(test)) {
+a <-  plotCounts(dds.DESeq.pH, gene=test[i], intgroup=c("Treatment"), returnData = TRUE)
+b <- ggplot(a %>% filter(Treatment==c("Ambient", "Low")) 
+                         %>% rownames_to_column("sample"),
+       aes(x=Treatment, y=count, color=Treatment, label=sample)) +
+  geom_point(position=position_jitter(w = 0.1,h = 0)) +
+    geom_text() +
+    theme_bw() +
+    ggtitle(test[i]) +
+    theme(plot.title = element_text(hjust = 0.5))
+diff_plots_AL[[i]] <- b
+}
+diff_plots_AL[1:10] #10 of many 
+```
+
+# Inspect outlier genes and test removing those genes 
+
+Interesting that there are no outlier genes identified in any of the above Diff. Expression results. But what about whole samples? DESeq2 calculates Cook's distances to aid in outlier detection. 
+
+```{r}
+sample.info <- read.csv("../data/RCK-exp-design.csv", header=T, na.strings = NA) %>%
+          mutate_at(vars(Tank, Treatment, Treatment_Tank), as.factor)
+counts <- data.frame(read.table("../results/featureCounts/featurecounts_redking_gene-v1", header = T, stringsAsFactors = F, fill = FALSE))
+counts <- counts %>%  column_to_rownames(var="Geneid")
+counts <- counts %>% rename_all(~as.character(str_sub(colnames(counts)) %>%
+                             gsub("X.scratch.lspencer.2022.redking.OA.aligned.bowtie.sorted.deduped.", "", .) %>%
+                             gsub(".sorted.bam", "", .)))
+
+
+# Generate DEG list with no samples removed 
+
+### Remove extraneous gene info, then transpose dataframe so each row = a sample (aka "objects"), and each column = genes (aka "variables") 
+counts.t <- t(counts[,-1:-5]) #remove extraneous columns, transform data to have each sample a row, each column a gene 
+
+keep <- colSums(counts.t) >= 10
+counts.ts <- counts.t[,keep]
+
+# merge count data with sample key, reset row names as sample names, and arrange by infection, then temperature, then day 
+counts.tk <- merge(x=sample.info[,c("Sample", "Tank", "Treatment", "Treatment_Tank")], by.x="Sample", y=counts.ts, by.y="row.names") %>% 
+  arrange(Treatment, Tank)  %>% column_to_rownames(var="Sample") %>% droplevels()
+
+# Run DESeq2 analysis
+dds.pH <- DESeqDataSetFromMatrix(countData = counts.tk[,grepl("evm", colnames(counts.tk))] %>% t(),
+                              colData = counts.tk[,"Treatment", drop=FALSE] ,
+                              design = ~ Treatment)
+dds.DESeq.pH <- DESeq(dds.pH) 
+
+res.pco2.AM <- results(dds.DESeq.pH, contrast=c("Treatment", "Ambient", "Moderate"), alpha=0.05)
+res.pco2.AL <- results(dds.DESeq.pH, contrast=c("Treatment", "Ambient", "Low"), alpha=0.05)
+res.pco2.ML <- results(dds.DESeq.pH, contrast=c("Treatment", "Moderate", "Low"), alpha=0.05)
+
+# Generate summary stats 
+sum(colSums(counts %>% select(contains("Tank"))))
+nrow(counts)
+mean(colSums(counts %>% select(contains("Tank")) != 0))
+ncol(counts.t) - ncol(counts.ts)
+ncol(counts.ts)
+sum(res.pco2.AM$padj < 0.05, na.rm=TRUE)
+sum(res.pco2.AL$padj < 0.05, na.rm=TRUE)
+sum(res.pco2.ML$padj < 0.05, na.rm=TRUE)
+```
+## Now identify genes that have outlier counts in T7C4 
+
+```{r}
+#Here is a boxplot of the Cook’s distances. Sample T7C4 slightly higher Cooks distances, but not much. 
+par(mar=c(8,5,2,2))
+boxplot(log10(assays(dds.DESeq.pH)[["cooks"]]), range=0, las=2, cex.axis=0.6)
+
+#ggplotly(
+  ggplot(dat) + 
+  geom_boxplot(aes(x = ind, y = values)) +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))#)
+
+# Inspect outliers according to the boxplot of T7C4 Cook's distances:   
+(assays(dds.DESeq.pH)[["cooks"]] %>% as.data.frame())$Tank_7_Crab_4 %>% log2() %>% boxplot()
+
+# Extract outliers using car package
+cooks <- (assays(dds.DESeq.pH)[["cooks"]] %>% as.data.frame())
+outliers<-Boxplot(~Tank_7_Crab_4, data=cooks, las=2, cex.axis=0.6, cex=0.5, id=list(n=Inf)) 
+
+#How many outliers?
+length(outliers)
+
+## can also use this code if I want to identify outliers by factor or by sample 
+# cooks <- (assays(dds.DESeq.pH)[["cooks"]] %>% as.data.frame()) %>% rownames_to_column(var="gene") %>% 
+#   pivot_longer(cols = starts_with("Tank"), names_to = "Sample", values_to = "Cooks") %>% 
+#   left_join(sample.info[,c("Sample", "Treatment")]) %>% 
+#   mutate(Sample=as.factor(Sample))
+# outliers<-Boxplot(Cooks~Sample, data=cooks, las=2, cex.axis=0.6, cex=0.5, id=list(n=Inf))
+
+diff_plots = list()
+for (i in 1:length(outliers[1:32])) {
+a <-  plotCounts(dds.DESeq.pH, gene=outliers[i], intgroup=c("Treatment"), returnData = TRUE)
+b <- ggplot(a %>% rownames_to_column("sample"),
+       aes(x=Treatment, y=count, color=Treatment, label=sample)) +
+  geom_text(size=2) +
+    theme_bw(base_size = 6) +
+    ggtitle(test[i]) +
+    theme(plot.title = element_text(hjust = 0.5))
+diff_plots[[i]] <- b
+}
+diff_plots
+
+# Save some figures to pdf 
+fig <- ggarrange(plotlist=diff_plots, 
+                       ncol=4, nrow=4,
+                       common.legend = TRUE, legend="top")
+
+pdf("../results/deseq2/some-outlier-genes.pdf", onefile = TRUE)
+fig
+dev.off()
+```
+## Re-run analysis with outlier GENES removed 
+
+```{r}
+sample.info <- read.csv("../data/RCK-exp-design.csv", header=T, na.strings = NA) %>%
+          mutate_at(vars(Tank, Treatment, Treatment_Tank), as.factor)
+counts <- data.frame(read.table("../results/featureCounts/featurecounts_redking_gene-v1", header = T, stringsAsFactors = F, fill = FALSE))
+counts <- counts %>%  column_to_rownames(var="Geneid")
+counts <- counts %>% rename_all(~as.character(str_sub(colnames(counts)) %>%
+                             gsub("X.scratch.lspencer.2022.redking.OA.aligned.bowtie.sorted.deduped.", "", .) %>%
+                             gsub(".sorted.bam", "", .)))
+
+# REMOVE OUTLIER GENES 
+counts <- counts[-which(rownames(counts) %in% outliers),]
+
+### Remove extraneous gene info, then transpose dataframe so each row = a sample (aka "objects"), and each column = genes (aka "variables") 
+counts.t <- t(counts[,-1:-5]) #remove extraneous columns, transform data to have each sample a row, each column a gene 
+
+keep <- colSums(counts.t) >= 10
+counts.ts <- counts.t[,keep]
+
+# merge count data with sample key, reset row names as sample names, and arrange by infection, then temperature, then day 
+counts.tk <- merge(x=sample.info[,c("Sample", "Tank", "Treatment", "Treatment_Tank")], by.x="Sample", y=counts.ts, by.y="row.names") %>% 
+  arrange(Treatment, Tank)  %>% column_to_rownames(var="Sample") %>% droplevels()
+
+# Run DESeq2 analysis
+dds.pH <- DESeqDataSetFromMatrix(countData = counts.tk[,grepl("evm", colnames(counts.tk))] %>% t(),
+                              colData = counts.tk[,"Treatment", drop=FALSE] ,
+                              design = ~ Treatment)
+dds.DESeq.pH <- DESeq(dds.pH) 
+
+res.pco2.AM <- results(dds.DESeq.pH, contrast=c("Treatment", "Ambient", "Moderate"), alpha=0.05)
+res.pco2.AL <- results(dds.DESeq.pH, contrast=c("Treatment", "Ambient", "Low"), alpha=0.05)
+res.pco2.ML <- results(dds.DESeq.pH, contrast=c("Treatment", "Moderate", "Low"), alpha=0.05)
+
+# Generate summary stats 
+sum(colSums(counts %>% select(contains("Tank"))))
+nrow(counts)
+mean(colSums(counts %>% select(contains("Tank")) != 0))
+ncol(counts.t) - ncol(counts.ts)
+ncol(counts.ts)
+sum(res.pco2.AM$padj < 0.05, na.rm=TRUE)
+sum(res.pco2.AL$padj < 0.05, na.rm=TRUE)
+sum(res.pco2.ML$padj < 0.05, na.rm=TRUE)
+
+# How does the PCA look with those outlier genes removed? Very similar. 
+vsd.pH <- varianceStabilizingTransformation(dds.pH, blind=FALSE)
+ggplotly(
+  plotPCA(vsd.pH, intgroup="Treatment") + 
+           ggtitle("PCA by Treatment (var-stabilizing transformed)") + 
+    geom_point(size=3, aes(text=colnames(vsd.pH))) + 
+    theme_minimal()+ stat_ellipse(), tooltip = "text")
+```
+
+# DECISION: REMOVE OUTLIER SAMPLE 
+This is the most straight-forward, defensible option, AND it really does appear to be an outlier that influences the DEG results. 
+
+
+## How many consensus DEGs are there among pH treatments using Bowtie2 and STAR aligners? 
+
+```{r}
+# Total number of genes in both dataset for analysis: 
+intersect(rownames(res.pco2.Bowtie), rownames(res.pco2.Star)) %>% length()
+
+# Ambient vs. Moderate:  Bowtie2=687 DEGs, STAR=630 DEGs, consensus DEGs=376 DEGs 
+res.pco2.AM.Bowtie %>% nrow()
+res.pco2.AM.Star %>% nrow()
+intersect(rownames(res.pco2.AM.Bowtie), rownames(res.pco2.AM.Star)) %>% length()
+
+# Ambient vs. Low:  Bowtie2=1491 DEGs, STAR=966 DEGs, consensus DEGs=633 DEGs 
+res.pco2.AL.Bowtie %>% nrow()
+res.pco2.AL.Star %>% nrow()
+intersect(rownames(res.pco2.AL.Bowtie), rownames(res.pco2.AL.Star)) %>% length()
+
+# Moderate vs. Low:  Bowtie2=15 DEGs, STAR=19 DEGs, consensus DEGs=9 DEGs 
+res.pco2.ML.Bowtie %>% nrow()
+res.pco2.ML.Star %>% nrow()
+intersect(rownames(res.pco2.ML.Bowtie), rownames(res.pco2.ML.Star)) %>% length()
+```
+
+
+Enrichment analysis
+```{r}
+# DEGs between Ambient & Moderate 
+P.plat.blast %>% filter(geneID %in% c(intersect(rownames(res.pco2.AM.Bowtie), rownames(res.pco2.AM.Star)))) %>% as_tibble() %>%
+  dplyr::select("SPID") %>% na.omit() %>% unlist() %>% as.vector() %>% write_clip()
+
+# DEGs between Ambient & Low
+P.plat.blast %>% filter(geneID %in% c(intersect(rownames(res.pco2.AL.Bowtie), rownames(res.pco2.AL.Star)))) %>% as_tibble() %>%
+  dplyr::select("SPID") %>% na.omit() %>% unlist() %>% as.vector() %>% write_clip()
+
+# DEGs between Moderate & Low (includes just 1 annotated genes) 
+P.plat.blast %>% filter(geneID %in% c(intersect(rownames(res.pco2.ML.Bowtie), rownames(res.pco2.ML.Star)))) %>% as_tibble() %>%
+  dplyr::select("SPID") %>% na.omit() %>% unlist() %>% as.vector() %>% write_clip()
+
+# All genes (background, includes 6,508 annotated genes identified by both STAR and Bowtie2)
+P.plat.blast %>% filter(geneID %in% c(intersect(rownames(res.pco2.Bowtie), rownames(res.pco2.Star)))) %>% as_tibble() %>%
+  dplyr::select("SPID") %>% na.omit() %>% unlist() %>% as.vector() %>% write_clip()
+
+# Read in DAVID results
+# Between ambient and moderate pH 
+read_delim(file="../results/DAVID-Enriched-BP_Amb-Mod_no-outlier-T7C4_consensus.txt", delim = "\t") %>% 
+  mutate(GO = str_extract(Term, "GO(.*?)~")) %>% 
+  mutate(GO = gsub("~", "", GO)) %>% dplyr::select(GO, PValue) %>% na.omit() %>% write_clip()
+
+# Between ambient and low pH 
+read_delim(file="../results/DAVID-Enriched-BP_Amb-Low_no-outlier-T7C4_consensus.txt", delim = "\t") %>% 
+  mutate(GO = str_extract(Term, "GO(.*?)~")) %>% 
+  mutate(GO = gsub("~", "", GO)) %>% dplyr::select(Term) %>% na.omit() %>% write_clip()
+```
+
