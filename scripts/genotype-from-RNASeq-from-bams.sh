@@ -28,7 +28,8 @@ for file in *dedup-split-RG.bam
 do
 sample="$(basename -a $file | cut -d "." -f 1)"
 
-gatk HaplotypeCaller \
+gatk --java-options "-Xmx20g -XX:ParallelGCThreads=1" --spark-master local[2] \
+HaplotypeCaller \
 -R ${REF}/Paralithodes_platypus_genome.fasta \
 -I $sample.dedup-split-RG.bam \
 -O $sample.variants.g.vcf \

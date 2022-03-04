@@ -16,29 +16,36 @@ getwd()
 ### Load libraries and source scripts 
 
 ```{r, message=FALSE, warning=FALSE, results=FALSE}
-source("../references/biostats.R")
+# source("../references/biostats.R")
 
-list.of.packages <- c("DESeq2", "RCurl", "tidyverse", "vegan", "pheatmap", "pastecs", "factoextra", "FactoMineR", "RColorBrewer", "tibble", "reshape2", "plotly", "corrplot", "PerformanceAnalytics", "cowplot", "here", "janitor") #add new libraries here 
-new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+# Add all required libraries that are installed with install.packages() here
+list.of.packages <- c("RCurl", "tidyverse", "vegan", "pheatmap", "pastecs", "factoextra", "FactoMineR", "RColorBrewer", "tibble", "reshape2", "plotly", "corrplot", "PerformanceAnalytics", "cowplot", "here", "janitor")
+# Add all libraries that are installed using BiocManager here
+bioconductor.packages <- c("DESeq2", "WGCNA")
+
+# Install BiocManager if needed
+if(!requireNamespace("BiocManager", quietly = TRUE)) install.packages("BiocManager")
+
+# Get names of all required packages that aren't installed
+new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[, "Package"])]
+new.bioc.packages <- bioconductor.packages[!(bioconductor.packages %in% installed.packages()[, "Package"])]
+# Install all new packages
 if(length(new.packages)) install.packages(new.packages)
+if(length(new.bioc.packages)) BiocManager::install(new.bioc.packages)
 
-# Load all libraries 
-lapply(list.of.packages, FUN = function(X) {
-  do.call("require", list(X)) 
+# Load all required libraries
+all.packages <- c(list.of.packages, bioconductor.packages)
+lapply(all.packages, FUN = function(X) {
+  do.call("require", list(X))
 })
 
-# Need these packages for SNP assessment 
-# if (!requireNamespace("BiocManager", quietly=TRUE))
-#     install.packages("BiocManager")
-# BiocManager::install("gdsfmt")
-# BiocManager::install("SNPRelate")
 ```
 
 ### Import sample info, library/file names, and then join 
 
 ```{r}
 library.stats <- read.csv("../data/library-prep-stats.csv", header=T) %>% clean_names %>%
-  mutate_at(vars(tank, p_h, batch, date_extracted), as.factor)
+  dplyr::mutate_at(vars(tank, p_h, batch, date_extracted), as.factor)
 
 sample.info <- read.csv("../data/RCK-exp-design.csv", header=T, na.strings = NA) %>%
           mutate_at(vars(Tank, Treatment, Treatment_Tank), as.factor) %>%
@@ -66,24 +73,23 @@ cor(multiqc.stats %>% mutate(Tank=as.numeric(Tank)) %>% dplyr::select_if(is.nume
 ```
 
 ### Import counts matrix file as dataframe, extract sample # from file/column names to simplify them 
+NOTE: featurecounts_redking_gene-v3 is the counts table that I will use. It does include singletons but does not include chimeras
 
 ```{r}
-# counts <- data.frame(read.table("../results/featureCounts/featurecounts_redking_gene-v3", header = T, stringsAsFactors = F, fill = FALSE))
+counts <- data.frame(read.table("../results/featureCounts/featurecounts_redking_gene-v3", header = T, stringsAsFactors = F, fill = FALSE))
+counts <- counts %>%  column_to_rownames(var="Geneid")
+counts <- counts %>% rename_all(~as.character(str_sub(colnames(counts)) %>%
+                             gsub("X.scratch.lspencer.2022.redking.OA.aligned.bowtie.sorted.deduped.", "", .) %>%
+                             gsub(".sorted.bam", "", .)))
+
+# FOR v6 ONLY: (DIFFERENT FILE NAMES)
+# counts <- data.frame(read.table("../results/featureCounts/featurecounts_redking_gene-v6", header = T, stringsAsFactors = F, fill = FALSE))
 # counts <- counts %>%  column_to_rownames(var="Geneid")
 # counts <- counts %>% rename_all(~as.character(str_sub(colnames(counts)) %>%
-#                              gsub("X.scratch.lspencer.2022.redking.OA.aligned.bowtie.sorted.deduped.", "", .) %>%
+#                              gsub("X.scratch.lspencer.2022.redking.OA.aligned.bowtie2.sorted.", "", .) %>%
 #                              gsub(".sorted.bam", "", .)))
 # 
 # save(counts, file = "../results/gene-counts-v2") #save R object with all gene counts
-
-# FOR v6 ONLY: (DIFFERENT FILE NAMES)
-counts <- data.frame(read.table("../results/featureCounts/featurecounts_redking_gene-v6", header = T, stringsAsFactors = F, fill = FALSE))
-counts <- counts %>%  column_to_rownames(var="Geneid")
-counts <- counts %>% rename_all(~as.character(str_sub(colnames(counts)) %>%
-                             gsub("X.scratch.lspencer.2022.redking.OA.aligned.bowtie2.sorted.", "", .) %>%
-                             gsub(".sorted.bam", "", .)))
-
-save(counts, file = "../results/gene-counts-v2") #save R object with all gene counts
 
 ```
 
@@ -112,14 +118,14 @@ print(paste("Total counts, all samples:", prettyNum(sum(colSums(counts %>% selec
 Remove whole samples from the data set and sample info here if needed
 
 ```{r}
-remove.list <- c("Tank_7_Crab_4")
-counts <- counts[ , -which(names(counts) %in% remove.list)]
-sample.info <- sample.info[ -which(sample.info$Sample %in% remove.list), ]
-
-# resave sample info object
-save(sample.info, file="../data/sample.info")
-
-nrow(sample.info) == ncol(counts)-5 #should = TRUE
+# remove.list <- c("Tank_7_Crab_4")
+# counts <- counts[ , -which(names(counts) %in% remove.list)]
+# sample.info <- sample.info[ -which(sample.info$Sample %in% remove.list), ]
+# 
+# # resave sample info object
+# save(sample.info, file="../data/sample.info")
+# 
+# nrow(sample.info) == ncol(counts)-5 #should = TRUE
 ```
 
 ## OPTIONAL: FILTER WHOLE SCAFFOLDS 
@@ -161,18 +167,21 @@ counts.t <- as.data.frame(t(counts[,-1:-5])) #remove extraneous columns, transfo
 NOTE: Should i do this? DESeq2 throws out low-frequency genes anyway, BUT other folks do pre-filter. For example in https://doi.org/10.1186/s12864-017-4392-0 "Genes with mean count less than ten across all samples were removed."
 
 ```{r}
-# keep <- colSums(counts.t, na.rm=TRUE) >= 10 #use sum
-# keep <- colMeans(counts.t, na.rm=TRUE) >= 10 #use mean
-# counts.ts <- counts.t[,keep]
-# 
-# print(paste("# genes remaining after pre-filtering:", ncol(counts.ts)))
-# print(paste("# of genes dropped:", ncol(counts.t) - ncol(counts.ts), sep=" "))
+#keep <- colSums(counts.t, na.rm=TRUE) >= 10 #use sum
+#keep <- colMeans(counts.t, na.rm=TRUE) >= 10 #use mean
+keep <- rowSums( counts >= 10 ) >= 0.1*43 #keep genes with counts>=10 across at minimum 10% of the samples
+counts.ts <- counts.t[,keep]
+# counts.ts <- counts.t
+
+print(paste("# genes remaining after pre-filtering:", ncol(counts.ts)))
+print(paste("# of genes dropped:", ncol(counts.t) - ncol(counts.ts), sep=" "))
 ```
 
 ### Save counts file, and transformed counts file 
 ```{r}
 save(counts, file = "../results/gene-counts")
 save(counts.t, file = "../results/gene-counts-trans")
+save(counts.ts, file = "../results/gene-counts-trans-filtered")
 ```
 
 ## Import Blue king crab Best Blast results 
@@ -257,6 +266,7 @@ write.table(P.plat.blast, file = "../references/P.platypus.gene_blastx_split.tab
 P.plat.blast.GO <- left_join(P.plat.blast, read_delim(file = "../references/P.platypus_genes_GO.tab", delim = "\t"),
                              by = c("SPID"="Entry")) %>% ungroup()
 ```
+## 
 ## Save DEG lists identified using Bowtie2 aligned data 
 
 ```{r}

@@ -147,7 +147,7 @@ done >> ../results/star/star.v2/AllSamples.log
 grep "% of reads unmapped: other" ../results/star/star.v2/AllSamples.log
 ```
 
-## Save DEG lists identified using Bowtie2 aligned data 
+## Save DEG lists identified using STAR aligned data 
 
 ```{r}
 res.pco2.Star <- res.pco2.AM # save list of all genes in DESeq2 analysis regardless of p-value
