@@ -18,6 +18,6 @@ blastx \
 -query ${BASE}/bluekingcrab/P.platypus.gene.fasta \
 -db ${BASE}/blast/uniprot_sprot_20220111_protein \
 -out ${BASE}/bluekingcrab/P.platypus.gene_blastx.tab \
--evalue 1E-20 \
+-evalue 1E-5 \
 -num_threads 20 \
 -outfmt 6

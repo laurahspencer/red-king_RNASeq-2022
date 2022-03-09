@@ -247,7 +247,7 @@ The Dynamic Tree Cut may identify modules whose expression profiles are very sim
 such modules since their genes are highly co-expressed. To quantify co-expression similarity of entire modules, we
 calculate their eigengenes and cluster them on their correlation.
 
-We choose a height cut of 0.25, corresponding to correlation of 0.75, to merge (see Fig. 4):
+We choose a height cut of 0.1, corresponding to correlation of 0.90, to merge. (The WGCNA tutorial used a correlation threshold of 0.75, but I want to be stricter when combining modules - so they have very similar patterns). 
 
 
 ```{r}
@@ -263,7 +263,7 @@ sizeGrWindow(7, 6)
 plot(METree, main = "Clustering of module eigengenes",
      xlab = "", sub = "")
 
-MEDissThres = 0.25
+MEDissThres = 0.15
 # Plot the cut line into the dendrogram
 abline(h=MEDissThres, col = "red")
 # Call an automatic merging function
@@ -325,24 +325,25 @@ sizeGrWindow(10,6)
 # textMatrix =  paste(signif(moduleTraitCor, 2), "\n(",
 #                            signif(moduleTraitPvalue, 1), ")", sep = "");
 textMatrix =  paste(signif(moduleTraitCor, 2), " (",
-                           signif(moduleTraitPvalue, 1), ")", sep = "");
+                           signif(moduleTraitPvalue, 2), ")", sep = "");
 dim(textMatrix) = dim(moduleTraitCor)
 par(mar = c(6, 8.5, 3, 3));
 # Display the correlation values within a heatmap plot
 labeledHeatmap(Matrix = moduleTraitCor,
                xLabels = names(datTraits[,c("pH"), drop=F]),
-               yLabels = names(MEs),
+               yLabels = names(MEs) %>% str_remove(pattern = "ME"),
                ySymbols = names(MEs),
                colorLabels = FALSE,
                colors = greenWhiteRed(50),
                textMatrix = textMatrix,
                setStdMargins = FALSE,
-               cex.text = 0.75,
-               cex.main = 1.0,
+               cex.text = 0.7,
+               cex.main = 0.85,
+               cex.lab.y = 0.75,
+               cex.lab.x= 0.85,
                zlim = c(-1,1),
                main = paste("Module-trait relationships"))
 ```
-
 
 ```{r}
 # Define variable pH containing the weight column of datTrait
@@ -402,6 +403,26 @@ geneInfo = geneInfo0[geneOrder, ]
 #write.csv(geneInfo, file = "../results/wgcna/geneInfo.csv")
 ```
 
+Visualizing the network of eigengenes
+
+```{r}
+# Recalculate module eigengenes
+MEs = moduleEigengenes(datExpr, moduleColors)$eigengenes
+# Add pH treatment to existing module eigengenes
+MET = orderMEs(cbind(MEs, pH))
+# Plot the relationships among the eigengenes and pH
+
+# Plot the dendrogram
+sizeGrWindow(6,6);
+par(cex = 1.0)
+plotEigengeneNetworks(MET, "Eigengene dendrogram", marDendro = c(0,4,2,0),
+plotHeatmaps = FALSE)
+
+# Plot the heatmap matrix (note: this plot will overwrite the dendrogram plot)
+par(cex = 1.0)
+plotEigengeneNetworks(MET, "Eigengene adjacency heatmap", marHeatmap = c(3,4,2,2),
+plotDendrograms = FALSE, xLabelsAngle = 90)
+```
 
 # departure from WGCNA tutorials 
 
@@ -438,47 +459,180 @@ a <- geneInfo %>%
       x == "Moderate" ~ 7.8,
       x == "Low" ~ 7.6)})
 
-formula <- y ~ x
+#formula <- y ~ x
 
 module.lineplots[[i]] <-  ggplot(a, aes(x=pH, y=median)) + geom_line(aes(group=id), size=.01, color=modules[i]) +
-  theme_minimal() + facet_wrap(~moduleColor + change) + 
-  geom_smooth(method=lm, formula = formula, se = FALSE, color="blue", size=1.5) +
+  theme_minimal(base_size = 8) + facet_wrap(~moduleColor + change) + 
+  geom_smooth(method="loess", se = FALSE, color="blue", size=1) + #method=lm, formula = formula, 
   scale_x_continuous(breaks=c(7.6, 7.8, 8.0)) + 
-  theme(plot.title = element_text(size=10), axis.text.x = element_text(hjust = 0.2)) +
-  xlab("pH Treatment") +
-  stat_poly_eq(aes(label = ..eq.label..), 
-               label.x.npc = 0.5, label.y.npc = 0.99,
-               formula = formula, parse = TRUE, size = 3)
+  theme(plot.title = element_text(size=8), axis.text.x = element_text(hjust = 0.2), 
+        axis.title.x = element_text(size=6)) +
+  xlab("pH Treatment") #+
+  # stat_poly_eq(aes(label = ..eq.label..), 
+  #              label.x.npc = 0.5, label.y.npc = 0.99,
+  #              formula = formula, parse = TRUE, size = 3)
 
 module.stats[[i]] <- a %>% select(-Treatment, -mean, -sd, -cv, -pH) %>% distinct()
 }
 print(module.lineplots)
 
-# Save some figures to pdf 
-fig <- ggarrange(plotlist=module.lineplots, 
-                       ncol=2, nrow=2,
+# Save some figures to pdf
+fig <- ggarrange(plotlist=module.lineplots,
+                       ncol=3, nrow=2,
                        common.legend = TRUE, legend="top")
 pdf("../results/wgcna/pH-associated-modules-genes.pdf", onefile = TRUE)
 fig
 dev.off()
 ```
 
+Finding genes with high gene significance and high intramodular connectivity in pH-associated modules (i.e. "hub genes")
 
-#### Get kME
+```{r}
+# for example, the red module (note- tutorial set GS>0.2 and MM>0.8)
+geneInfo %>% filter(abs(GS.pH)>0.3) %>% filter(abs(MM.red)>0.9) %>% select(hit_desc)
+```
 
-kME calculates module membership, and is used in the subsequent GO-MWU analysis that we'll perform on significant modules. 
+What about the modules - that aren't sign. associated with pH? any patterns there? E.g. do some modules contain genes that are higher at moderate pH? 
+
+Let's just look at ALL modules: 
+
+```{r}
+# Generate line plots of ALL modules showing only genes significantly correlated to module 
+
+modules.all <- moduleTraitPvalue %>% as.data.frame() %>% rownames() %>% str_remove(pattern = "ME")
+modules.all.p <- paste("p.MM.", modules.all, sep = "")
+modules.all.cor <- noquote(paste("MM.", modules.all, sep = ""))
+
+# create empty list to store summary statistics for each modules' sign. genes 
+modules.all.stats <- vector("list", length(modules.all))
+names(modules.all.stats) <- modules.all
+
+# create empty list to store line plots for each modules' sign. genes 
+modules.all.lineplots <- vector("list", length(modules.all))
+names(modules.all.lineplots) <- modules.all
+
+for (i in 1:length(modules.all)) {
+
+a <- geneInfo %>%
+  filter(moduleColor==modules.all[i]) %>% 
+  #filter(p.GS.pH<0.05) %>% filter(!!as.symbol(modules.all.p[i])<0.05) %>% 
+  select(id, moduleColor, GS.pH, p.GS.pH, !!as.symbol(modules.all.p[i]), !!as.symbol(modules.all.cor[i])) %>% 
+  left_join(genes.stats, by = c("id"="gene")) %>% 
+  #group_by(Treatment, moduleColor) %>% mutate(mean_z = scale(mean)) %>% ungroup() %>% #use this line of code to z-transform 
+  #filter(moduleColor %in% modules) %>% 
+  mutate(pH=Treatment) %>%
+  mutate_at("pH", function(x) {
+    case_when(
+      x == "Ambient" ~ 8.0,
+      x == "Moderate" ~ 7.8,
+      x == "Low" ~ 7.6)})
+
+#formula <- y ~ x
+
+modules.all.lineplots[[i]] <-  ggplot(a, aes(x=pH, y=median)) + geom_line(aes(group=id), size=.01, color=modules.all[i]) +
+  theme_minimal() + facet_wrap(~moduleColor + change) + 
+  geom_smooth(method="loess", se = FALSE, color="blue", size=1) + #method=lm, formula = formula, 
+  scale_x_continuous(breaks=c(7.6, 7.8, 8.0)) + 
+  theme(plot.title = element_text(size=10), axis.text.x = element_text(hjust = 0.2)) +
+  xlab("pH Treatment") #+
+  # stat_poly_eq(aes(label = ..eq.label..), 
+  #              label.x.npc = 0.5, label.y.npc = 0.99,
+  #              formula = formula, parse = TRUE, size = 3)
+
+modules.all.stats[[i]] <- a %>% select(-Treatment, -mean, -sd, -cv, -pH) %>% distinct()
+}
+print(modules.all.lineplots)
+
+#View(geneInfo)
+```
+
+The darkgrey, lightgreen, tan modules look kind-of interesting (higher or lower expression at moderate pH).
+
+# What percentage of DEGs are captured by pH-associated WGCNA modules? Particularly interested in genes I will use for enrichment analysis, so I will filter genes for: 
+- Only genes whose abundances are significantly correlated with pH  (i.e. Gene Significance (GS) p-value, p.GS, <0.05)
+- NO ---> Only genes whose module membership (MM) is significant (p.MM < 0.05). 
+
+
+```{r}
+# First how many DEGs do I have total? 
+n.DEGs <- genes.stats %>% filter(DEG=="DEG") %>% select(gene) %>% distinct() %>% nrow()
+
+# merge module association info with DEG info 
+geneInfo %>%
+  left_join(genes.stats %>% select(gene, DEG) %>% distinct(), by = c("id"="gene")) %>% #join with table indicating DEG
+  filter(DEG=="DEG") %>% 
+  group_by(moduleColor) %>%
+  summarise(assigned=sum(p.GS.pH<0.05), not.assigned=sum(p.GS.pH>0.05)) %>% 
+  filter(moduleColor %in% modules) %>% select(assigned) %>% colSums()/n.DEGs*100 
+
+# replace "modules" filter with  c(modules, "turquose", "darkgrey", "tan") to include peak/valley modules 
+
+# ANSWER: 68% of the DEGs were assigned to a pH-associated module. 70% if I include peak/valley modules. 
+# NOTE: The % assigned + % not-assigned DEGs does not add up to 100%. Why? 
+
+```
+# Generate heatmaps of pH-associated modules (and those with pronounced peaks/valleys in moderate pH)
+
+```{r}
+# create empty list to store line plots for each modules' sign. genes 
+counts.modules <- vector("list", length(modules))
+names(counts.modules) <- modules
+
+for (i in 1:length(modules)) {
+  counts.modules[[i]] <- (assay(vsd.pH))[(geneInfo %>% filter(moduleColor==modules[i]) %>% filter(p.GS.pH<0.05))$id,] %>% 
+    as.data.frame() %>% add_column(module=modules[i])
+}
+
+s <- sample.info %>% 
+  mutate(Treatment=factor(Treatment, levels=c("Ambient", "Moderate", "Low"))) %>% 
+           arrange(factor(Treatment, levels=c("Ambient", "Moderate", "Low"))) %>% 
+  remove_rownames() %>% column_to_rownames("Sample")
+
+# define order of modules from most sign. positive correlation <--> most sign. negative correlation 
+modules.sorted <- c("green","cyan", "red", "brown", "darkred", "salmon", "black", "yellow", "greenyellow")
+
+counts.modules.matrix<- bind_rows(counts.modules[modules.sorted]) %>% 
+  select(module, rownames(s)) %>%
+  mutate(module=factor(module, levels=modules.sorted))
+
+pheatmap(counts.modules.matrix[,colnames(counts.modules.matrix) !="module"], 
+         cluster_cols = FALSE, cluster_rows=F, 
+         show_rownames=FALSE, na.rm=TRUE, scale="row", 
+         main = "Expression by pH-associated module\n(only sign. genes for each module)", fontsize = 8, 
+         annotation_colors = list(Treatment=c(Ambient="Blue", Moderate="Purple", Low="Red"),
+                                  module=c(green="green",cyan="cyan",red="red",brown="brown",
+                                           darkred="darkred",salmon="salmon",black="black",
+                                           yellow="yellow",greenyellow="greenyellow")),
+         annotation_col=s[,"Treatment", drop=F],
+         annotation_row = counts.modules.matrix[,"module", drop=FALSE])
+```
+
+
+## Prep for GO_MWU analysis 
+
+#### Extract module membership values for each gene for each pH-associated module 
+
+NOTE: according to [this github]
 
 We'll keep things simple by making a table of the kME for all genes. In the actual GO-MWU analysis, we'll set the kME of all genes that aren't in the significant module to 0. But no need to worry about that now!
 
-```{r membership_and_gene_info}
-kME_table <- signedKME(CrabExpr0,
-                       datME = MEs0)
-# Write kME file
-fileName <- paste0(file_start, "kME_table.txt")
-write.table(kME_table, file = fileName,
-            sep = "\t",
-            row.names = TRUE,
-            col.names = TRUE)
+```{r files for GO_MWU}
+# Generate a gene annotation file 
+geneInfo.mwu <- geneInfo %>% left_join(P.plat.blast.GO[,c("gene_id","gene_ontology_i_ds")], by = c("id"="gene_id")) %>%
+  filter(!is.na(gene_ontology_i_ds)) #filter for genes that are annotated with GO information 
+write.csv(geneInfo.mwu[,c("id", "gene_ontology_i_ds")], "../results/wgcna/genes_for-GOMWU.csv", quote = F,row.names = F)
+
+# Write out separate tables for each module that contain two columns: 1) gene id, and 2) module membership, i.e. significance. For each module, that column contains MM for genes assigned to that module, and 0 for genes not assigned to that module. 
+geneInfo.mwu.mods <- vector("list", length(modules))
+names(geneInfo.mwu.mods) <- modules
+
+for (i in 1:length(modules)) {
+  geneInfo.mwu.mods[[i]] <- geneInfo.mwu %>%
+    mutate(sign = ifelse(moduleColor == modules[[i]],!!as.symbol(modules.cor[i]), 0)) %>%
+    select(id,sign) %>% remove_rownames()
+  write.csv(geneInfo.mwu.mods[[i]], paste("../results/wgcna/module_",modules[[i]],"_for-GOMWU.csv"), quote = F,row.names = F)
+}
+
 ```
 
 -------------------------
