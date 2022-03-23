@@ -442,4 +442,24 @@ read_delim(file="../results/DAVID-Enriched-BP_Amb-Low_no-outlier-T7C4_consensus.
   mutate(GO = str_extract(Term, "GO(.*?)~")) %>% 
   mutate(GO = gsub("~", "", GO)) %>% dplyr::select(Term) %>% na.omit() %>% write_clip()
 ```
+# 
+
+# Question - would any of the genes that I filter out due to low counts end up being DEGs?
+
+```{r}
+keep1 <- colMeans(counts.t, na.rm=TRUE) >= 10 #identify genes with mean count > 10 across all samples (excluding NAs = 10)
+keep2 <- rowSums( counts >= 10 ) >= 0.1*43 #identify genes with counts>=10 across at minimum 10% of the samples
+keep <- unique(c(names(which(keep1 == T)), names(which(keep2 == T)))) # list of genes meeting one of the two above criteria
+
+# in the case where i do not want to pre-filter, use this code:
+DEGs <- unique(c(rownames(diffex.AM), rownames(diffex.AL), rownames(diffex.ML)))
+DEGs.low <- setdiff(DEGs, keep)
+
+# Of the DEGs, are any NOT in the "keep" object? 
+setdiff(DEGs, keep) %>% length()
+DEGs[!(DEGs %in% keep)] %>% length()
+
+# ANSWER = NO. THE FILTERING STEP I USE DOES NOT THROW OUT ANY POTENTIAL DEGS. 
+```
+
 

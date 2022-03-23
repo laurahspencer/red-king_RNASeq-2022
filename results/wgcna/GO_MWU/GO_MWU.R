@@ -16,14 +16,34 @@
 ################################################################
 # First, press command-D on mac or ctrl-shift-H in Rstudio and navigate to the directory containing scripts and input files. Then edit, mark and execute the following bits of code, one after another.
 
-
-# Edit these to match your data file names: 
-input="heats.csv" # two columns of comma-separated values: gene id, continuous measure of significance. To perform standard GO enrichment analysis based on Fisher's exact test, use binary measure (0 or 1, i.e., either sgnificant or not).
-goAnnotations="amil_defog_iso2go.tab" # two-column, tab-delimited, one line per gene, multiple GO terms separated by semicolon. If you have multiple lines per gene, use nrify_GOtable.pl prior to running this script.
+goAnnotations="genes_for-GOMWU.tab" # two-column, tab-delimited, one line per gene, multiple GO terms separated by semicolon. If you have multiple lines per gene, use nrify_GOtable.pl prior to running this script.
 goDatabase="go.obo" # download from http://www.geneontology.org/GO.downloads.ontology.shtml
-goDivision="MF" # either MF, or BP, or CC
 source("gomwu.functions.R")
 
+goDivision="BP" # either MF, or BP, or CC
+goDivision="MF" # either MF, or BP, or CC
+goDivision="CC" # either MF, or BP, or CC
+
+
+# analyze genes from each module by commenting out the module colors. NOTE this als sets colors for plotting each module 
+
+# pH-associated modules 
+# modules
+module="brown"; color="darkgoldenrod4"
+module="pink"; color="pink"
+module="lightcyan1"; color="cyan2"
+module="red"; color="red"
+module="cyan"; color="cyan4"
+module="green"; color="green"
+module="darkgreen"; color="darkgreen"
+
+# modules that increase or decrease in moderate compared to ambient & low 
+#modules.interest 
+module="mediumpurple3"; color="mediumpurple3"
+module="saddlebrown"; color="saddlebrown"
+
+# Edit these to match your data file names: 
+input=paste("module_", module, "_for-GOMWU.csv", sep="") # two columns of comma-separated values: gene id, continuous measure of significance. To perform standard GO enrichment analysis based on Fisher's exact test, use binary measure (0 or 1, i.e., either sgnificant or not).
 
 # ------------- Calculating stats
 # It might take a few minutes for MF and BP. Do not rerun it if you just want to replot the data with different cutoffs, go straight to gomwuPlot. If you change any of the numeric values below, delete the files that were generated in previos runs first.
@@ -34,7 +54,7 @@ gomwuStats(input, goDatabase, goAnnotations, goDivision,
 	smallest=5,   # a GO category should contain at least this many genes to be considered
 	clusterCutHeight=0.25, # threshold for merging similar (gene-sharing) terms. See README for details.
 #	Alternative="g" # by default the MWU test is two-tailed; specify "g" or "l" of you want to test for "greater" or "less" instead. 
-#	Module=TRUE,Alternative="g" # un-remark this if you are analyzing a SIGNED WGCNA module (values: 0 for not in module genes, kME for in-module genes). In the call to gomwuPlot below, specify absValue=0.001 (count number of "good genes" that fall into the module)
+	Module=TRUE,Alternative="g" # un-remark this if you are analyzing a SIGNED WGCNA module (values: 0 for not in module genes, kME for in-module genes). In the call to gomwuPlot below, specify absValue=0.001 (count number of "good genes" that fall into the module)
 #	Module=TRUE # un-remark this if you are analyzing an UNSIGNED WGCNA module 
 )
 # do not continue if the printout shows that no GO terms pass 10% FDR.
@@ -42,17 +62,19 @@ gomwuStats(input, goDatabase, goAnnotations, goDivision,
 
 # ----------- Plotting results
 
-quartz()
+#quartz()
 results=gomwuPlot(input,goAnnotations,goDivision,
- 	absValue=-log(0.05,10),  # genes with the measure value exceeding this will be counted as "good genes". This setting is for signed log-pvalues. Specify absValue=0.001 if you are doing Fisher's exact test for standard GO enrichment or analyzing a WGCNA module (all non-zero genes = "good genes").
+ 	absValue=0.001,  #-log(0.05,10) # genes with the measure value exceeding this will be counted as "good genes". This setting is for signed log-pvalues. Specify absValue=0.001 if you are doing Fisher's exact test for standard GO enrichment or analyzing a WGCNA module (all non-zero genes = "good genes").
  #	absValue=1, # un-remark this if you are using log2-fold changes
  	level1=0.1, # FDR threshold for plotting. Specify level1=1 to plot all GO categories containing genes exceeding the absValue.
  	level2=0.05, # FDR cutoff to print in regular (not italic) font.
  	level3=0.01, # FDR cutoff to print in large bold font.
  	txtsize=1.2,    # decrease to fit more on one page, or increase (after rescaling the plot so the tree fits the text) for better "word cloud" effect
  	treeHeight=0.5, # height of the hierarchical clustering tree
- #	colors=c("dodgerblue2","firebrick1","skyblue2","lightcoral") # these are default colors, un-remar and change if needed
+ 	#colors=c(color, color, color, color, color)
+ colors=c("dodgerblue2","firebrick1","skyblue2","lightcoral") # these are default colors, un-remar and change if needed
  )
+mtext(paste(module, "-", goDivision, sep=""), side = 3, line = -.25, adj = 0, col=color) #module
  # manually rescale the plot so the tree matches the text 
  # if there are too many categories displayed, try make it more stringent with level1=0.05,level2=0.01,level3=0.001.  
  

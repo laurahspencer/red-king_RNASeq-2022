@@ -39,9 +39,10 @@ lapply(all.packages, FUN = function(X) {
 
 ### Load counts and sample info 
 ```{r}
-# load(file = "../results/gene-counts") #object = counts
-# load(file="../data/sample.info") #object = sample.info
-# load(file = "../results/gene-counts-trans") #object = counts.t
+load(file = "../results/gene-counts") #object = counts
+load(file="../data/sample.info") #object = sample.info
+load(file = "../results/gene-counts-trans") #object = counts.t
+load(file = "../results/gene-counts-trans-filtered") #object = counts.ts
 ```
 
 ## Summary stats
@@ -100,7 +101,7 @@ ggplot(data = data.frame(rowSums(counts.t != 0, na.rm=TRUE)) %>%
 
 ### Merge sample key info to count data, then sort, and generate heat map for initial inspection by treatment 
 ```{r}
-# IMPORTANT NOTE: to use data for ALL genes, use object "counts.t". To remove genes with mean count less than ten across all samples, use object "counts.ts" 
+# IMPORTANT NOTE: to use data for ALL genes, use object "counts.t". To remove low-frequency genes, use object "counts.ts" 
 
 # merge count data with sample key, reset row names as sample names, and arrange by infection, then temperature, then day 
 counts.tk <- merge(x=sample.info[,c("Sample", "Tank", "Treatment", "Treatment_Tank")], by.x="Sample", y=counts.ts, by.y="row.names") %>% 
@@ -109,17 +110,6 @@ counts.tk <- merge(x=sample.info[,c("Sample", "Tank", "Treatment", "Treatment_Ta
 head(counts.tk[1:24]) #check out results of merge/arrange
 #counts.tk %>% dplyr::select(starts_with("evm")) #this is code to get only the gene columns 
 
-```
-
-### Generate heat map of counts before DESeq processing / analysis 
-
-NOTE: scale="column" b/c range of counts is so huge, so counts have been scaled 
-
-```{r}
-pheatmap(data.matrix(counts.tk %>% dplyr::select(starts_with("evm"))), Rowv=NA, Colv=NA, na.rm = TRUE, xlab = NA, 
-                     show_colnames =FALSE, cluster_cols = FALSE, cluster_rows = TRUE, 
-                     scale="column", color=c("dodgerblue3", "goldenrod1"), 
-                     main = "RKC gene counts", annotation_row=counts.tk[,c("Treatment", "Tank")])
 ```
 
 # Analysis in DESeq2  
@@ -157,11 +147,35 @@ vsd.pH <- varianceStabilizingTransformation(dds.pH, blind=FALSE)
 vsd.tank <- varianceStabilizingTransformation(dds.tank, blind=FALSE)
 vsd.treat.tank <- varianceStabilizingTransformation(dds.treat.tank, blind=FALSE)
 
+# Check out effect of VSD 
 meanSdPlot(assay(vsd.pH)) #check out normalized count SD by ranked mean - red line should be ~flat 
-
 meanSdPlot(assay(normTransform(dds.pH))) #this is variance after a simple log2(n+1) transformation 
 
+# Save vsd.pH object for late ruse 
+save(vsd.pH, file = "../results/deseq2/vsd.pH")
+
 ```
+### Generate heat maps before & after transformation  
+
+NOTE: scale="column" b/c range of counts is so huge, so counts have been scaled 
+
+```{r}
+pheatmap(data.matrix(counts.tk %>% dplyr::select(starts_with("evm"))), Rowv=NA, Colv=NA, na.rm = TRUE, xlab = NA, 
+                     show_colnames =FALSE, cluster_cols = FALSE, cluster_rows = TRUE, 
+         annotation_colors = list(Treatment=c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c")),
+                     scale="column", #color=c("dodgerblue3", "goldenrod1"), 
+                     main = "RKC gene counts - not transformed", annotation_row=counts.tk[,c("Treatment"), drop=FALSE])
+
+# extract treatment info from VSD transformation 
+
+# generate heatmap from VSD counts 
+pheatmap(t(assay(vsd.pH)), Rowv=NA, Colv=NA, na.rm = TRUE, xlab = NA, scale="column", 
+                     show_colnames =FALSE, cluster_cols = FALSE, cluster_rows = TRUE, 
+         annotation_colors = list(Treatment=c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c")),
+         annotation_row=as.data.frame(colData(vsd.pH)[,c("Treatment"), drop=FALSE]), 
+         main = "RKC gene counts - VSD-transformed")
+```
+
 ## Save variance-stabilization normalized gene counts x sample matrix, annotated for later use 
 
 ```{r}
@@ -185,7 +199,8 @@ ggplotly(
   plotPCA(vsd.pH, intgroup="Treatment") + 
            ggtitle("PCA by Treatment (var-stabilizing transformed)") + 
     geom_point(size=3, aes(text=colnames(vsd.pH))) + 
-    theme_minimal()+ stat_ellipse(), tooltip = "text")
+  scale_color_manual(values=c("Ambient"="#2c7bb6", "Moderate"="#fdae61", "Low"="#d7191c")) +
+    theme_minimal()+ stat_ellipse() , tooltip = "text")
 
 # PCA with points color coded by tank 
 ggplotly(
@@ -208,22 +223,52 @@ ggplotly(
 PCA.data.pH <- plotPCA(vsd.pH, intgroup=c("Treatment"), returnData=TRUE)
 save(PCA.data.pH, file="../results/PCA.data.pH")
 ```
-
-
-
-### Generate heat maps before & after transformation  
+# PCA using prcomp, etc. to identify significant PC axes and examine potential tank effects 
 
 ```{r}
-# extract treatment info from VSD transformation 
-#vsd.df <- as.data.frame(colData(vsd)[,c("population", "pCO2.parent")])
 
-# generate heatmap from untransformed counts 
-#pheatmap(counts(dds), cluster_rows=FALSE, show_rownames=FALSE,
-#         cluster_cols=T, annotation_col=vsd.df, scale = "row", main="QuantSeq, untransformed data (but scaled by rows")
+pca.princomp <- prcomp(cov(assay(vsd.pH)), scale=F) #scale=F for variance-covariance matrix
+pca.eigenval(pca.princomp) #The Proporation of Variance = %variance 
+pc.percent <- pca.eigenval(pca.princomp)[2,1:5]*100
+screeplot(pca.princomp, bstick=TRUE) #looks like PC 1 & 2 are significant 
 
-# generate heatmap from VSD counts 
-#pheatmap(assay(vsd), cluster_rows=FALSE, show_rownames=FALSE,
-#         cluster_cols=T, annotation_col=vsd.df, main = "QuantSeq, VSD-transformed")
+tab.expr <- data.frame(sample.id = colnames(assay(vsd.pH)),
+    EV1.all = pca.princomp$x[,1],    # the first eigenvector
+    EV2.all = pca.princomp$x[,2],    # the second eigenvector
+    EV3.all = pca.princomp$x[,3],    # the first eigenvector
+    EV4.all = pca.princomp$x[,4],    # the second eigenvector
+    EV5.all = pca.princomp$x[,5],    # the second eigenvector
+    stringsAsFactors = FALSE)
+shapiro.test(pca.princomp$x) #multivariate normality not met, hmmmm  
+tab.expr.annot <- left_join(tab.expr, sample.info, by=c("sample.id"="Sample")) %>% droplevels()
+
+# GGSCATTER with ellipses and stars - PC1 PC2
+ggscatter(tab.expr.annot, x="EV1.all", y="EV2.all",
+          shape="Tank", col="Treatment", size=3.5, alpha=0.85, ellipse = TRUE, star.plot = TRUE) + 
+           #palette = c("#4575b4","#d73027"),
+  theme_minimal() + ggtitle("Adult Expression, all genes, PC1xPC2") + 
+  xlab(paste("PC1 (", round(pc.percent[1], digits = 1), "%)", sep="")) + 
+  ylab(paste("PC2 (", round(pc.percent[2], digits = 1), "%)", sep="")) + 
+  theme(legend.position = "right") + 
+  guides(colour = guide_legend(override.aes = list(size=3.5))) 
+
+
+# Examine potential tank effects for each treatment 
+pc.axes <- names(tab.expr.annot[2:6])
+x <- c(1,1,1,1,2,2,2,3,3,4)
+y <- c(2,3,4,5,3,4,5,4,5,5)
+
+pc.plots <- vector("list", length(x))
+for (i in 1:length(x)) {
+pc.plots[[i]] <- ggplotly(ggplot(tab.expr.annot, 
+                      aes(x=!!as.symbol(pc.axes[x[i]]),y=!!as.symbol(pc.axes[y[i]]))) + 
+  geom_point(aes(col=Treatment, fill=Tank), size=3.5, alpha=0.85, pch=20) + 
+  theme_minimal() + ggtitle(paste("PC", x[i], " x ", "PC", y[i], sep = "")) + 
+  xlab(paste("PC", x[i], " (", round(pc.percent[x[i]], digits = 1), "%)", sep="")) + 
+  ylab(paste("PC", y[i], " (", round(pc.percent[y[i]], digits = 1), "%)", sep="")) + 
+  theme(legend.position = "right"))
+}
+pc.plots
 ```
 
 ### Heatmap of the sample-to-sample distances
@@ -265,6 +310,7 @@ pheatmap(sampleDistMatrixs,
 ```{r}
 dds.DESeq.pH <- DESeq(dds.pH) 
 ```
+
 ## Any DEGs between pH treatment? 
 
 ```{r}
@@ -280,7 +326,12 @@ paste("No. of genes differentially expressed (padj<0.05) by pH, Ambient vs. Low:
 print("Comparison: Moderate pH vs. Low pH")
 summary(res.pco2.ML <- results(dds.DESeq.pH, contrast=c("Treatment", "Moderate", "Low"), alpha=0.05))
 paste("No. of genes differentially expressed (padj<0.05) by pH, Moderate vs. Low:",  sum(res.pco2.ML$padj < 0.05, na.rm=TRUE))
+
+save(res.pco2.AM, file = "../results/deseq2/res.pco2.AM")
+save(res.pco2.AL, file = "../results/deseq2/res.pco2.AL")
+save(res.pco2.ML, file = "../results/deseq2/res.pco2.ML")
 ```
+
 ### Volcano plots 
 FIX: need to figure out how to plot the Moderate vs. Low genes 
 
@@ -299,8 +350,12 @@ diffex.AM <- subset(res.pco2.AM, padj < 0.05)
 diffex.AL <- subset(res.pco2.AL, padj < 0.05)
 diffex.ML <- subset(res.pco2.ML, padj < 0.05)
 
+save(diffex.AM, file = "../results/deseq2/diffex.AM")
+save(diffex.AL, file = "../results/deseq2/diffex.AL")
+save(diffex.ML, file = "../results/deseq2/diffex.ML")
+
 ### Generate counts matrix With DEGs among any pH treatment
-diffex.pH.counts <- subset(counts(dds.DESeq.pH), rownames(dds.DESeq.pH) %in% unique(c(rownames(diffex.AM),rownames(diffex.AL),rownames(diffex.ML))))
+diffex.pH.counts <- subset(assay(vsd.pH), rownames(dds.DESeq.pH) %in% unique(c(rownames(diffex.AM),rownames(diffex.AL),rownames(diffex.ML))))
 
 # Create a dataframe to annotate heatmap with treatments 
 dds.pH.df <- sample.info[match(colnames(diffex.pH.counts), sample.info$Sample),c("Sample", "Treatment", "Tank")] %>%
@@ -319,25 +374,82 @@ pheatmap(diffex.pH.counts, cluster_rows=TRUE, cluster_cols=FALSE,
 # heatmap(diffex.pH.counts, Colv = NA, scale="row", ColSideColors = brewer.pal(3, "Set1")[dds.pH.df$Treatment])
 ```
 
+Volcano plots 
+
+```{r}
+# ----------- AMBIENT VS MODERATE 
+topT <- as.data.frame(res.pco2.AM)
+par(mar=c(5,5,5,5), cex=1.0, cex.main=1.4, cex.axis=1.4, cex.lab=1.4)
+
+#Adjusted P values (FDR Q values)
+with(topT, plot(-1*log2FoldChange, -log10(padj), pch=16, main="Volcano plot\nAmbient pH vs. Moderate pH", cex=0.5, cex.main=1, xlab=bquote(~Log[2]~fold~change), ylab=bquote(~-log[10]~Q~value)))
+
+with(subset(topT, padj<0.05 & abs(-1*log2FoldChange)>2), points(-1*log2FoldChange, -log10(padj), pch=16, col="red", cex=0.75))
+
+# with(subset(topT, padj<0.05 & abs(-1*log2FoldChange)>2), text(-1*log2FoldChange, -log10(padj), labels=subset(rownames(topT), topT$padj<0.05 & abs(topT$log2FoldChange*-1)>2), cex=0.8, pos=3))
+
+#Add lines for absolute FC>2 and P-value cut-off at FDR Q<0.05
+abline(v=0, col="black", lty=3, lwd=1.0)
+abline(v=-2, col="black", lty=4, lwd=2.0)
+abline(v=2, col="black", lty=4, lwd=2.0)
+abline(h=-log10(max(topT$pvalue[topT$padj<0.05], na.rm=TRUE)), col="black", lty=4, lwd=2.0)
+
+
+# ----------- AMBIENT VS LOW 
+topT <- as.data.frame(res.pco2.AL)
+par(mar=c(5,5,5,5), cex=1.0, cex.main=1.4, cex.axis=1.4, cex.lab=1.4)
+
+#Adjusted P values (FDR Q values)
+with(topT, plot(-1*log2FoldChange, -log10(padj), pch=16, main="Volcano plot\nAmbient pH vs. Low pH", cex=0.5, cex.main=1, xlab=bquote(~Log[2]~fold~change), ylab=bquote(~-log[10]~Q~value)))
+
+with(subset(topT, padj<0.05 & abs(-1*log2FoldChange)>2), points(-1*log2FoldChange, -log10(padj), pch=16, col="red", cex=0.75))
+
+#with(subset(topT, padj<0.05 & abs(-1*log2FoldChange)>2), text(-1*log2FoldChange, -log10(padj), labels=subset(rownames(topT), topT$padj<0.05 & abs(topT$-1*log2FoldChange)>2), cex=0.8, pos=3))
+
+#Add lines for absolute FC>2 and P-value cut-off at FDR Q<0.05
+abline(v=0, col="black", lty=3, lwd=1.0)
+abline(v=-2, col="black", lty=4, lwd=2.0)
+abline(v=2, col="black", lty=4, lwd=2.0)
+abline(h=-log10(max(topT$pvalue[topT$padj<0.05], na.rm=TRUE)), col="black", lty=4, lwd=2.0)
+
+# ----------- MODERATE VS LOW 
+topT <- as.data.frame(res.pco2.ML)
+par(mar=c(5,5,5,5), cex=1.0, cex.main=1.4, cex.axis=1.4, cex.lab=1.4)
+
+#Adjusted P values (FDR Q values)
+with(topT, plot(log2FoldChange, -log10(padj), pch=16, main="Volcano plot\nModerate pH vs. Low pH", cex=0.5, cex.main=1, xlab=bquote(~Log[2]~fold~change), ylab=bquote(~-log[10]~Q~value)))
+
+with(subset(topT, padj<0.05 & abs(log2FoldChange)>2), points(log2FoldChange, -log10(padj), pch=16, col="red", cex=0.75))
+
+#with(subset(topT, padj<0.05 & abs(log2FoldChange)>2), text(log2FoldChange, -log10(padj), labels=subset(rownames(topT), topT$padj<0.05 & abs(topT$log2FoldChange)>2), cex=0.8, pos=3))
+
+#Add lines for absolute FC>2 and P-value cut-off at FDR Q<0.05
+abline(v=0, col="black", lty=3, lwd=1.0)
+abline(v=-2, col="black", lty=4, lwd=2.0)
+abline(v=2, col="black", lty=4, lwd=2.0)
+abline(h=-log10(max(topT$pvalue[topT$padj<0.05], na.rm=TRUE)), col="black", lty=4, lwd=2.0)
+
+```
+
 
 ```{r}
 ### ----- Generate pairwise comparison heatmaps 
 
 # Create count matrices containing DEGs for each pairwise treatment comparison, rows (genes) ordered by pvalue, 
 
-diffex.AM.counts <- subset(counts(dds.DESeq.pH), rownames(dds.DESeq.pH) %in% rownames(diffex.AM)) %>% as.data.frame() %>%
+diffex.AM.counts <- subset(assay(vsd.pH), rownames(dds.DESeq.pH) %in% rownames(diffex.AM)) %>% as.data.frame() %>%
   dplyr::select((sample.info %>% arrange(Treatment) %>% 
                    filter(Treatment=="Ambient" | Treatment== "Moderate"))$Sample) %>% 
   rownames_to_column(var = "gene") %>% arrange(match(gene, c(as.data.frame(diffex.AM) %>% arrange(padj) %>% rownames()))) %>%
   column_to_rownames(var = "gene") %>% as.matrix()
   
-diffex.AL.counts <- subset(counts(dds.DESeq.pH), rownames(dds.DESeq.pH) %in% rownames(diffex.AL)) %>% as.data.frame() %>%
+diffex.AL.counts <- subset(assay(vsd.pH), rownames(dds.DESeq.pH) %in% rownames(diffex.AL)) %>% as.data.frame() %>%
   dplyr::select((sample.info %>% arrange(Treatment) %>% 
                    filter(Treatment=="Ambient" | Treatment== "Low"))$Sample) %>% 
   rownames_to_column(var = "gene") %>% arrange(match(gene, c(as.data.frame(diffex.AL) %>% arrange(padj) %>% rownames()))) %>% 
   column_to_rownames(var = "gene") %>% as.matrix()
 
-diffex.ML.counts <- subset(counts(dds.DESeq.pH), rownames(dds.DESeq.pH) %in% rownames(diffex.ML)) %>% as.data.frame() %>%
+diffex.ML.counts <- subset(assay(vsd.pH), rownames(dds.DESeq.pH) %in% rownames(diffex.ML)) %>% as.data.frame() %>%
   dplyr::select((sample.info %>% arrange(Treatment) %>% 
                    filter(Treatment=="Moderate" | Treatment== "Low"))$Sample) %>% 
   rownames_to_column(var = "gene") %>%
@@ -366,6 +478,51 @@ pheatmap(diffex.ML.counts, cluster_cols = FALSE, cluster_rows=TRUE,
          annotation_colors = list(Treatment=c(Moderate="#fdae61", Low="#d7191c")),
          annotation_col=dds.pH.df[colnames(diffex.ML.counts),"Treatment", drop=FALSE])
 ```
+### question - are the moderate vs. low DEGs unique? or are they similar to ambient? 
+answer - not super unique 
+```{r}
+diffex.ML %>% rownames() %>% length() #19 DEGs between moderate & low pH 
+Reduce(setdiff, list(c(diffex.ML %>% rownames()), c(diffex.AL %>% rownames()))) %>% length() # 12 of which are also different among ambient & low pH 
+Reduce(setdiff, list(c(diffex.ML %>% rownames()), c(diffex.AM %>% rownames()))) %>% length() # 13 of which are also different among ambient & moderate pH
+```
+
+## Venn Diagram of DEGs by pairwise comparison 
+
+```{r}
+library(VennDiagram)
+
+x <- list(
+  AvsM = row.names(diffex.AM), 
+  AvsL = row.names(diffex.AL), 
+  MvsL = row.names(diffex.ML)
+  )
+
+display_venn <- function(x, ...){
+  library(VennDiagram)
+  grid.newpage()
+  venn_object <- venn.diagram(x, filename = NULL, ...)
+  grid.draw(venn_object)
+}
+display_venn(x)
+
+display_venn(
+        x,
+        category.names = c("Ambient vs.\nModerate" , "Ambient vs.\nLow" , "Moderate vs.\nLow"),
+        # Circles
+        lwd = 2,
+        lty = 'blank',
+        fill = c("#999999", "#E69F00", "#56B4E9"),
+        # Numbers
+        cex = .9,
+        fontface = "italic",
+        # Set names
+        cat.cex = .9,
+        cat.fontface = "bold",
+        cat.default.pos = "outer",
+        cat.dist = c(0.06, 0.06, 0.06)
+)
+```
+
 
 ### Save lists of annotated genes DEGs 
 
@@ -407,35 +564,74 @@ Column order in saved file is with (parentheses indicating source):
 diffex.AM %>% as.data.frame() %>% rownames_to_column("gene") %>% 
   left_join(P.plat.bestblast, by=c("gene"="id")) %>%
   left_join(P.plat.blast.GO %>% 
-              dplyr::select(geneID, Start, End, saccver, SPID,gene.Uni,evalue, `Protein names`,
-                            `Gene ontology (biological process)`, `Gene ontology IDs`), 
-            by = c("gene"="geneID")) %>% arrange(padj) %>% 
+              dplyr::select(gene_id, start, end, saccver, spid, gene_uni,evalue, protein_names,
+                            gene_ontology_biological_process, gene_ontology_i_ds), 
+            by = c("gene"="gene_id")) %>% arrange(padj) %>% 
   write.csv(file = "../results/DEGs.Amb-vs-Mod_annotated.csv", row.names = F, quote = T)
 
 diffex.AL %>% as.data.frame() %>% rownames_to_column("gene") %>% 
   left_join(P.plat.bestblast, by=c("gene"="id")) %>%
   left_join(P.plat.blast.GO %>% 
-              dplyr::select(geneID, Start, End, saccver, SPID,gene.Uni,evalue, `Protein names`,
-                            `Gene ontology (biological process)`, `Gene ontology IDs`), 
-            by = c("gene"="geneID")) %>% arrange(padj) %>% 
+              dplyr::select(gene_id, start, end, saccver, spid, gene_uni,evalue, protein_names,
+                            gene_ontology_biological_process, gene_ontology_i_ds), 
+            by = c("gene"="gene_id")) %>% arrange(padj) %>% 
   write.csv(file = "../results/DEGs.Amb-vs-Low_annotated.csv", row.names = F, quote = T)
 
 diffex.ML %>% as.data.frame() %>% rownames_to_column("gene") %>% 
   left_join(P.plat.bestblast, by=c("gene"="id")) %>%
   left_join(P.plat.blast.GO %>% 
-              dplyr::select(geneID, Start, End, saccver, SPID,gene.Uni,evalue, `Protein names`,
-                            `Gene ontology (biological process)`, `Gene ontology IDs`), 
-            by = c("gene"="geneID")) %>% arrange(padj) %>% 
+              dplyr::select(gene_id, start, end, saccver, spid, gene_uni,evalue, protein_names,
+                            gene_ontology_biological_process, gene_ontology_i_ds), 
+            by = c("gene"="gene_id")) %>% arrange(padj) %>% 
   write.csv(file = "../results/DEGs.Mod-vs-Low_annotated.csv", row.names = F, quote = T)
   
 ```
 
-### question - are the moderate vs. low DEGs unique? or are they similar to ambient? 
-```{r}
-diffex.ML %>% rownames() %>% length() #15 DEGs between moderate & low pH 
-Reduce(setdiff, list(c(diffex.ML %>% rownames()), c(diffex.AL %>% rownames()))) %>% length() # 9 of which are also different among ambient & low pH 
-Reduce(setdiff, list(c(diffex.ML %>% rownames()), c(diffex.AM %>% rownames()))) %>% length() # 11 of which are also different among ambient & moderate pH
+## Prep for GO_MWU analysis 
+
+#### Extract module membership values for each gene for each pH-associated module 
+
+
+```{r files for GO_MWU}
+# BACKGROUND - all genes submitted to DESeq2 analysis 
+res.pco2.AM %>% as.data.frame() %>% rownames_to_column("gene") %>% dplyr::select(gene) %>% 
+  left_join(P.plat.blast.GO %>% dplyr::select(gene_id, gene_ontology_i_ds), by = c("gene"="gene_id")) %>% 
+  filter(!is.na(gene_ontology_i_ds)) %>%
+  write_delim("../results/GO_MWU/DESeq-genes_for-GOMWU.tab",delim = "\t")
+
+# DEGs between Ambient & Moderate
+res.pco2.AM %>% as.data.frame() %>% rownames_to_column("gene") %>% dplyr::select(gene,log2FoldChange) %>% 
+  left_join(P.plat.blast.GO %>% dplyr::select(gene_id, gene_ontology_i_ds), by = c("gene"="gene_id")) %>% 
+  filter(!is.na(gene_ontology_i_ds)) %>% select(gene, log2FoldChange) %>%
+  write.csv("../results/GO_MWU/DEGs_amb-mod.csv", quote = F,row.names = F)
+
+# DEGs between Ambient & Low
+res.pco2.AL %>% as.data.frame() %>% rownames_to_column("gene") %>% dplyr::select(gene,log2FoldChange) %>% 
+  left_join(P.plat.blast.GO %>% dplyr::select(gene_id, gene_ontology_i_ds), by = c("gene"="gene_id")) %>% 
+  filter(!is.na(gene_ontology_i_ds)) %>% select(gene, log2FoldChange) %>%
+  write.csv("../results/GO_MWU/DEGs_amb-low.csv", quote = F,row.names = F)
+
+# DEGs between Moderate & Low
+res.pco2.ML %>% as.data.frame() %>% rownames_to_column("gene") %>% dplyr::select(gene,log2FoldChange) %>% 
+  left_join(P.plat.blast.GO %>% dplyr::select(gene_id, gene_ontology_i_ds), by = c("gene"="gene_id")) %>% 
+  filter(!is.na(gene_ontology_i_ds)) %>% select(gene, log2FoldChange) %>%
+  write.csv("../results/GO_MWU/DEGs_mod-low.csv", quote = F,row.names = F)
 ```
+
+## Prep for Ingenuity Pathway Analysis (IPA)
+Need tab-delimited file with gene ID column, then for each comparison 2 columns: 1: LFC, 2) p-value 
+
+```{r}
+cbind(
+res.pco2.AM %>% as.data.frame() %>% select(log2FoldChange, padj) %>% rename_with( ~ paste0("Amb_vs_Mod_", .x)),
+res.pco2.AL %>% as.data.frame() %>% select(log2FoldChange, padj) %>% rename_with( ~ paste0("Amb_vs_Low_", .x)),
+res.pco2.ML %>% as.data.frame() %>% select(log2FoldChange, padj) %>% rename_with( ~ paste0("Mod_vs_Low_", .x))) %>% 
+  rownames_to_column("geneID") %>% 
+  write_delim(file = "../results/deseq2/DESeq2-results-for-IPA.tab", delim = "\t", 
+              col_names = TRUE, quote = "none")
+
+```
+
 
 ### Examine some of the most consistently differentially expressed genes in OA treatments 
 
@@ -451,7 +647,7 @@ gene.counts.norm <- assay(vsd.pH) %>% as.matrix() %>% as.data.frame() %>% rownam
 
 # calculate mean, sd, cv and annotate 
 genes.stats <- gene.counts.norm %>% group_by(Treatment, gene) %>% 
-  summarize(mean=mean(counts.vsd), sd=sd(counts.vsd), cv=sd(counts.vsd)/mean(counts.vsd)) %>% 
+  summarize(mean=mean(counts.vsd), median=median(counts.vsd), sd=sd(counts.vsd), cv=sd(counts.vsd)/mean(counts.vsd)) %>% 
   mutate(DEG=if_else(gene %in% c(rownames(diffex.AM),rownames(diffex.AL), rownames(diffex.ML)), "DEG", "Non-DEG")) %>%
   mutate(change = case_when(
   gene %in% c(rownames(subset(res.pco2.AM, padj < 0.05 & log2FoldChange < 0)), rownames(subset(res.pco2.AL, padj < 0.05 & log2FoldChange < 0))) ~ "Up-regulated",
@@ -461,7 +657,8 @@ genes.stats <- gene.counts.norm %>% group_by(Treatment, gene) %>%
   mutate(change=factor(change, levels=c("Non-DEG", "Down-regulated", "Up-regulated"))) %>%
   ungroup() %>% 
   left_join(P.plat.bestblast %>% select(id, hit_acc, hit_desc, e_value), by=c("gene"="id")) %>%
-  left_join(P.plat.blast.GO %>% select(geneID, SPID, `Protein names`, evalue), by=c("gene"="geneID"))
+  left_join(P.plat.blast.GO %>% select(gene_id, spid, protein_names, evalue), by=c("gene"="gene_id"))
+save(genes.stats, file = "../results/bowtie/per-gene-summary-stats")
 
 hist(genes.stats$mean)
 hist(genes.stats$cv, breaks = 50)
@@ -469,16 +666,14 @@ hist(genes.stats$cv, breaks = 50)
 # What's the range of mean of the normalized counts, what is considered high? I'd say >10
 ggplot(genes.stats) + geom_boxplot(aes(x=Treatment, y=mean, colour=Treatment)) + facet_wrap(~change)
 
-# What's the range of CV of the normalized counts, what is considered low-level variation? Q1 extends to 0.04
+# What's the range of CV of the normalized counts, what is considered low-level variation? Q1 extends to 0.02-0.04
 ggplotly(ggplot(genes.stats) + geom_boxplot(aes(x=Treatment, y=cv, colour=Treatment)) + facet_wrap(~change))
 
 # Which genes were highly UP-regulated (mean of transformed counts >10) consistently within an OA treatment? (CV<0.04)
-genes.stats %>% filter(mean>10 & cv<.04 & change=="Up-regulated" & Treatment!="Ambient") %>% View()
+genes.stats %>% filter(mean>10 & cv<.02 & change=="Up-regulated" & Treatment!="Ambient") %>% View()
 
 # Which genes were highly DOWN-regulated (mean of transformed counts >10) consistently within an OA treatment? (CV<0.04)
-genes.stats %>% filter(mean>10 & cv<.04 & change=="Down-regulated" & Treatment!="Ambient") %>% View()
-
-genes.stats %>% View()
+genes.stats %>% filter(mean>10 & cv<.02 & change=="Down-regulated" & Treatment!="Ambient") %>% View()
 
 # To inspect counts for individual genes of interest, use this code: 
 # e.g. calcium-dependent secretion activator\nevm.TU.HiC_scaffold_92.184
@@ -510,103 +705,6 @@ genes.stats %>% filter(change!="Non-DEG") %>%
   xlab("Per-treatment mean of normalized counts") + ggtitle("Abundances of DEGs by treatment & relative expression")
 
 
-```
-
-
-# Enrichment analysis
-
-Here I will do a quick enrichment analysis using the online tool DAVID. I copy the Uniprot SPIDs for the annotated DEGs and all annotated genes examined into the DAVID Functional Annotation Tools. I do so for each pairwise pH comparison. 
-
-```{r, eval=FALSE}
-# DEGs between Ambient & Moderate
-diffex.AM %>% as.data.frame() %>% rownames_to_column("gene") %>% dplyr::select(gene, padj) %>% 
-  left_join(P.plat.blast %>% dplyr::select(geneID, SPID), by = c("gene"="geneID")) %>% 
-  dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
-
-# AMBIENT VS. LOW
-diffex.AL %>% as.data.frame() %>% rownames_to_column("gene") %>% dplyr::select(gene, padj) %>% 
-  left_join(P.plat.blast %>% dplyr::select(geneID, SPID), by = c("gene"="geneID")) %>% 
-  dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
-
-# MODERATE VS LOW 
-diffex.ML %>% as.data.frame() %>% rownames_to_column("gene") %>% dplyr::select(gene, padj) %>% 
-  left_join(P.plat.blast %>% dplyr::select(geneID, SPID), by = c("gene"="geneID")) %>% 
-  dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
-
-# BACKGROUND
-res.pco2.AM %>% as.data.frame() %>% rownames_to_column("gene") %>% dplyr::select(gene, padj) %>% 
-  left_join(P.plat.blast %>% dplyr::select(geneID, SPID), by = c("gene"="geneID")) %>% 
-  dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
-
-
-# TRY TO USE THE BEST BLAST ANNOTATION TABLE 
-# DEGs between Ambient & Moderate
-diffex.AM %>% as.data.frame() %>% rownames_to_column("gene") %>% dplyr::select(gene, padj) %>% 
-  left_join(P.plat.blast %>% dplyr::select(id, blast_type, hit_acc, hit_desc), by = c("gene"="id")) %>% #filter(blast_type=="BLASTX1") %>% 
-  separate(hit_acc, sep = "\\.", into = c("accession","version"), remove = F) %>%
-  dplyr::select(accession) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
-
-# DEGs between Ambient & Low
-diffex.AL %>% as.data.frame() %>% rownames_to_column("gene") %>% dplyr::select(gene, padj) %>% 
-  left_join(P.plat.blast %>% dplyr::select(id, hit_acc, hit_desc), by = c("gene"="id")) %>% 
-  dplyr::select(hit_acc) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
-
-# DEGs between Moderate & Low (includes just 4 annotated genes) 
-diffex.ML %>% as.data.frame() %>% rownames_to_column("gene") %>% dplyr::select(gene, padj) %>% 
-  left_join(P.plat.blast %>% dplyr::select(id, hit_acc, hit_desc), by = c("gene"="id")) %>% 
-  dplyr::select(hit_acc) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
-
-# All genes (background, includes 7,153 annotated genes)
-res.pco2.AM %>% as.data.frame() %>% rownames_to_column("gene") %>% dplyr::select(gene, padj) %>% 
-  left_join(P.plat.blast %>% dplyr::select(id, hit_acc, hit_desc), by = c("gene"="id")) %>% 
-  dplyr::select(hit_acc) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
-
-P.plat.blast %>% filter(blast_type=="BLASTN1")
-
-```
-
-
-## DAVID Results 
-# NEED TO UPDATE LOCATIONS DEPENDING ON BOWTIE2 OR STAR 
-
-Enriched biological processes (and associated gene lists) are saved to GitHub. These have been updated to remove outlier sample (Tank 7 Crab 4).  
-
--- Ambient pH vs. Moderate pH, [results/david/DAVID-Enriched-BP_Amb-Mod_no-outlier-T7C4.txt](https://raw.githubusercontent.com/laurahspencer/red-king_RNASeq-2022/main/results/david/DAVID-Enriched-BP_Amb-Mod_no-outlier-T7C4.txt)  
--- Ambient pH vs. Moderate pH, [results/david/DAVID-Enriched-BP_Amb-Low_no-outlier-T7C4.txt](https://raw.githubusercontent.com/laurahspencer/red-king_RNASeq-2022/main/results/david/DAVID-Enriched-BP_Amb-Low_no-outlier-T7C4.txt)  
--- Moderate pH vs. Low pH, NONE 
-
-
-Visualize with REVIGO - read in DAVID enrichment results, extract GO terms and PValues and copy to clipboard to paste into [REVIGO](http://revigo.irb.hr/)  
-
-```{r, eval=FALSE}
-# With Bowtie2 aligned
-# Between ambient and moderate pH 
-read_delim(file="../results/bowtie/DAVID-Enriched-BP_Amb-Mod_no-outlier-T7C4.txt", delim = "\t") %>% 
-  mutate(GO = str_extract(Term, "GO(.*?)~")) %>% 
-  mutate(GO = gsub("~", "", GO)) %>% dplyr::select(GO, PValue) %>% na.omit() %>% write_clip()
-
-# Between ambient and low pH 
-read_delim(file="../results/bowtie/DAVID-Enriched-BP_Amb-Low_no-outlier-T7C4.txt", delim = "\t") %>% 
-  mutate(GO = str_extract(Term, "GO(.*?)~")) %>% 
-  mutate(GO = gsub("~", "", GO)) %>% dplyr::select(Term) %>% na.omit() %>% write_clip()
-
-# Between moderate and low pH 
-read_delim(file="../results/bowtie/DAVID-Enriched-BP_Mod-Low_no-outlier-T7C4.txt", delim = "\t") %>% 
-  mutate(GO = str_extract(Term, "GO(.*?)~")) %>% 
-  mutate(GO = gsub("~", "", GO)) %>% dplyr::select(GO, PValue) %>% na.omit() %>% write_clip()
-
-# With STAR aligned 
-read_delim(file="../results/star/star.v2/DAVID-Enriched-BP_Amb-Mod_no-outlier-T7C4.txt", delim = "\t") %>% 
-  mutate(GO = str_extract(Term, "GO(.*?)~")) %>% 
-  mutate(GO = gsub("~", "", GO)) %>% dplyr::select(GO, PValue) %>% na.omit() %>% write_clip()
-
-read_delim(file="../results/star/star.v2/DAVID-Enriched-BP_Amb-Low_no-outlier-T7C4.txt", delim = "\t") %>% 
-  mutate(GO = str_extract(Term, "GO(.*?)~")) %>% 
-  mutate(GO = gsub("~", "", GO)) %>% dplyr::select(GO, PValue) %>% na.omit() %>% write_clip()
-
-read_delim(file="../results/star/star.v2/DAVID-Enriched-BP_Mod-Low_no-outlier-T7C4.txt", delim = "\t") %>% 
-  mutate(GO = str_extract(Term, "GO(.*?)~")) %>% 
-  mutate(GO = gsub("~", "", GO)) %>% dplyr::select(GO, PValue) %>% na.omit() %>% write_clip()
 ```
 
 # Exploring differences in within-group variances 
@@ -739,9 +837,9 @@ ggplot(data=c, aes(x=PC1, y=PC2, group=Treatment, colour=Treatment)) +
 Explore coefficient of variation by treatment, and gene groups 
 
 ```{r}
-assay(vsd.pH) #variance-stabilizing transformed count matrix
-mcols(mcols(dds.DESeq.pH))$description #Description of DESeq summary stats columns
-mcols(dds.DESeq.pH) #DESeq summary stats 
+# assay(vsd.pH) #variance-stabilizing transformed count matrix
+# mcols(mcols(dds.DESeq.pH))$description #Description of DESeq summary stats columns
+# mcols(dds.DESeq.pH) #DESeq summary stats 
 
 # Create dataframe in long format with gene, sample number, transformed counts, and treatment 
 # use assay(vsd.pH) for variance-stabilizing transformed data 
@@ -780,7 +878,7 @@ f <- e %>% mutate(DEG=if_else(gene %in% c(rownames(diffex.AM),rownames(diffex.AL
   mutate(change=factor(change, levels=c("Non-DEG", "Down-regulated", "Up-regulated"))) %>%
   ungroup() %>% 
   left_join(P.plat.bestblast %>% select(id, hit_acc, hit_desc, e_value), by=c("gene"="id")) %>%
-  left_join(P.plat.blast.GO %>% select(geneID, SPID, `Protein names`, evalue), by=c("gene"="geneID"))
+  left_join(P.plat.blast.GO %>% select(gene_id, spid, protein_names, evalue), by=c("gene"="gene_id"))
 
 # create vector of gene names that are diff. expressed among moderate and low pH - not included in this variance comparison
 remove <- (f %>% ungroup() %>% filter(DEG=="DEG") %>% filter(change=="Non-DEG"))$gene %>% as.vector()
@@ -810,12 +908,12 @@ ggplotly(ggplot(f %>% filter(!c(gene %in% remove)), aes(x=Treatment, y=cv, colou
   ggtitle("Gene-wise variance within treatments\nNon-DEGs, and DEGs that are down- and up-regulated in OA") +
   theme(axis.text.x = element_blank(), plot.title = element_text(size=10), legend.position = "bottom"))
 
-# Q1 = 0.03, use that 
-f %>% filter(Treatment!="Ambient") %>% filter(DEG=="DEG") %>% filter(change=="Up-regulated") %>% filter(cv<=0.03) %>% View()
+# Q1 = 0.02 - 0.03, use that 
+f %>% filter(Treatment!="Ambient") %>% filter(DEG=="DEG") %>% filter(change=="Up-regulated") %>% filter(cv<=0.02) %>% View()
 
 # Here I save a list of upregulated DEGs that are also expressed at highly consistent levels (very low variability, CV <0.03).
 # Note that they have been annotated twice, first with the Best Blast results, second with my Uniprot/Swissprot blast results 
-f %>% filter(Treatment!="Ambient") %>% filter(DEG=="DEG") %>% filter(change=="Up-regulated") %>% filter(cv<=0.03) %>% 
+f %>% filter(Treatment!="Ambient") %>% filter(DEG=="DEG") %>% filter(change=="Up-regulated") %>% filter(cv<=0.02) %>% 
     write.csv(file = "../results/DEGs.up-low-variability_annotated.csv", row.names = F, quote = T, col.names = T)
 
 # NOTE: When I do NOT filter out low-frequency genes prior to the DESeq2 analysis using the mean=10 threshold, some cv=0 for some genes/treatments
@@ -861,6 +959,106 @@ ggplot(a %>% rownames_to_column("sample"),
 
 
 # BONEYARD 
+
+# Enrichment analysis using DAVID
+
+Here I will do a quick enrichment analysis using the online tool DAVID. I copy the Uniprot SPIDs for the annotated DEGs and all annotated genes examined into the DAVID Functional Annotation Tools. I do so for each pairwise pH comparison. 
+
+```{r, eval=FALSE}
+# DEGs between Ambient & Moderate
+diffex.AM %>% as.data.frame() %>% rownames_to_column("gene") %>% dplyr::select(gene, padj) %>% 
+  left_join(P.plat.blast %>% dplyr::select(geneID, SPID), by = c("gene"="geneID")) %>% 
+  dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
+
+# AMBIENT VS. LOW
+diffex.AL %>% as.data.frame() %>% rownames_to_column("gene") %>% dplyr::select(gene, padj) %>% 
+  left_join(P.plat.blast %>% dplyr::select(geneID, SPID), by = c("gene"="geneID")) %>% 
+  dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
+
+# MODERATE VS LOW 
+diffex.ML %>% as.data.frame() %>% rownames_to_column("gene") %>% dplyr::select(gene, padj) %>% 
+  left_join(P.plat.blast %>% dplyr::select(geneID, SPID), by = c("gene"="geneID")) %>% 
+  dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
+
+# BACKGROUND
+res.pco2.AM %>% as.data.frame() %>% rownames_to_column("gene") %>% dplyr::select(gene, padj) %>% 
+  left_join(P.plat.blast %>% dplyr::select(geneID, SPID), by = c("gene"="geneID")) %>% 
+  dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
+
+
+# TRY TO USE THE BEST BLAST ANNOTATION TABLE 
+# DEGs between Ambient & Moderate
+diffex.AM %>% as.data.frame() %>% rownames_to_column("gene") %>% dplyr::select(gene, padj) %>% 
+  left_join(P.plat.blast %>% dplyr::select(id, blast_type, hit_acc, hit_desc), by = c("gene"="id")) %>% #filter(blast_type=="BLASTX1") %>% 
+  separate(hit_acc, sep = "\\.", into = c("accession","version"), remove = F) %>%
+  dplyr::select(accession) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
+
+# DEGs between Ambient & Low
+diffex.AL %>% as.data.frame() %>% rownames_to_column("gene") %>% dplyr::select(gene, padj) %>% 
+  left_join(P.plat.blast %>% dplyr::select(id, hit_acc, hit_desc), by = c("gene"="id")) %>% 
+  dplyr::select(hit_acc) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
+
+# DEGs between Moderate & Low (includes just 4 annotated genes) 
+diffex.ML %>% as.data.frame() %>% rownames_to_column("gene") %>% dplyr::select(gene, padj) %>% 
+  left_join(P.plat.blast %>% dplyr::select(id, hit_acc, hit_desc), by = c("gene"="id")) %>% 
+  dplyr::select(hit_acc) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
+
+# All genes (background, includes 7,153 annotated genes)
+res.pco2.AM %>% as.data.frame() %>% rownames_to_column("gene") %>% dplyr::select(gene, padj) %>% 
+  left_join(P.plat.blast %>% dplyr::select(id, hit_acc, hit_desc), by = c("gene"="id")) %>% 
+  dplyr::select(hit_acc) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
+
+P.plat.blast %>% filter(blast_type=="BLASTN1")
+
+```
+
+
+## DAVID Results 
+# NEED TO UPDATE LOCATIONS DEPENDING ON BOWTIE2 OR STAR 
+
+Enriched biological processes (and associated gene lists) are saved to GitHub. These have been updated to remove outlier sample (Tank 7 Crab 4).  
+
+-- Ambient pH vs. Moderate pH, [results/david/DAVID-Enriched-BP_Amb-Mod_no-outlier-T7C4.txt](https://raw.githubusercontent.com/laurahspencer/red-king_RNASeq-2022/main/results/david/DAVID-Enriched-BP_Amb-Mod_no-outlier-T7C4.txt)  
+-- Ambient pH vs. Moderate pH, [results/david/DAVID-Enriched-BP_Amb-Low_no-outlier-T7C4.txt](https://raw.githubusercontent.com/laurahspencer/red-king_RNASeq-2022/main/results/david/DAVID-Enriched-BP_Amb-Low_no-outlier-T7C4.txt)  
+-- Moderate pH vs. Low pH, NONE 
+
+
+Visualize with REVIGO - read in DAVID enrichment results, extract GO terms and PValues and copy to clipboard to paste into [REVIGO](http://revigo.irb.hr/)  
+
+```{r, eval=FALSE}
+# With Bowtie2 aligned
+# Between ambient and moderate pH 
+read_delim(file="../results/bowtie/DAVID-Enriched-BP_Amb-Mod_no-outlier-T7C4.txt", delim = "\t") %>% 
+  mutate(GO = str_extract(Term, "GO(.*?)~")) %>% 
+  mutate(GO = gsub("~", "", GO)) %>% dplyr::select(GO, PValue) %>% na.omit() %>% write_clip()
+
+# Between ambient and low pH 
+read_delim(file="../results/bowtie/DAVID-Enriched-BP_Amb-Low_no-outlier-T7C4.txt", delim = "\t") %>% 
+  mutate(GO = str_extract(Term, "GO(.*?)~")) %>% 
+  mutate(GO = gsub("~", "", GO)) %>% dplyr::select(Term) %>% na.omit() %>% write_clip()
+
+# Between moderate and low pH 
+read_delim(file="../results/bowtie/DAVID-Enriched-BP_Mod-Low_no-outlier-T7C4.txt", delim = "\t") %>% 
+  mutate(GO = str_extract(Term, "GO(.*?)~")) %>% 
+  mutate(GO = gsub("~", "", GO)) %>% dplyr::select(GO, PValue) %>% na.omit() %>% write_clip()
+
+# With STAR aligned 
+read_delim(file="../results/star/star.v2/DAVID-Enriched-BP_Amb-Mod_no-outlier-T7C4.txt", delim = "\t") %>% 
+  mutate(GO = str_extract(Term, "GO(.*?)~")) %>% 
+  mutate(GO = gsub("~", "", GO)) %>% dplyr::select(GO, PValue) %>% na.omit() %>% write_clip()
+
+read_delim(file="../results/star/star.v2/DAVID-Enriched-BP_Amb-Low_no-outlier-T7C4.txt", delim = "\t") %>% 
+  mutate(GO = str_extract(Term, "GO(.*?)~")) %>% 
+  mutate(GO = gsub("~", "", GO)) %>% dplyr::select(GO, PValue) %>% na.omit() %>% write_clip()
+
+read_delim(file="../results/star/star.v2/DAVID-Enriched-BP_Mod-Low_no-outlier-T7C4.txt", delim = "\t") %>% 
+  mutate(GO = str_extract(Term, "GO(.*?)~")) %>% 
+  mutate(GO = gsub("~", "", GO)) %>% dplyr::select(GO, PValue) %>% na.omit() %>% write_clip()
+```
+
+
+
+
 ### Are genes that are upregulated in response to OA more or less variable in those treatments compared to in the ambient crab? 
 
 ```{r}

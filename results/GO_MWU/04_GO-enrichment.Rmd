@@ -1,0 +1,302 @@
+---
+title: "04_GO-enrichment"
+author: "Laura H Spencer"
+date: "3/22/2022"
+output: html_document
+---
+
+In this notebook I use GO_MWU to perform a gene ontology enrichment analysis for gene sets of interest, which include 1) Differentially expressed genes (DEGs) derived from DESeq2, and 2) Modules of genes associated with pH, derived from WGCNA. The input files for each of the gene sets were generated in the DESeq2 and WGCNA notebooks. 
+
+This notebook contains code from the GO_MWU program. 
+
+```{r}
+setwd("~/red-king_RNASeq-2022/results/GO_MWU")
+```
+
+```{r}
+goDatabase="go.obo" # download from http://www.geneontology.org/GO.downloads.ontology.shtml
+source("gomwu.functions.R")
+```
+
+Create a list of GO devisions, Biological Processes (BP), Molecular Functions (MF), Cellular Components (CC), to loop over 
+
+```{r}
+goDivisions <- c("BP", "MF", "CC")
+```
+
+# NOTE:  I write separate GO_MWU functions for the DEG lists and the WGCNA module lists. This is because GO_MWU has different settings for those two types of analyses. 
+
+# Identify enriched functions in genes differentially expressed among pH treatments (from DESeq2)
+
+## Create a GO_MWU function for enrichment analysis of DEGs 
+
+```{r}
+go.mwu.degs <- function(contrast) {
+  
+  input = paste("DEGs_", contrast, ".csv", sep="")
+  goAnnotations = "DESeq-genes_for-GOMWU.tab"
+
+for (j in 1:length(goDivisions)) {
+  tryCatch({
+  
+# ------------- Calculating stats
+# It might take a few minutes for MF and BP. Do not rerun it if you just want to replot the data with different cutoffs, go straight to gomwuPlot. If you change any of the numeric values below, delete the files that were generated in previos runs first.
+
+gomwuStats(input, goDatabase, goAnnotations, goDivisions[j],
+	perlPath="perl", # replace with full path to perl executable if it is not in your system's PATH already
+	largest=0.1,  # a GO category will not be considered if it contains more than this fraction of the total number of genes
+	smallest=5,   # a GO category should contain at least this many genes to be considered
+	clusterCutHeight=0.25, # threshold for merging similar (gene-sharing) terms. See README for details.
+#	Alternative="g" # by default the MWU test is two-tailed; specify "g" or "l" of you want to test for "greater" or "less" instead. 
+	#Module=TRUE,Alternative="g" # un-remark this if you are analyzing a SIGNED WGCNA module (values: 0 for not in module genes, kME for in-module genes). In the call to gomwuPlot below, specify absValue=0.001 (count number of "good genes" that fall into the module)
+#	Module=TRUE # un-remark this if you are analyzing an UNSIGNED WGCNA module 
+)
+# do not continue if the printout shows that no GO terms pass 10% FDR.
+
+
+# ----------- Plotting results
+
+#quartz()
+results=gomwuPlot(input,goAnnotations,goDivisions[j],
+ 	#absValue=-log(0.05,10),   # genes with the measure value exceeding this will be counted as "good genes". This setting is for signed log-pvalues. Specify absValue=0.001 if you are doing Fisher's exact test for standard GO enrichment or analyzing a WGCNA module (all non-zero genes = "good genes").
+ absValue=1, # un-remark this if you are using log2-fold changes
+ #level1=0.05,level2=0.01,level3=0.001,	#stricter settings for many GO terms 
+ level1=0.1, # FDR threshold for plotting. Specify level1=1 to plot all GO categories containing genes exceeding the absValue.
+ 	level2=0.05, # FDR cutoff to print in regular (not italic) font.
+ 	level3=0.01, # FDR cutoff to print in large bold font.
+ 	txtsize=1.2,    # decrease to fit more on one page, or increase (after rescaling the plot so the tree fits the text) for better "word cloud" effect
+ 	treeHeight=0.5, # height of the hierarchical clustering tree
+ 	#colors=c(color, color, color, color, color)
+ colors=c("dodgerblue2","firebrick1","skyblue2","lightcoral") # these are default colors, un-remar and change if needed
+ )
+mtext(paste(contrast, " - ", goDivisions[j], sep=""), side = 3, line = 1, adj = -.05, col="black")
+ # manually rescale the plot so the tree matches the text 
+ # if there are too many categories displayed, try make it more stringent with level1=0.05,level2=0.01,level3=0.001.  
+ 
+ # text representation of results, with actual adjusted p-values
+ print(results[[1]])
+
+
+# ------- extracting representative GOs
+
+# this module chooses GO terms that best represent *independent* groups of significant GO terms
+
+pcut=1e-2 # adjusted pvalue cutoff for representative GO
+hcut=0.9 # height at which cut the GO terms tree to get "independent groups". 
+
+# plotting the GO tree with the cut level (un-remark the next two lines to plot)
+# plot(results[[2]],cex=0.6)
+# abline(h=hcut,col="red")
+
+# cutting
+ct=cutree(results[[2]],h=hcut)
+annots=c();ci=1
+for (ci in unique(ct)) {
+  message(ci)
+	rn=names(ct)[ct==ci]
+	obs=grep("obsolete",rn)
+	if(length(obs)>0) { rn=rn[-obs] }
+	if (length(rn)==0) {next}
+	rr=results[[1]][rn,]
+	bestrr=rr[which(rr$pval==min(rr$pval)),]
+	best=1
+	if(nrow(bestrr)>1) {
+		nns=sub(" .+","",row.names(bestrr))
+		fr=c()
+		for (i in 1:length(nns)) { fr=c(fr,eval(parse(text=nns[i]))) }
+		best=which(fr==max(fr))
+	}
+	if (bestrr$pval[best]<=pcut) { annots=c(annots,sub("\\d+\\/\\d+ ","",row.names(bestrr)[best]))}
+}
+
+mwus=read.table(paste("MWU",goDivisions[j],input,sep="_"),header=T)
+bestGOs=mwus[mwus$name %in% annots,]
+print(bestGOs)
+},
+error=function(e){cat("ERROR:", conditionMessage(e), "\n")})
+}
+}
+```
+
+## DEGs between ambient conditions (pH ~8.0) and moderate OA (pH ~7.8)
+
+```{r}
+go.mwu.degs(contrast="amb-mod")
+```
+
+
+## DEGs between ambient conditions (pH ~8.0) and severe OA (pH ~7.5)
+
+```{r}
+go.mwu.degs(contrast="amb-low")
+```
+
+## DEGs between moderate conditions (pH ~8.0) and severe OA (pH ~7.5)
+
+```{r}
+go.mwu.degs(contrast="mod-low")
+```
+
+# Identify enriched functions in genes within modules that are signficantly associated with pH (from WGCNA) 
+
+The "color" argument refers to the color for each GO tree (so for some modules, it's best to make that a slightly different color)
+
+```{r}
+go.mwu.wgcna <- function(module, color) {
+  
+  input=paste("WGCNA-module_", module, ".csv", sep="") # two columns of comma-separated values: gene id, continuous measure of significance. To perform standard GO enrichment analysis based on Fisher's exact test, use binary measure (0 or 1, i.e., either sgnificant or not).
+  
+  goAnnotations.wgcna="WGCNA-genes_for-GOMWU.tab" # two-column, tab-delimited, one line per gene, multiple GO terms separated by semicolon. If you have multiple lines per gene, use nrify_GOtable.pl prior to running this script.
+
+for (j in 1:length(goDivisions)) {
+  tryCatch({
+  
+# ------------- Calculating stats
+# It might take a few minutes for MF and BP. Do not rerun it if you just want to replot the data with different cutoffs, go straight to gomwuPlot. If you change any of the numeric values below, delete the files that were generated in previos runs first.
+
+    gomwuStats(input, goDatabase, goAnnotations.wgcna, goDivisions[j],
+	perlPath="perl", # replace with full path to perl executable if it is not in your system's PATH already
+	largest=0.1,  # a GO category will not be considered if it contains more than this fraction of the total number of genes
+	smallest=5,   # a GO category should contain at least this many genes to be considered
+	clusterCutHeight=0.25, # threshold for merging similar (gene-sharing) terms. See README for details.
+#	Alternative="g" # by default the MWU test is two-tailed; specify "g" or "l" of you want to test for "greater" or "less" instead. 
+	Module=TRUE,Alternative="g" # un-remark this if you are analyzing a SIGNED WGCNA module (values: 0 for not in module genes, kME for in-module genes). In the call to gomwuPlot below, specify absValue=0.001 (count number of "good genes" that fall into the module)
+#	Module=TRUE # un-remark this if you are analyzing an UNSIGNED WGCNA module 
+)
+# do not continue if the printout shows that no GO terms pass 10% FDR.
+
+# ----------- Plotting results
+
+#quartz()
+results=gomwuPlot(input,goAnnotations.wgcna,goDivisions[j],
+ 	absValue=0.001,  #-log(0.05,10) # genes with the measure value exceeding this will be counted as "good genes". This setting is for signed log-pvalues. Specify absValue=0.001 if you are doing Fisher's exact test for standard GO enrichment or analyzing a WGCNA module (all non-zero genes = "good genes").
+ #	absValue=1, # un-remark this if you are using log2-fold changes
+ 	level1=0.1, # FDR threshold for plotting. Specify level1=1 to plot all GO categories containing genes exceeding the absValue.
+ 	level2=0.05, # FDR cutoff to print in regular (not italic) font.
+ 	level3=0.01, # FDR cutoff to print in large bold font.
+ 	txtsize=1.2,    # decrease to fit more on one page, or increase (after rescaling the plot so the tree fits the text) for better "word cloud" effect
+ 	treeHeight=0.5, # height of the hierarchical clustering tree
+ 	#colors=c(color, color, color, color, color)
+ colors=c("dodgerblue2","firebrick1","skyblue2","lightcoral") # these are default colors, un-remar and change if needed
+ )
+mtext(paste(module, "-", goDivisions[j], sep=""), side = 3, line = .25, adj = 0, col=color) #module
+ # manually rescale the plot so the tree matches the text 
+ # if there are too many categories displayed, try make it more stringent with level1=0.05,level2=0.01,level3=0.001.  
+ 
+ # text representation of results, with actual adjusted p-values
+ print(results[[1]])
+
+
+# ------- extracting representative GOs
+# this module chooses GO terms that best represent *independent* groups of significant GO terms
+
+pcut=1e-2 # adjusted pvalue cutoff for representative GO
+hcut=0.9 # height at which cut the GO terms tree to get "independent groups". 
+
+# plotting the GO tree with the cut level (un-remark the next two lines to plot)
+# plot(results[[2]],cex=0.6)
+# abline(h=hcut,col="red")
+
+# cutting
+ct=cutree(results[[2]],h=hcut)
+annots=c();ci=1
+for (ci in unique(ct)) {
+  message(ci)
+	rn=names(ct)[ct==ci]
+	obs=grep("obsolete",rn)
+	if(length(obs)>0) { rn=rn[-obs] }
+	if (length(rn)==0) {next}
+	rr=results[[1]][rn,]
+	bestrr=rr[which(rr$pval==min(rr$pval)),]
+	best=1
+	if(nrow(bestrr)>1) {
+		nns=sub(" .+","",row.names(bestrr))
+		fr=c()
+		for (i in 1:length(nns)) { fr=c(fr,eval(parse(text=nns[i]))) }
+		best=which(fr==max(fr))
+	}
+	if (bestrr$pval[best]<=pcut) { annots=c(annots,sub("\\d+\\/\\d+ ","",row.names(bestrr)[best]))}
+}
+
+mwus=read.table(paste("MWU",goDivisions[j],input,sep="_"),header=T)
+bestGOs=mwus[mwus$name %in% annots,]
+print(bestGOs)
+},
+error=function(e){cat("ERROR:", conditionMessage(e), "\n")})
+}
+}
+```
+
+# pH-associated modules 
+
+This is the list of modules that are associated with pH 
+```{r}
+load(file = "../wgcna/module.lineplots") #load lineplots to plot alongside enrichment to aid in interpretation 
+```
+
+## Module == Brown 
+```{r}
+module.lineplots[["brown"]]
+go.mwu.wgcna(module = "brown", color = "darkgoldenrod4")
+```
+
+## Module == Pink 
+
+```{r}
+module.lineplots[["pink"]]
+go.mwu.wgcna(module = "pink", color = "pink")
+```
+
+## Module == red 
+
+```{r}
+module.lineplots[["red"]]
+go.mwu.wgcna(module="red", color="red")
+```
+
+## Module == cyan 
+
+```{r}
+module.lineplots[["cyan"]]
+go.mwu.wgcna(module="cyan", color="cyan4")
+```
+
+## Module == green 
+
+```{r}
+module.lineplots[["green"]]
+go.mwu.wgcna(module="green", color="green")
+```
+
+## Module == darkgreen 
+
+```{r}
+module.lineplots[["darkgreen"]]
+go.mwu.wgcna(module="darkgreen", color="darkgreen")
+```
+
+## WGCNA modules that increase or decrease in moderate compared to ambient & low 
+
+These modules were hand-selected based on line plots 
+
+```{r}
+load(file = "../wgcna/modules.all.lineplots")
+```
+
+## Module == mediumpurple3 
+
+Lower in moderate OA
+
+```{r}
+modules.all.lineplots[["mediumpurple3"]]
+go.mwu.wgcna(module="mediumpurple3", color="mediumpurple3")
+```
+
+## Module == saddlebrown 
+
+Higher in moderate OA 
+
+```{r}
+modules.all.lineplots[["saddlebrown"]]
+go.mwu.wgcna(module="saddlebrown", color="saddlebrown")
+```

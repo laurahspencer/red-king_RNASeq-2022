@@ -8,7 +8,7 @@ output: html_document
 
 ```{r, message=FALSE, warning=FALSE, results=FALSE}
 # Add all required libraries that are installed with install.packages() here
-list.of.packages <- c("tidyverse", "RColorBrewer", "ggpmisc")
+list.of.packages <- c("tidyverse", "RColorBrewer", "ggpmisc", "ggpubr", "ape", "pheatmap")
 # Add all libraries that are installed using BiocManager here
 bioconductor.packages <- c("WGCNA", "DESeq2")
 
@@ -29,46 +29,83 @@ lapply(all.packages, FUN = function(X) {
 })
 ```
 
-```{r}
-# load data
-load(file = "../results/gene-counts") # object is counts
-load(file = "../results/gene-counts-trans") #object is counts.t 
-load(file="../data/sample.info") #object = sample.info
-load(file = "../results/bowtie/per-gene-summary-stats")
-
-keep1 <- colMeans(counts.t, na.rm=TRUE) >= 10 #identify genes with mean count across all samples (excluding NAs = 10)
-keep2 <- rowSums( counts >= 10 ) >= 0.2*43 #identify genes with counts>=10 across at minimum 25% of the samples
-keep <- Reduce(intersect, list(names(which(keep1 == T)), names(which(keep2 == T)))) # list of genes meeting both of the above criteria 
-counts.ts <- counts.t[,keep]
-
-print(paste("# genes remaining after pre-filtering:", ncol(counts.ts)))
-print(paste("# of genes dropped:", ncol(counts.t) - ncol(counts.ts), sep=" "))
-
-# merge count data with sample key, reset row names as sample names, and arrange by infection, then temperature, then day 
-counts.tk <- merge(x=sample.info[,c("Sample", "Tank", "Treatment", "Treatment_Tank")], by.x="Sample", y=counts.ts, by.y="row.names") %>% 
-  arrange(Treatment, Tank)  %>% column_to_rownames(var="Sample") %>% droplevels()
-
-all(rownames(counts.tk) == counts.tk %>% dplyr::select(starts_with("evm")) %>% t() %>% colnames()) #check that rownames of untransformed matrix match column names of transformed matrix. Should print 'TRUE' 
-
-dds.pH <- DESeqDataSetFromMatrix(countData = counts.tk[,grepl("evm", colnames(counts.tk))] %>% t(),
-                              colData = counts.tk[,"Treatment", drop=FALSE] ,
-                              design = ~ Treatment)
-
-vsd.pH <- varianceStabilizingTransformation(dds.pH, blind=FALSE)
-
-counts.trans <- assay(vsd.pH) %>% t() %>% as.matrix() %>% as.data.frame() %>%
-  rownames_to_column(var = "Sample") %>% 
-  left_join(sample.info[,c("Sample", "Treatment", "Tank", "Treatment_Tank")]) %>%
-  column_to_rownames(var = "Sample") %>% 
-  select(Treatment, Tank, Treatment_Tank, contains("evm")) %>% 
-  mutate(Treatment=factor(Treatment, levels=c("Ambient", "Moderate", "Low")))
-save(counts.trans, file = "../results/wgcna/counts.filt")
-```
-
 Format of expression data should be: 
 - rownames = sample 
 - columns = genes 
 - normalized 
+
+# If I want to start with raw count data and do my own outlier filtering 
+
+```{r}
+# counts <- data.frame(read.table("../results/featureCounts/featurecounts_redking_gene-v3", header = T, stringsAsFactors = F, fill = FALSE))
+# counts <- counts %>%  column_to_rownames(var="Geneid")
+# counts <- counts %>% rename_all(~as.character(str_sub(colnames(counts)) %>%
+#                              gsub("X.scratch.lspencer.2022.redking.OA.aligned.bowtie.sorted.deduped.", "", .) %>%
+#                              gsub(".sorted.bam", "", .)))
+# 
+# # Remove extraneous gene info, then transpose dataframe so each row = a sample (aka "objects"), and each column = genes (aka "variables") 
+# counts.t <- as.data.frame(t(counts[,-1:-5])) #remove extraneous columns, transform data to have each sample a row, each column a gene 
+# 
+# # Read in sample metadata 
+# sample.info <- read.csv("../data/RCK-exp-design.csv", header=T, na.strings = NA) %>%
+#           mutate_at(vars(Tank, Treatment, Treatment_Tank), as.factor)
+# 
+# # filter low-frequency genes 
+# keep1 <- colMeans(counts.t, na.rm=TRUE) >= 10 #identify genes with mean count across all samples (excluding NAs = 10)
+# keep2 <- rowSums( counts >= 10 ) >= 0.2*43 #identify genes with counts>=10 across at minimum 25% of the samples
+# keep <- unique(c(names(which(keep1 == T)), names(which(keep2 == T)))) # list of genes meeting one of the two above criteria
+# counts.ts <- counts.t[,keep]
+# 
+# print(paste("# genes remaining after pre-filtering:", ncol(counts.ts)))
+# print(paste("# of genes dropped:", ncol(counts.t) - ncol(counts.ts), sep=" "))
+# 
+# # merge count data with sample key, reset row names as sample names, and arrange by infection, then temperature, then day 
+# counts.tk <- merge(x=sample.info[,c("Sample", "Tank", "Treatment", "Treatment_Tank")], by.x="Sample", y=counts.ts, by.y="row.names") %>% 
+#   arrange(Treatment, Tank)  %>% column_to_rownames(var="Sample") %>% droplevels()
+# 
+# all(rownames(counts.tk) == counts.tk %>% dplyr::select(starts_with("evm")) %>% t() %>% colnames()) #check that rownames of untransformed matrix match column names of transformed matrix. Should print 'TRUE' 
+# 
+# # Use DESeq2 to perform a variance-stabilizing transformation 
+# dds.pH <- DESeqDataSetFromMatrix(countData = counts.tk[,grepl("evm", colnames(counts.tk))] %>% t(),
+#                               colData = counts.tk[,"Treatment", drop=FALSE] ,
+#                               design = ~ Treatment)
+# vsd.pH <- varianceStabilizingTransformation(dds.pH, blind=FALSE)
+# 
+# counts.trans <- assay(vsd.pH) %>% t() %>% as.matrix() %>% as.data.frame() %>%
+#   rownames_to_column(var = "Sample") %>% 
+#   left_join(sample.info[,c("Sample", "Treatment", "Tank", "Treatment_Tank")]) %>%
+#   column_to_rownames(var = "Sample") %>% 
+#   select(Treatment, Tank, Treatment_Tank, contains("evm")) %>% 
+#   mutate(Treatment=factor(Treatment, levels=c("Ambient", "Moderate", "Low")))
+# save(counts.trans, file = "../results/wgcna/counts.filt")
+```
+# If I want to load in filtered datasets also used for DESeq2 
+```{r}
+# load data
+load(file = "../results/bowtie/counts.trans") #counts.trans
+load(file = "../results/bowtie/per-gene-summary-stats") #genes.stats
+load(file = "../results/deseq2/vsd.pH") #vsd.pH
+
+# Read in sample metadata
+load(file="../data/sample.info") #sample.info
+```
+
+```{r}
+# Load annotation objects 
+load(file = "../references/P.plat.blast")
+load(file = "../references/P.plat.blast.GO")
+load(file = "../references/P.plat.bestblast")
+
+# load in DEG lists 
+load(file = "../results/deseq2/diffex.AM")
+load(file = "../results/deseq2/diffex.AL")
+load(file = "../results/deseq2/diffex.ML")
+
+# Load in DESeq2 results lists to pull background list of genes 
+load(file = "../results/deseq2/res.pco2.AM") #res.pco2.AM
+load(file = "../results/deseq2/res.pco2.AL") #res.pco2.AL
+load(file = "../results/deseq2/res.pco2.ML") #res.pco2.ML
+```
 
 ```{r}
 # Use WGCNA's `goodSamplesGenes` to remove any genes with very low variability or missing data  
@@ -102,9 +139,9 @@ plot(sampleTree, main = "Sample clustering to detect outliers", sub="", xlab="",
 
 
 # Plot a line to show the cut
-abline(h = 100, col = "red");
+abline(h = 110, col = "red");
 # Determine cluster under the line
-clust = cutreeStatic(sampleTree, cutHeight = 100, minSize = 10)
+clust = cutreeStatic(sampleTree, cutHeight = 110, minSize = 10)
 table(clust)
 # clust 1 contains the samples we want to keep.
 keepSamples = (clust==1)
@@ -112,6 +149,7 @@ datExpr = datExpr0[keepSamples, ]
 nGenes = ncol(datExpr)
 nSamples = nrow(datExpr)
 
+# Decision March 16th - don't throw out Tank4_Crab1, it's not an outlier on the PCAs (in DESeq2 notebook) 
 ```
 
 ```{r}
@@ -154,12 +192,6 @@ plotDendroAndColors(sampleTree2, traitColors,
                     groupLabels = names(datTraits), 
                     main = "Sample dendrogram with treatment and tank ids")
 ```
-
-
-```{r}
-#save(datExpr, datTraits, file = "wgcna-testing/FemaleLiver-01-dataInput.RData")
-```
-
 ```{r}
 options(stringsAsFactors = FALSE);
 #lnames = load(file = "../wgcna-testing/FemaleLiver-01-dataInput.RData");
@@ -194,7 +226,8 @@ plot(sft$fitIndices[,1], sft$fitIndices[,5],
      main = paste("Mean connectivity"))
 text(sft$fitIndices[,1], sft$fitIndices[,5], labels=powers, cex=cex1,col="red")
 ```
-I now calculate the adjacencies, using the soft thresholding power 9:
+
+I now calculate the adjacencies, using the soft thresholding power 14:
 
 ```{r}
 softPower = 14;
@@ -207,9 +240,10 @@ adjacency = adjacency(datExpr, power = softPower, type="signed", corFnc="bicor")
 To minimize effects of noise and spurious associations, we transform the adjacency into Topological Overlap Matrix, and calculate the corresponding dissimilarity:
 
 ```{r}
-TOM = TOMsimilarity(adjacency);
-dissTOM = 1-TOM
-save(dissTOM, file = "../results/wgcna/dissTom")
+# TOM = TOMsimilarity(adjacency); #this takes a very long time 
+# dissTOM = 1-TOM
+# save(dissTOM, file = "../results/wgcna/dissTom")
+load(file = "../results/wgcna/dissTom") #load if needed 
 ```
 We now use hierarchical clustering to produce a hierarchical clustering tree (dendrogram) of genes. Note that we use the function hclust that provides a much faster hierarchical clustering routine than the standard hclust function.
 
@@ -224,13 +258,14 @@ plot(geneTree, xlab="", sub="", main = "Gene clustering on TOM-based dissimilari
 
 ```{r}
 # We like large modules, so we set the minimum module size relatively high:
-minModuleSize = 50;
+minModuleSize = 30;
 # Module identification using dynamic tree cut:
 dynamicMods = cutreeDynamic(dendro = geneTree, distM = dissTOM,
                 deepSplit = 2, pamRespectsDendro = FALSE,
                 minClusterSize = minModuleSize);
 table(dynamicMods)
 ```
+
 ```{r}
 # Convert numeric lables into colors
 dynamicColors = labels2colors(dynamicMods)
@@ -247,7 +282,7 @@ The Dynamic Tree Cut may identify modules whose expression profiles are very sim
 such modules since their genes are highly co-expressed. To quantify co-expression similarity of entire modules, we
 calculate their eigengenes and cluster them on their correlation.
 
-We choose a height cut of 0.1, corresponding to correlation of 0.90, to merge. (The WGCNA tutorial used a correlation threshold of 0.75, but I want to be stricter when combining modules - so they have very similar patterns). 
+We choose a height cut of 0.25, corresponding to correlation of 0.75, to merge. (The WGCNA tutorial used a correlation threshold of 0.75, but I want to be a bit stricter when combining modules - so they have very similar patterns). 
 
 
 ```{r}
@@ -263,7 +298,7 @@ sizeGrWindow(7, 6)
 plot(METree, main = "Clustering of module eigengenes",
      xlab = "", sub = "")
 
-MEDissThres = 0.15
+MEDissThres = 0.25
 # Plot the cut line into the dendrogram
 abline(h=MEDissThres, col = "red")
 # Call an automatic merging function
@@ -272,7 +307,6 @@ merge = mergeCloseModules(datExpr, dynamicColors, cutHeight = MEDissThres, verbo
 mergedColors = merge$colors;
 # Eigengenes of the new merged modules:
 mergedMEs = merge$newMEs;
-
 ```
 
 
@@ -284,13 +318,13 @@ plotDendroAndColors(geneTree, cbind(dynamicColors, mergedColors),
                     dendroLabels = FALSE, hang = 0.03,
                     addGuide = TRUE, guideHang = 0.05,
                     main = "Gene clustering on TOM-based dissimilarity\nDendrogram and module colors")
-#dev.off()
-#sizeGrWindow(12, 9)
-plotDendroAndColors(geneTree, mergedColors,
-                    c("Dynamic Tree Cut", "Merged dynamic"),
-                    dendroLabels = FALSE, hang = 0.03,
-                    addGuide = TRUE, guideHang = 0.05,
-                    main = "Gene clustering on TOM-based dissimilarity\nFinalized modules")
+# #dev.off()
+# #sizeGrWindow(12, 9)
+# plotDendroAndColors(geneTree, mergedColors,
+#                     c("Dynamic Tree Cut", "Merged dynamic"),
+#                     dendroLabels = FALSE, hang = 0.03,
+#                     addGuide = TRUE, guideHang = 0.05,
+#                     main = "Gene clustering on TOM-based dissimilarity\nFinalized modules")
 ```
 
 
@@ -317,6 +351,11 @@ MEs = orderMEs(MEs0)
 moduleTraitCor = cor(MEs, datTraits[,c("pH"), drop=F], use = "p");
 moduleTraitPvalue = corPvalueStudent(moduleTraitCor, nSamples);
 
+# Correlation among module eigengenes 
+#cor(MEs0, use="complete.obs") %>% corrplot::corrplot(tl.cex=.75, diag = F)
+
+# library(PerformanceAnalytics)
+# chart.Correlation(MEs0[,], histogram=F, pch=19)
 ```
 
 ```{r}
@@ -368,7 +407,9 @@ names(GSPvalue) = paste("p.GS.", names(pH), sep="");
 
 
 ```{r}
-annot = P.plat.bestblast %>% filter(id %in% names(datExpr))
+# Need to have every gene represented in the annotation file - here I merge the best blast (has all genes) & uniprot blast (some genes) results to have all genes, and to also be able to use either blast result. 
+annot = left_join(P.plat.bestblast, P.plat.blast, by=c("id"="geneID")) %>% 
+  filter(id %in% names(datExpr))
 dim(annot)
 names(annot)
 probes = names(datExpr)
@@ -400,28 +441,44 @@ for (mod in 1:ncol(geneModuleMembership))
 # Order the genes in the geneInfo variable first by module color, then by geneTraitSignificance
 geneOrder = order(geneInfo0$moduleColor, -abs(geneInfo0$GS.pH));
 geneInfo = geneInfo0[geneOrder, ]
-#write.csv(geneInfo, file = "../results/wgcna/geneInfo.csv")
+write.csv(geneInfo, file = "../results/wgcna/geneInfo.csv")
 ```
 
 Visualizing the network of eigengenes
 
 ```{r}
-# Recalculate module eigengenes
-MEs = moduleEigengenes(datExpr, moduleColors)$eigengenes
-# Add pH treatment to existing module eigengenes
-MET = orderMEs(cbind(MEs, pH))
-# Plot the relationships among the eigengenes and pH
+# # Recalculate module eigengenes
+# MEs = moduleEigengenes(datExpr, moduleColors)$eigengenes
+# # Add pH treatment to existing module eigengenes
+# MET = orderMEs(cbind(MEs, pH))
+# # Plot the relationships among the eigengenes and pH
+# 
+# # Plot the dendrogram
+# sizeGrWindow(6,6);
+# par(cex = 1.0)
+# plotEigengeneNetworks(MET, "Eigengene dendrogram", marDendro = c(0,4,2,0),
+# plotHeatmaps = FALSE)
+# 
+# # Plot the heatmap matrix (note: this plot will overwrite the dendrogram plot)
+# par(cex = 1.0)
+# plotEigengeneNetworks(MET, "Eigengene adjacency heatmap", marHeatmap = c(3,4,2,2),
+# plotDendrograms = FALSE, xLabelsAngle = 90)
+# 
+# 
+# # Barplots of eigengenes by sample for each pH-associated module
+# # !!!! BROKEN - BARS AREN'T COLOR-CODED CORRECTION
+# sizeGrWindow(8,7);
+# which.module="red"
+# ME=MEs[, paste("ME",which.module, sep="")]
+# 
+# all(rownames(datTraits)==rownames(MEs)) # check order of samples treatment and eigengene dfs are same. Yes.
+# 
+# par(mar=c(5, 6, 0, 0.7))
+# barplot(ME, col=numbers2colors(as.numeric(datTraits$Treatment)), main="", cex.main=2,
+# xlab="eigengene expression",ylab=NULL, names=rownames(MEs), horiz=T, las=1, cex.names=0.65)
+# legend("topright", legend=rev(c(levels(datTraits$Treatment))), fill=rev(c(unique(numbers2colors(as.numeric(datTraits$Treatment))))))
+# 
 
-# Plot the dendrogram
-sizeGrWindow(6,6);
-par(cex = 1.0)
-plotEigengeneNetworks(MET, "Eigengene dendrogram", marDendro = c(0,4,2,0),
-plotHeatmaps = FALSE)
-
-# Plot the heatmap matrix (note: this plot will overwrite the dendrogram plot)
-par(cex = 1.0)
-plotEigengeneNetworks(MET, "Eigengene adjacency heatmap", marHeatmap = c(3,4,2,2),
-plotDendrograms = FALSE, xLabelsAngle = 90)
 ```
 
 # departure from WGCNA tutorials 
@@ -429,6 +486,29 @@ plotDendrograms = FALSE, xLabelsAngle = 90)
 ## Generate line plots of genes for each module of interest
 
 ```{r}
+# Generate per-gene summary stats 
+# first extract the normalized counts
+gene.counts.norm <- assay(vsd.pH) %>% as.matrix() %>% as.data.frame() %>% rownames_to_column(var = "gene") %>% 
+  pivot_longer(-gene, values_to = "counts.vsd", names_to = "Sample") %>%
+  left_join(sample.info[,c("Sample", "Treatment")]) %>% 
+  mutate_at(c("gene", "Sample"), factor) %>%
+  mutate(Treatment=factor(Treatment, levels=c("Ambient", "Moderate", "Low"))) %>% 
+  filter(Sample %in% rownames(datExpr)) # <-- important, keep only samples that were retained in WGCNA analysis 
+
+# calculate mean, sd, cv and annotate 
+genes.stats <- gene.counts.norm %>% group_by(Treatment, gene) %>% 
+  summarize(mean=mean(counts.vsd), median=median(counts.vsd), sd=sd(counts.vsd), cv=sd(counts.vsd)/mean(counts.vsd)) %>% 
+  mutate(DEG=if_else(gene %in% c(rownames(diffex.AM),rownames(diffex.AL), rownames(diffex.ML)), "DEG", "Non-DEG")) %>%
+  mutate(change = case_when(
+  gene %in% c(rownames(subset(res.pco2.AM, padj < 0.05 & log2FoldChange < 0)), rownames(subset(res.pco2.AL, padj < 0.05 & log2FoldChange < 0))) ~ "Up-regulated",
+  gene %in% c(rownames(subset(res.pco2.AM, padj < 0.05 & log2FoldChange > 0)), rownames(subset(res.pco2.AL, padj < 0.05 & log2FoldChange > 0))) ~ "Down-regulated")) %>% 
+  mutate(change=replace_na(change,"Non-DEG")) %>% 
+  mutate(DEG=factor(DEG, levels=c("Non-DEG", "DEG"))) %>% 
+  mutate(change=factor(change, levels=c("Non-DEG", "Down-regulated", "Up-regulated"))) %>%
+  ungroup() %>% 
+  left_join(P.plat.bestblast %>% select(id, hit_acc, hit_desc, e_value), by=c("gene"="id")) %>%
+  left_join(P.plat.blast.GO %>% select(gene_id, spid, protein_names, evalue), by=c("gene"="gene_id"))
+
 # Generate line plots of significant modules showing only genes significantly correlated to module 
 # List of modules (their color IDs) that are significantly associated with pH 
 modules <- moduleTraitPvalue %>% as.data.frame() %>% filter(pH<0.05) %>% rownames() %>% str_remove(pattern = "ME")
@@ -444,14 +524,12 @@ module.lineplots <- vector("list", length(modules))
 names(module.lineplots) <- modules
 
 for (i in 1:length(modules)) {
-
 a <- geneInfo %>%
   filter(moduleColor==modules[i]) %>% 
   filter(p.GS.pH<0.05) %>% filter(!!as.symbol(modules.p[i])<0.05) %>% 
   select(id, moduleColor, GS.pH, p.GS.pH, !!as.symbol(modules.p[i]), !!as.symbol(modules.cor[i])) %>% 
   left_join(genes.stats, by = c("id"="gene")) %>% 
   #group_by(Treatment, moduleColor) %>% mutate(mean_z = scale(mean)) %>% ungroup() %>% #use this line of code to z-transform 
-  #filter(moduleColor %in% modules) %>% 
   mutate(pH=Treatment) %>%
   mutate_at("pH", function(x) {
     case_when(
@@ -460,36 +538,297 @@ a <- geneInfo %>%
       x == "Low" ~ 7.6)})
 
 #formula <- y ~ x
-
-module.lineplots[[i]] <-  ggplot(a, aes(x=pH, y=median)) + geom_line(aes(group=id), size=.01, color=modules[i]) +
+colors <- c("brown","pink","cyan2", "red","cyan4","green","darkgreen")
+module.lineplots[[i]] <-  ggplot(a, aes(x=pH, y=median)) + geom_line(aes(group=id), size=.01, color=colors[i]) +
   theme_minimal(base_size = 8) + facet_wrap(~moduleColor + change) + 
-  geom_smooth(method="loess", se = FALSE, color="blue", size=1) + #method=lm, formula = formula, 
+  geom_smooth(method="loess",se = FALSE, color="blue", size=1) + #  method=lm, formula = formula,
   scale_x_continuous(breaks=c(7.6, 7.8, 8.0)) + 
   theme(plot.title = element_text(size=8), axis.text.x = element_text(hjust = 0.2), 
         axis.title.x = element_text(size=6)) +
   xlab("pH Treatment") #+
-  # stat_poly_eq(aes(label = ..eq.label..), 
+  # stat_poly_eq(aes(label = ..eq.label..),
   #              label.x.npc = 0.5, label.y.npc = 0.99,
   #              formula = formula, parse = TRUE, size = 3)
 
 module.stats[[i]] <- a %>% select(-Treatment, -mean, -sd, -cv, -pH) %>% distinct()
 }
 print(module.lineplots)
+save(module.lineplots, file = "../results/wgcna/module.lineplots")
 
-# Save some figures to pdf
+#Save some figures to pdf
 fig <- ggarrange(plotlist=module.lineplots,
-                       ncol=3, nrow=2,
+                       ncol=2, nrow=2,
                        common.legend = TRUE, legend="top")
 pdf("../results/wgcna/pH-associated-modules-genes.pdf", onefile = TRUE)
 fig
 dev.off()
+
+```
+
+# For pH-associated modules, look at correlation between module membership and gene significane for each gene 
+
+```{r}
+par(mfrow = c(4,2));
+
+for (i in 1:length(modules)) {
+module = modules[i]
+column = match(module, modNames);
+moduleGenes = moduleColors==module;
+
+#sizeGrWindow(7, 7);
+verboseScatterplot(abs(geneModuleMembership[moduleGenes, column]),
+                   abs(geneTraitSignificance[moduleGenes, 1]),
+                   xlab = paste("Module Membership in", module, "module"),
+                   ylab = "Gene significance for pH",
+                   main = paste("Module membership vs. gene significance\n"),
+                   cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, col = module)
+}
+
 ```
 
 Finding genes with high gene significance and high intramodular connectivity in pH-associated modules (i.e. "hub genes")
 
 ```{r}
-# for example, the red module (note- tutorial set GS>0.2 and MM>0.8)
-geneInfo %>% filter(abs(GS.pH)>0.3) %>% filter(abs(MM.red)>0.9) %>% select(hit_desc)
+geneInfo %>% select(id, hit_acc, hit_desc, moduleColor, GS.pH, p.GS.pH, MM.brown, p.MM.brown) %>%
+  filter(moduleColor %in% modules) %>% 
+#  filter(p.MM.brown<0.05) %>%
+  ggplot(aes(x=MM.brown, group=moduleColor, fill=moduleColor)) + geom_density(alpha=0.5) + 
+  scale_fill_manual(values=sort(modules)) + 
+  ggtitle("Brown")
+
+geneInfo %>% select(id, hit_acc, hit_desc, moduleColor, GS.pH, p.GS.pH, MM.cyan, p.MM.cyan) %>%
+  filter(moduleColor %in% modules) %>%
+#  filter(p.MM.cyan<0.05) %>%
+  ggplot(aes(x=MM.cyan, group=moduleColor, fill=moduleColor)) + geom_density(alpha=0.5) + 
+  scale_fill_manual(values=sort(modules)) + 
+  ggtitle("Cyan")
+
+geneInfo %>% select(id, hit_acc, hit_desc, moduleColor, GS.pH, p.GS.pH, MM.darkgreen, p.MM.darkgreen) %>%
+  filter(moduleColor %in% modules) %>%
+#  filter(p.MM.darkgreen<0.05) %>%
+  ggplot(aes(x=MM.darkgreen, group=moduleColor, fill=moduleColor)) + geom_density(alpha=0.5) + 
+  scale_fill_manual(values=sort(modules)) + 
+  ggtitle("Darkgreen")
+
+geneInfo %>% select(id, hit_acc, hit_desc, moduleColor, GS.pH, p.GS.pH, MM.green, p.MM.green) %>%
+  filter(moduleColor %in% modules) %>%
+#  filter(p.MM.green<0.05) %>%
+  ggplot(aes(x=MM.green, group=moduleColor, fill=moduleColor)) + geom_density(alpha=0.5) + 
+  scale_fill_manual(values=sort(modules)) + 
+  ggtitle("Green")
+
+geneInfo %>% select(id, hit_acc, hit_desc, moduleColor, GS.pH, p.GS.pH, MM.lightcyan1, p.MM.lightcyan1) %>%
+  filter(moduleColor %in% modules) %>%
+#  filter(p.MM.lightcyan1<0.05) %>%
+  ggplot(aes(x=MM.lightcyan1, group=moduleColor, fill=moduleColor)) + geom_density(alpha=0.5) + 
+  scale_fill_manual(values=sort(modules)) + 
+  ggtitle("Lightcyan1")
+
+geneInfo %>% select(id, hit_acc, hit_desc, moduleColor, GS.pH, p.GS.pH, MM.pink, p.MM.pink) %>%
+  filter(moduleColor %in% modules) %>%
+#  filter(p.MM.pink<0.05) %>%
+  ggplot(aes(x=MM.pink, group=moduleColor, fill=moduleColor)) + geom_density(alpha=0.5) + 
+  scale_fill_manual(values=sort(modules)) + 
+  ggtitle("Pink")
+
+geneInfo %>% select(id, hit_acc, hit_desc, moduleColor, GS.pH, p.GS.pH, MM.red, p.MM.red) %>%
+  filter(moduleColor %in% modules) %>%
+#  filter(p.MM.red<0.05) %>%
+  ggplot(aes(x=MM.red, group=moduleColor, fill=moduleColor)) + geom_density(alpha=0.5) + 
+  scale_fill_manual(values=sort(modules)) + 
+  ggtitle("Red")
+
+```
+
+# Look at overlap among WGCNA and DESeq2 results 
+
+## What percentage of DEGs are captured by pH-associated WGCNA modules? Particularly interested in genes I will use for enrichment analysis, so I will filter genes for: 
+- Only genes whose abundances are significantly correlated with pH  (i.e. Gene Significance (GS) p-value, p.GS, <0.05)
+- NO ---> Only genes whose module membership (MM) is significant (p.MM < 0.05). 
+
+
+```{r}
+# First how many DEGs do I have total? 
+n.DEGs <- genes.stats %>% filter(DEG=="DEG") %>% select(gene) %>% distinct() %>% nrow()
+
+# merge module association info with DEG info 
+geneInfo %>%
+  left_join(genes.stats %>% select(gene, DEG) %>% distinct(), by = c("id"="gene")) %>% #join with table indicating DEG
+  mutate(moduleColor = as.factor(moduleColor)) %>%
+  group_by(moduleColor, DEG) %>% summarise(n=n(), sign=sum(p.GS.pH<0.05), not.sign=sum(p.GS.pH>0.05)) %>% 
+  filter(moduleColor %in% modules) %>% 
+  filter(DEG=="DEG") %>% 
+  ungroup() %>% select(n, sign) %>% colSums()/n.DEGs*100 
+
+# replace "modules" filter with  c(modules, "turquose", "darkgrey", "tan") to include peak/valley modules 
+
+# ANSWER: 
+# 81.4% of the DEGs were assigned to a pH-associated module. 
+# 73.9% of the DEGs were both assigned to a pH-associated module, AND those genes are sign. associated with pH (p.GS.pH<0.05)
+
+```
+
+# Venn diagram of DEGs and significant genes in WGCNA pH-associated modules 
+
+```{r}
+display_venn <- function(x, ...){
+  library(VennDiagram)
+  grid.newpage()
+  venn_object <- venn.diagram(x, filename = NULL, ...)
+  grid.draw(venn_object)
+}
+
+module.genes <- vector("list", length(modules)+1)
+names(module.genes) <- c(modules, "all")
+for (i in 1:length(modules)) {
+module.genes[[i]] <- geneInfo %>%
+  # filter for genes assigned to pH-associated modules 
+  filter(moduleColor==modules[i]) %>% 
+## further filter for genes that are significantly associated with pH and significantly assigned to their respective module
+  #filter(p.GS.pH<0.05) %>% #filter(!!as.symbol(modules.p[i])<0.05) %>%
+## alternative approach to just select "hub genes"   
+  #    filter(abs(GS.pH)>0.2) %>% filter(!!as.symbol(modules.cor[i])>0.8) %>% 
+  rownames()
+}
+module.genes[[length(module.genes)]] <- Reduce(c, module.genes)
+
+x <- list(
+  AvsM = row.names(diffex.AM), 
+  AvsL = row.names(diffex.AL), 
+  MvsL = row.names(diffex.ML),
+  WGCNA = module.genes[["all"]]
+  )
+
+display_venn(
+        x,
+        category.names = c("DEGs\nAmbient vs.\nModerate" , "DEGs\nAmbient vs.\nLow" , "DEGs\nModerate vs.\nLow", "WGCNA\npH-associated\nmodules"),
+        # Circles
+        lwd = 2,
+        lty = 'blank',
+        fill = c("#999999", "#E69F00", "#56B4E9", "#009E73"),
+        # Numbers
+        cex = .9,
+        fontface = "italic",
+        # Set names
+        cat.cex = .9,
+        cat.fontface = "bold",
+        cat.default.pos = "outer")#,
+        #cat.dist = c(0.06, 0.06, 0.06))
+
+# EFFECT OF VARIOUS FILTERING SETTINGS: 
+# When I include all genes assigned to pH-associated modules, the % of DEGs included in WGCNA modules is 80.1%
+# When I filter for only genes that are significantly associated with pH (p.GS.pH<0.05), that drops to 73.3%
+# When I filter for gens that are sign. associated with pH (p.GS.pH<0.05) AND module membership is sign. (p.MM<0.05) that drops to 72.2%
+# Because I am using all genes assigned to a pH-associated module in the GO Enrichment analysis and IPA, I shall use the least filtered set. 
+
+```
+
+Now look for overlap among DEGs and each module 
+
+```{r}
+par(mfrow = c(4,2));
+for (i in 1:length(modules)) {
+  y <- list(
+  AvsM = row.names(diffex.AM), 
+  AvsL = row.names(diffex.AL), 
+  MvsL = row.names(diffex.ML),
+  WGCNA = module.genes[[i]]
+  )
+  
+  display_venn(
+        y,
+        category.names = c("DEGs\nAmbient vs.\nModerate" , "DEGs\nAmbient vs.\nLow" , "DEGs\nModerate vs.\nLow", 
+                           paste("WGCNA module: ", modules[i], "\npH-associated\nmodules", sep="")),
+        # Circles
+        lwd = 2,
+        lty = 'blank',
+        fill = c("#999999", "#E69F00", "#56B4E9", modules[i]),
+        # Numbers
+        cex = .9,
+        fontface = "italic",
+        # Set names
+        cat.cex = .9,
+        cat.fontface = "bold",
+        cat.default.pos = "outer")
+}
+```
+
+# How many genes assigned to each pH-associated module?
+
+```{r}
+geneInfo %>%  
+  filter(moduleColor %in% modules) %>%
+  dplyr::count(moduleColor)
+```
+
+
+# Generate heatmaps of pH-associated modules (and those with pronounced peaks/valleys in moderate pH)
+
+```{r}
+# create empty list to store line plots for each modules' sign. genes 
+counts.modules <- vector("list", length(modules))
+names(counts.modules) <- modules
+
+#filter(abs(GS.pH)>0.2) %>% filter(!!as.symbol(modules.cor[i])>0.8)
+
+for (i in 1:length(modules)) {
+  counts.modules[[i]] <- 
+    (assay(vsd.pH))[(geneInfo %>% 
+                       filter(moduleColor==modules[i]) %>% 
+                       filter(p.GS.pH<0.05))$id,] %>% 
+    as.data.frame() %>% add_column(module=modules[i])
+}
+
+s <- sample.info %>% 
+  mutate(Treatment=factor(Treatment, levels=c("Ambient", "Moderate", "Low"))) %>% 
+           arrange(factor(Treatment, levels=c("Ambient", "Moderate", "Low"))) %>% 
+  remove_rownames() %>% column_to_rownames("Sample")
+
+# define order of modules from most sign. positive correlation <--> most sign. negative correlation 
+modules.sorted <- moduleTraitCor %>% as.data.frame() %>% 
+  filter(rownames(.) %in% 
+           rownames(moduleTraitPvalue %>% as.data.frame() %>% filter(pH<0.05))) %>% 
+  arrange(pH) %>% rownames() %>% str_remove(pattern = "ME")
+
+counts.modules.matrix<- bind_rows(counts.modules[modules.sorted]) %>% 
+  select(module, rownames(s)) %>%
+  mutate(module=factor(module, levels=modules.sorted))
+
+
+pheatmap(counts.modules.matrix[,colnames(counts.modules.matrix) !="module"], 
+         cluster_cols = FALSE, cluster_rows=F, 
+         show_rownames=FALSE, na.rm=TRUE, scale="row", 
+         main = "Expression by pH-associated module\n(significant genes only)", fontsize = 8, 
+         annotation_colors = list(Treatment=c(Ambient="Blue", Moderate="Purple", Low="Red"),
+                                  module=c(brown="brown", pink="pink", lightcyan1="lightcyan1", 
+                                           red="red", cyan="cyan", green="green", darkgreen="darkgreen")),
+         annotation_col=s[,"Treatment", drop=F],
+         annotation_row = counts.modules.matrix[,"module", drop=FALSE])
+```
+
+## Prep for GO_MWU analysis 
+
+#### Extract module membership values for each gene for each pH-associated module 
+
+
+```{r files for GO_MWU}
+# Generate a gene annotation file 
+geneInfo.mwu <- geneInfo %>% left_join(
+  (P.plat.blast.GO)[,c("gene_id","gene_ontology_i_ds")], by = c("id"="gene_id")) %>%  # could also opt to  %>% filter(evalue < 1e-10)
+  filter(!is.na(gene_ontology_i_ds)) #filter for genes that are annotated with GO information 
+write_delim(geneInfo.mwu[,c("id", "gene_ontology_i_ds")], "../results/GO_MWU/WGCNA-genes_for-GOMWU.tab",delim = "\t")
+
+# Write out separate tables for each module that contain two columns: 1) gene id, and 2) module membership, i.e. significance. For each module, that column contains MM for genes assigned to that module, and 0 for genes not assigned to that module. 
+geneInfo.mwu.mods <- vector("list", length(modules))
+names(geneInfo.mwu.mods) <- modules
+
+for (i in 1:length(modules)) {
+  geneInfo.mwu.mods[[i]] <- geneInfo.mwu %>%
+    mutate(sign = ifelse(moduleColor == modules[[i]],!!as.symbol(modules.cor[i]), 0)) %>%
+    select(id,sign) %>% remove_rownames()
+  write.csv(geneInfo.mwu.mods[[i]], paste("../results/GO_MWU/WGCNA-module_",modules[[i]],".csv", sep = ""), quote = F,row.names = F)
+}
+
 ```
 
 What about the modules - that aren't sign. associated with pH? any patterns there? E.g. do some modules contain genes that are higher at moderate pH? 
@@ -515,7 +854,7 @@ for (i in 1:length(modules.all)) {
 
 a <- geneInfo %>%
   filter(moduleColor==modules.all[i]) %>% 
-  #filter(p.GS.pH<0.05) %>% filter(!!as.symbol(modules.all.p[i])<0.05) %>% 
+  filter(!!as.symbol(modules.all.p[i])<0.05) %>% 
   select(id, moduleColor, GS.pH, p.GS.pH, !!as.symbol(modules.all.p[i]), !!as.symbol(modules.all.cor[i])) %>% 
   left_join(genes.stats, by = c("id"="gene")) %>% 
   #group_by(Treatment, moduleColor) %>% mutate(mean_z = scale(mean)) %>% ungroup() %>% #use this line of code to z-transform 
@@ -543,119 +882,32 @@ modules.all.stats[[i]] <- a %>% select(-Treatment, -mean, -sd, -cv, -pH) %>% dis
 }
 print(modules.all.lineplots)
 
-#View(geneInfo)
+modules.all.lineplots[["violet"]]
+save(modules.all.lineplots, file = "../results/wgcna/modules.all.lineplots")
 ```
 
-The darkgrey, lightgreen, tan modules look kind-of interesting (higher or lower expression at moderate pH).
+Modules of interest, as they have higher or lower expression at moderate pH:
+- mediumpurple3, saddlebrown
 
-# What percentage of DEGs are captured by pH-associated WGCNA modules? Particularly interested in genes I will use for enrichment analysis, so I will filter genes for: 
-- Only genes whose abundances are significantly correlated with pH  (i.e. Gene Significance (GS) p-value, p.GS, <0.05)
-- NO ---> Only genes whose module membership (MM) is significant (p.MM < 0.05). 
-
-
+For Go MWU
 ```{r}
-# First how many DEGs do I have total? 
-n.DEGs <- genes.stats %>% filter(DEG=="DEG") %>% select(gene) %>% distinct() %>% nrow()
-
-# merge module association info with DEG info 
-geneInfo %>%
-  left_join(genes.stats %>% select(gene, DEG) %>% distinct(), by = c("id"="gene")) %>% #join with table indicating DEG
-  filter(DEG=="DEG") %>% 
-  group_by(moduleColor) %>%
-  summarise(assigned=sum(p.GS.pH<0.05), not.assigned=sum(p.GS.pH>0.05)) %>% 
-  filter(moduleColor %in% modules) %>% select(assigned) %>% colSums()/n.DEGs*100 
-
-# replace "modules" filter with  c(modules, "turquose", "darkgrey", "tan") to include peak/valley modules 
-
-# ANSWER: 68% of the DEGs were assigned to a pH-associated module. 70% if I include peak/valley modules. 
-# NOTE: The % assigned + % not-assigned DEGs does not add up to 100%. Why? 
-
-```
-# Generate heatmaps of pH-associated modules (and those with pronounced peaks/valleys in moderate pH)
-
-```{r}
-# create empty list to store line plots for each modules' sign. genes 
-counts.modules <- vector("list", length(modules))
-names(counts.modules) <- modules
-
-for (i in 1:length(modules)) {
-  counts.modules[[i]] <- (assay(vsd.pH))[(geneInfo %>% filter(moduleColor==modules[i]) %>% filter(p.GS.pH<0.05))$id,] %>% 
-    as.data.frame() %>% add_column(module=modules[i])
-}
-
-s <- sample.info %>% 
-  mutate(Treatment=factor(Treatment, levels=c("Ambient", "Moderate", "Low"))) %>% 
-           arrange(factor(Treatment, levels=c("Ambient", "Moderate", "Low"))) %>% 
-  remove_rownames() %>% column_to_rownames("Sample")
-
-# define order of modules from most sign. positive correlation <--> most sign. negative correlation 
-modules.sorted <- c("green","cyan", "red", "brown", "darkred", "salmon", "black", "yellow", "greenyellow")
-
-counts.modules.matrix<- bind_rows(counts.modules[modules.sorted]) %>% 
-  select(module, rownames(s)) %>%
-  mutate(module=factor(module, levels=modules.sorted))
-
-pheatmap(counts.modules.matrix[,colnames(counts.modules.matrix) !="module"], 
-         cluster_cols = FALSE, cluster_rows=F, 
-         show_rownames=FALSE, na.rm=TRUE, scale="row", 
-         main = "Expression by pH-associated module\n(only sign. genes for each module)", fontsize = 8, 
-         annotation_colors = list(Treatment=c(Ambient="Blue", Moderate="Purple", Low="Red"),
-                                  module=c(green="green",cyan="cyan",red="red",brown="brown",
-                                           darkred="darkred",salmon="salmon",black="black",
-                                           yellow="yellow",greenyellow="greenyellow")),
-         annotation_col=s[,"Treatment", drop=F],
-         annotation_row = counts.modules.matrix[,"module", drop=FALSE])
-```
-
-
-## Prep for GO_MWU analysis 
-
-#### Extract module membership values for each gene for each pH-associated module 
-
-NOTE: according to [this github]
-
-We'll keep things simple by making a table of the kME for all genes. In the actual GO-MWU analysis, we'll set the kME of all genes that aren't in the significant module to 0. But no need to worry about that now!
-
-```{r files for GO_MWU}
-# Generate a gene annotation file 
-geneInfo.mwu <- geneInfo %>% left_join(P.plat.blast.GO[,c("gene_id","gene_ontology_i_ds")], by = c("id"="gene_id")) %>%
-  filter(!is.na(gene_ontology_i_ds)) #filter for genes that are annotated with GO information 
-write.csv(geneInfo.mwu[,c("id", "gene_ontology_i_ds")], "../results/wgcna/GO_MWU/genes_for-GOMWU.csv", quote = F,row.names = F)
-
 # Write out separate tables for each module that contain two columns: 1) gene id, and 2) module membership, i.e. significance. For each module, that column contains MM for genes assigned to that module, and 0 for genes not assigned to that module. 
-geneInfo.mwu.mods <- vector("list", length(modules))
-names(geneInfo.mwu.mods) <- modules
+modules.interest <- c("mediumpurple3", "saddlebrown")
+modules.interest.cor <- noquote(paste("MM.", modules.interest, sep = ""))
 
-for (i in 1:length(modules)) {
-  geneInfo.mwu.mods[[i]] <- geneInfo.mwu %>%
-    mutate(sign = ifelse(moduleColor == modules[[i]],!!as.symbol(modules.cor[i]), 0)) %>%
+geneInfo.mwu.mods.interest <- vector("list", length(modules.interest))
+names(geneInfo.mwu.mods.interest) <- modules.interest
+
+for (i in 1:length(modules.interest)) {
+  geneInfo.mwu.mods.interest[[i]] <- geneInfo.mwu %>%
+    mutate(sign = ifelse(moduleColor == modules.interest[[i]],!!as.symbol(modules.interest.cor[i]), 0)) %>%
     select(id,sign) %>% remove_rownames()
-  write.csv(geneInfo.mwu.mods[[i]], paste("../results/wgcna/GO_MWU/module_",modules[[i]],"_for-GOMWU.csv"), quote = F,row.names = F)
+  write.csv(geneInfo.mwu.mods.interest[[i]], paste("../results/GO_MWU/WGCNA-module_",modules.interest[[i]],".csv", sep = ""), quote = F,row.names = F)
 }
-
 ```
 
+# BONEYARD
 -------------------------
-
-# other stuff 
-
-```{r}
-names(datExpr)[moduleColors=="brown"]
-module = "salmon"
-column = match(module, modNames);
-moduleGenes = moduleColors==module;
-
-sizeGrWindow(7, 7);
-par(mfrow = c(1,1));
-verboseScatterplot(abs(geneModuleMembership[moduleGenes, column]),
-                   abs(geneTraitSignificance[moduleGenes, 1]),
-                   xlab = paste("Module Membership in", module, "module"),
-                   ylab = "Gene significance for pH",
-                   main = paste("Module membership vs. gene significance\n"),
-                   cex.main = 1.2, cex.lab = 1.2, cex.axis = 1.2, col = module)
-
-```
-
 
 
 ```{r}
@@ -712,4 +964,24 @@ summary(lm(log(mean)~pH, data=test))
 # Try plotting expression level of all genes for all samples, organized by pH 
 modules
 ```
+
+
+```{r}
+hierTOM = hclust(as.dist(dissTOM),method="average")
+colorDynamicHybridTOM = labels2colors(cutreeDynamic(hierTOM, distM= dissTOM , cutHeight = 0.998,
+deepSplit=2, pamRespectsDendro = FALSE))
+colorh1= colorDynamicHybridTOM
+
+cmd1=cmdscale(as.dist(dissTOM),2)
+sizeGrWindow(7, 6)
+par(mfrow=c(1,1))
+plot(cmd1, col=as.character(colorh1), main="MDS plot",
+xlab="Scaling Dimension 1", ylab="Scaling Dimension 2")
+
+rownames(cmd1) <- colorh1
+
+
+```
+
+
 

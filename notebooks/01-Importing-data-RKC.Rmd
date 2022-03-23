@@ -19,7 +19,7 @@ getwd()
 # source("../references/biostats.R")
 
 # Add all required libraries that are installed with install.packages() here
-list.of.packages <- c("RCurl", "tidyverse", "vegan", "pheatmap", "pastecs", "factoextra", "FactoMineR", "RColorBrewer", "tibble", "reshape2", "plotly", "corrplot", "PerformanceAnalytics", "cowplot", "here", "janitor")
+list.of.packages <- c("RCurl", "tidyverse", "vegan", "pheatmap", "pastecs", "factoextra", "FactoMineR", "RColorBrewer", "tibble", "reshape2", "plotly", "corrplot", "PerformanceAnalytics", "cowplot", "here", "janitor", "clipr")
 # Add all libraries that are installed using BiocManager here
 bioconductor.packages <- c("DESeq2", "WGCNA")
 
@@ -82,15 +82,7 @@ counts <- counts %>% rename_all(~as.character(str_sub(colnames(counts)) %>%
                              gsub("X.scratch.lspencer.2022.redking.OA.aligned.bowtie.sorted.deduped.", "", .) %>%
                              gsub(".sorted.bam", "", .)))
 
-# FOR v6 ONLY: (DIFFERENT FILE NAMES)
-# counts <- data.frame(read.table("../results/featureCounts/featurecounts_redking_gene-v6", header = T, stringsAsFactors = F, fill = FALSE))
-# counts <- counts %>%  column_to_rownames(var="Geneid")
-# counts <- counts %>% rename_all(~as.character(str_sub(colnames(counts)) %>%
-#                              gsub("X.scratch.lspencer.2022.redking.OA.aligned.bowtie2.sorted.", "", .) %>%
-#                              gsub(".sorted.bam", "", .)))
-# 
-# save(counts, file = "../results/gene-counts-v2") #save R object with all gene counts
-
+save(counts, file = "../results/gene-counts-v3") #save R object with all gene counts
 ```
 
 ### Summarize counts and visualize (remove last column - that's undetermined counts)
@@ -118,14 +110,14 @@ print(paste("Total counts, all samples:", prettyNum(sum(colSums(counts %>% selec
 Remove whole samples from the data set and sample info here if needed
 
 ```{r}
-# remove.list <- c("Tank_7_Crab_4")
-# counts <- counts[ , -which(names(counts) %in% remove.list)]
-# sample.info <- sample.info[ -which(sample.info$Sample %in% remove.list), ]
-# 
-# # resave sample info object
-# save(sample.info, file="../data/sample.info")
-# 
-# nrow(sample.info) == ncol(counts)-5 #should = TRUE
+remove.list <- c("Tank_7_Crab_4")
+counts <- counts[ , -which(names(counts) %in% remove.list)]
+sample.info <- sample.info[ -which(sample.info$Sample %in% remove.list), ]
+
+# resave sample info object
+save(sample.info, file="../data/sample.info")
+
+nrow(sample.info) == ncol(counts)-5 #should = TRUE
 ```
 
 ## OPTIONAL: FILTER WHOLE SCAFFOLDS 
@@ -167,16 +159,15 @@ counts.t <- as.data.frame(t(counts[,-1:-5])) #remove extraneous columns, transfo
 NOTE: Should i do this? DESeq2 throws out low-frequency genes anyway, BUT other folks do pre-filter. For example in https://doi.org/10.1186/s12864-017-4392-0 "Genes with mean count less than ten across all samples were removed."
 
 ```{r}
-#keep <- colSums(counts.t, na.rm=TRUE) >= 10 #use sum
-#keep <- colMeans(counts.t, na.rm=TRUE) >= 10 #use mean
-keep <- rowSums( counts >= 10 ) >= 0.1*43 #keep genes with counts>=10 across at minimum 10% of the samples
+keep1 <- colMeans(counts.t, na.rm=TRUE) >= 10 #identify genes with mean count > 10 across all samples (excluding NAs = 10)
+keep2 <- rowSums( counts >= 10 ) >= 0.1*43 #identify genes with counts>=10 across at minimum 10% of the samples
+keep <- unique(c(names(which(keep1 == T)), names(which(keep2 == T)))) # list of genes meeting one of the two above criteria
 counts.ts <- counts.t[,keep]
-# counts.ts <- counts.t
 
 print(paste("# genes remaining after pre-filtering:", ncol(counts.ts)))
 print(paste("# of genes dropped:", ncol(counts.t) - ncol(counts.ts), sep=" "))
+print(paste("% of genes remaining after pre-filtering: ", signif(100*sum(counts.ts)/sum(counts.t), digits = 5), "%", sep=""))
 ```
-
 ### Save counts file, and transformed counts file 
 ```{r}
 save(counts, file = "../results/gene-counts")
@@ -220,6 +211,8 @@ paste("Total number of genes = ", P.plat.bestblast %>% nrow())
 paste("Proportion of annotated genes with e-value < 1e-20 = ", (P.plat.bestblast %>% filter(e_value<1e-20) %>% nrow())/(P.plat.bestblast %>% nrow()))
 paste("Proportion of annotated genes with e-value < 1e-10 = ", (P.plat.bestblast %>% filter(e_value<1e-10) %>% nrow())/(P.plat.bestblast %>% nrow()))
 paste("Proportion of annotated genes with e-value < 1e-5 = ", (P.plat.bestblast %>% filter(e_value<1e-5) %>% nrow())/(P.plat.bestblast %>% nrow()))
+
+save(P.plat.bestblast, file = "../references/P.plat.bestblast")
 ```
 ## Annotate gene counts dataframe 
 
@@ -250,29 +243,24 @@ blastx output format 6 is tab file with the following columns:
 11. evalue =  Expect value
 12. bitscore = Bit score
 
-## NOTE:  I needed GO IDs and gene functions, which weren't included in the blast file.  So I opened the P.platypus.gene_blastx_split.tab file in Excel, copied the column containing all Uniprot IDs, then pasted those into the tool Uniprot batch retrieval tool (https://www.uniprot.org/uploadlists/), and selected the columns: Entry, Entry name, Reviewed(?), Protein names, Gene names, Organism, Gene ontology (biological process), Gene ontology (GO), Gene ontology Ids. I then downloaded all entries to a tab file, saved as: /references/P.platypus_genes_GO.tab. Now I'll read that into R and join with the P.plat.blast dataframe to link GO IDs with genes for exploration and enrichment analyses. 
+## NOTE:  I needed GO IDs and gene functions, which weren't included in the blast file.  So I copied the column containing all Uniprot IDs from the P.plat.blast object, then pasted those into the tool Uniprot batch retrieval tool (https://www.uniprot.org/uploadlists/), and selected the columns: Entry, Entry name, Reviewed(?), Protein names, Gene names, Organism, Gene ontology (biological process), Gene ontology (GO), Gene ontology Ids. I then downloaded all entries to a tab file, saved as: /references/P.platypus_genes_GO.tab. Now I'll read that into R and join with the P.plat.blast dataframe to link GO IDs with genes for exploration and enrichment analyses. 
 
 ```{r}
-P.plat.blast <- read_delim(file = "../references/P.platypus.gene_blastx.tab", delim = "\t", col_names = c("qaccver", "saccver", "pident", "length", "mismatch", "gapopen", "qstart", "qend", "sstart", "send", "evalue", "bitscore")) %>%
+P.plat.blast <- read_delim(file = "../references/P.platypus.gene_blastx_1e5.tab", delim = "\t", col_names = c("qaccver", "saccver", "pident", "length", "mismatch", "gapopen", "qstart", "qend", "sstart", "send", "evalue", "bitscore")) %>%
   separate(qaccver, sep = ":", into = c("geneID","na","Chr", "range")) %>%
   separate(range, sep="-", into=c("Start", "End")) %>% select(-na) %>%
   mutate_at(vars(Start, End), as.numeric) %>%
   separate(saccver, sep="\\|", into=c("na", "SPID", "gene.Uni"), remove = F) %>%
   select(-na) %>% separate(gene.Uni, sep="_", into=c("gene.Uni", "species"), remove=T) %>%
-  group_by(geneID, Chr, Start, End) %>% slice(which.min(evalue))   # where multiple blast hits for same gene, select one with minimum e-value
+  group_by(geneID, Chr, Start, End) %>% dplyr::slice(which.min(evalue))   # where multiple blast hits for same gene, select one with minimum e-value
 
-write.table(P.plat.blast, file = "../references/P.platypus.gene_blastx_split.tab",quote = F, sep = "\t")
-
+# P.plat.blast %>% ungroup() %>% dplyr::select(SPID) %>%  
+#   na.omit() %>% unlist() %>% as.vector() %>% write_clip()
+  
 P.plat.blast.GO <- left_join(P.plat.blast, read_delim(file = "../references/P.platypus_genes_GO.tab", delim = "\t"),
-                             by = c("SPID"="Entry")) %>% ungroup()
-```
-## 
-## Save DEG lists identified using Bowtie2 aligned data 
+                             by = c("SPID"="Entry")) %>% ungroup() %>% clean_names()
 
-```{r}
-res.pco2.Bowtie <- res.pco2.AM # save list of all genes in DESeq2 analysis regardless of p-value
-res.pco2.AM.Bowtie <- subset(res.pco2.AM, padj < 0.05)
-res.pco2.AL.Bowtie <- subset(res.pco2.AL, padj < 0.05)
-res.pco2.ML.Bowtie <- subset(res.pco2.ML, padj < 0.05)
+save(P.plat.blast, file = "../references/P.plat.blast")
+save(P.plat.blast.GO, file = "../references/P.plat.blast.GO")
 ```
 
