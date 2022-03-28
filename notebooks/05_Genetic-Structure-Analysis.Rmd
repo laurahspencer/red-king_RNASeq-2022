@@ -211,17 +211,22 @@ Fst.AM <- snpgdsFst(genofile, snp.id=snpset.id,
                         sample.id=subset(tab.annot.gen, Treatment %in% c("Ambient", "Moderate"))$sample.id, 
                population=droplevels(subset(tab.annot.gen, Treatment %in% c("Ambient", "Moderate"))$Treatment),
     method="W&C84", autosome.only=FALSE, with.id = TRUE)
+paste("Weir and Cockerham mean Fst estimate, Ambient vs Moderate: ", round(Fst.AM$MeanFst, 5))
+hist(Fst.AM$FstSNP, breaks = 75, main="Fst distribution", col="dodgerblue3")
 
 Fst.AL <- snpgdsFst(genofile, snp.id=snpset.id, 
                         sample.id=subset(tab.annot.gen, Treatment %in% c("Ambient", "Low"))$sample.id, 
                population=droplevels(subset(tab.annot.gen, Treatment %in% c("Ambient", "Low"))$Treatment),
     method="W&C84", autosome.only=FALSE, with.id = TRUE)
+paste("Weir and Cockerham mean Fst estimate, Ambient vs Low: ", round(Fst.AL$MeanFst, 5))
+hist(Fst.AL$FstSNP, breaks = 75, main="Fst distribution", col="dodgerblue3")
 
 Fst.ML <- snpgdsFst(genofile, snp.id=snpset.id, 
                         sample.id=subset(tab.annot.gen, Treatment %in% c("Moderate", "Low"))$sample.id, 
                population=droplevels(subset(tab.annot.gen, Treatment %in% c("Moderate", "Low"))$Treatment),
     method="W&C84", autosome.only=FALSE, with.id = TRUE)
-
+paste("Weir and Cockerham mean Fst estimate, Moderate vs Low: ", round(Fst.ML$MeanFst, 5))
+hist(Fst.ML$FstSNP, breaks = 75, main="Fst distribution", col="dodgerblue3")
 
 Fsts <- rbind(
   
