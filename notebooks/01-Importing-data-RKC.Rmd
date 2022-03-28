@@ -199,7 +199,7 @@ Mutate "pecent_ident" to create new column with numeric proportion
 
 ```{r}
 P.plat.bestblast <- read_delim(file = "../references/bestblast.bkc_ref.tab", delim = "\t") %>% clean_names() %>% 
-  mutate(id=gsub("model", "TU", id)) %>%
+  mutate(id_gtf=gsub("model", "TU", id)) %>%
   separate(percent_ident, sep=" ", into=c("ratio", "percent_ident.num"), remove = F) %>% 
   mutate(percent_ident.num=gsub("\\(", "", percent_ident.num)) %>% mutate(percent_ident.num=gsub("\\%)", "", percent_ident.num)) %>% 
   mutate(percent_ident.num=as.numeric(percent_ident.num)/100) %>%
@@ -217,8 +217,9 @@ save(P.plat.bestblast, file = "../references/P.plat.bestblast")
 ## Annotate gene counts dataframe 
 
 ```{r}
-counts.annot <- right_join(P.plat.bestblast %>% select(id, blast_type, hit_acc, hit_desc, e_value, percent_ident.num),
-                           counts %>% rownames_to_column(var = "id"), "id")
+counts.annot <- right_join(
+  P.plat.bestblast %>% select(id, id_gtf, blast_type, hit_acc, hit_desc, e_value, percent_ident.num),counts %>% 
+    rownames_to_column(var = "id_gtf"), "id_gtf")
 write.csv(counts.annot, file = "../results/counts.annotated.csv", row.names = F, quote = F)
 ```
 

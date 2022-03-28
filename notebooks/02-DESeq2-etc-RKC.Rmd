@@ -43,6 +43,11 @@ load(file = "../results/gene-counts") #object = counts
 load(file="../data/sample.info") #object = sample.info
 load(file = "../results/gene-counts-trans") #object = counts.t
 load(file = "../results/gene-counts-trans-filtered") #object = counts.ts
+
+load(file = "../references/P.plat.blast") #P.plat.blast
+load(file = "../references/P.plat.blast.GO") #P.plat.blast.GO
+load(file = "../references/P.plat.bestblast") #P.plat.bestblast
+
 ```
 
 ## Summary stats
@@ -153,7 +158,6 @@ meanSdPlot(assay(normTransform(dds.pH))) #this is variance after a simple log2(n
 
 # Save vsd.pH object for late ruse 
 save(vsd.pH, file = "../results/deseq2/vsd.pH")
-
 ```
 ### Generate heat maps before & after transformation  
 
@@ -195,12 +199,13 @@ NOTE: Hover over points to see the sample numbers
 
 ```{r}
 # PCA with points color coded by pH Treatment 
-ggplotly(
+#ggplotly(
   plotPCA(vsd.pH, intgroup="Treatment") + 
            ggtitle("PCA by Treatment (var-stabilizing transformed)") + 
     geom_point(size=3, aes(text=colnames(vsd.pH))) + 
   scale_color_manual(values=c("Ambient"="#2c7bb6", "Moderate"="#fdae61", "Low"="#d7191c")) +
-    theme_minimal()+ stat_ellipse() , tooltip = "text")
+    theme_minimal()+ stat_ellipse() 
+#, tooltip = "text")
 
 # PCA with points color coded by tank 
 ggplotly(
@@ -210,11 +215,11 @@ ggplotly(
    theme_minimal(), tooltip = "text")
 
 # PCA with points color coded by treatment + tank 
-ggplotly(
+#ggplotly(
   plotPCA(vsd.treat.tank, intgroup="Treatment_Tank") + 
            ggtitle("PCA by Treatment & Tank (var-stabilizing transformed)") + 
     geom_point(size=3, aes(text=colnames(vsd.treat.tank))) + 
-   theme_minimal(), tooltip = "text")
+   theme_minimal()#, tooltip = "text")
 
 # Ambient pH (8.0) tanks:  1,2,7,10,11
 # Moderate pH (7.8) tanks: 3,4,9,20
@@ -260,13 +265,33 @@ y <- c(2,3,4,5,3,4,5,4,5,5)
 
 pc.plots <- vector("list", length(x))
 for (i in 1:length(x)) {
-pc.plots[[i]] <- ggplotly(ggplot(tab.expr.annot, 
-                      aes(x=!!as.symbol(pc.axes[x[i]]),y=!!as.symbol(pc.axes[y[i]]))) + 
-  geom_point(aes(col=Treatment, fill=Tank), size=3.5, alpha=0.85, pch=20) + 
+pc.plots[[i]] <- 
+  #ggplotly(
+    ggplot(
+  tab.expr.annot %>% 
+  mutate(Tank_n=as.numeric(as.character(Tank))) %>% 
+  mutate_at("Tank_n", function(x) {
+    case_when(
+      x == 1 ~ "A",
+      x == 5 ~ "A",
+      x == 3 ~ "A",
+      x == 2 ~ "B",
+      x == 13 ~ "B",
+      x == 4 ~ "B",
+      x == 7 ~ "C",
+      x == 15 ~ "C",
+      x == 9 ~ "C",
+      x == 10 ~ "D",
+      x == 16 ~ "D",
+      x == 20 ~ "D",
+      x == 11 ~ "E",
+      x == 18 ~ "E")}),
+  aes(x=!!as.symbol(pc.axes[x[i]]),y=!!as.symbol(pc.axes[y[i]]))) + 
+  geom_point(aes(col=Treatment, shape=Tank_n, fill=Treatment), size=3.5, alpha=0.85) + 
   theme_minimal() + ggtitle(paste("PC", x[i], " x ", "PC", y[i], sep = "")) + 
   xlab(paste("PC", x[i], " (", round(pc.percent[x[i]], digits = 1), "%)", sep="")) + 
   ylab(paste("PC", y[i], " (", round(pc.percent[y[i]], digits = 1), "%)", sep="")) + 
-  theme(legend.position = "right"))
+  theme(legend.position = "right") + scale_shape_manual(values=seq(0,5))#)
 }
 pc.plots
 ```
@@ -301,6 +326,7 @@ pheatmap(sampleDistMatrixs,
          clustering_distance_rows=sampleDistss,
          clustering_distance_cols=sampleDistss,
          col=rev(colors), fontsize = 6)
+
 ```
 
 ## Differential Expression Analysis - multifactor design 
@@ -326,10 +352,12 @@ paste("No. of genes differentially expressed (padj<0.05) by pH, Ambient vs. Low:
 print("Comparison: Moderate pH vs. Low pH")
 summary(res.pco2.ML <- results(dds.DESeq.pH, contrast=c("Treatment", "Moderate", "Low"), alpha=0.05))
 paste("No. of genes differentially expressed (padj<0.05) by pH, Moderate vs. Low:",  sum(res.pco2.ML$padj < 0.05, na.rm=TRUE))
-
+nrow(res.pco2.AM)
 save(res.pco2.AM, file = "../results/deseq2/res.pco2.AM")
 save(res.pco2.AL, file = "../results/deseq2/res.pco2.AL")
 save(res.pco2.ML, file = "../results/deseq2/res.pco2.ML")
+
+
 ```
 
 ### Volcano plots 
@@ -522,6 +550,11 @@ display_venn(
         cat.dist = c(0.06, 0.06, 0.06)
 )
 ```
+```{r}
+509/1802
+319/1802
+955/1802
+```
 
 
 ### Save lists of annotated genes DEGs 
@@ -562,7 +595,7 @@ Column order in saved file is with (parentheses indicating source):
 
 ```{r}
 diffex.AM %>% as.data.frame() %>% rownames_to_column("gene") %>% 
-  left_join(P.plat.bestblast, by=c("gene"="id")) %>%
+  left_join(P.plat.bestblast, by=c("gene"="id_gtf")) %>%
   left_join(P.plat.blast.GO %>% 
               dplyr::select(gene_id, start, end, saccver, spid, gene_uni,evalue, protein_names,
                             gene_ontology_biological_process, gene_ontology_i_ds), 
@@ -570,7 +603,7 @@ diffex.AM %>% as.data.frame() %>% rownames_to_column("gene") %>%
   write.csv(file = "../results/DEGs.Amb-vs-Mod_annotated.csv", row.names = F, quote = T)
 
 diffex.AL %>% as.data.frame() %>% rownames_to_column("gene") %>% 
-  left_join(P.plat.bestblast, by=c("gene"="id")) %>%
+  left_join(P.plat.bestblast, by=c("gene"="id_gtf")) %>%
   left_join(P.plat.blast.GO %>% 
               dplyr::select(gene_id, start, end, saccver, spid, gene_uni,evalue, protein_names,
                             gene_ontology_biological_process, gene_ontology_i_ds), 
@@ -578,7 +611,7 @@ diffex.AL %>% as.data.frame() %>% rownames_to_column("gene") %>%
   write.csv(file = "../results/DEGs.Amb-vs-Low_annotated.csv", row.names = F, quote = T)
 
 diffex.ML %>% as.data.frame() %>% rownames_to_column("gene") %>% 
-  left_join(P.plat.bestblast, by=c("gene"="id")) %>%
+  left_join(P.plat.bestblast, by=c("gene"="id_gtf")) %>%
   left_join(P.plat.blast.GO %>% 
               dplyr::select(gene_id, start, end, saccver, spid, gene_uni,evalue, protein_names,
                             gene_ontology_biological_process, gene_ontology_i_ds), 
@@ -622,14 +655,15 @@ res.pco2.ML %>% as.data.frame() %>% rownames_to_column("gene") %>% dplyr::select
 Need tab-delimited file with gene ID column, then for each comparison 2 columns: 1: LFC, 2) p-value 
 
 ```{r}
-cbind(
+IPA.degs <- cbind(
 res.pco2.AM %>% as.data.frame() %>% select(log2FoldChange, padj) %>% rename_with( ~ paste0("Amb_vs_Mod_", .x)),
 res.pco2.AL %>% as.data.frame() %>% select(log2FoldChange, padj) %>% rename_with( ~ paste0("Amb_vs_Low_", .x)),
 res.pco2.ML %>% as.data.frame() %>% select(log2FoldChange, padj) %>% rename_with( ~ paste0("Mod_vs_Low_", .x))) %>% 
-  rownames_to_column("geneID") %>% 
-  write_delim(file = "../results/deseq2/DESeq2-results-for-IPA.tab", delim = "\t", 
-              col_names = TRUE, quote = "none")
+  rownames_to_column("geneID")
+save(IPA.degs, file = "../results/IPA/IPA.degs")
 
+# write_delim(IPA.degs, file = "../results/deseq2/DESeq2-results-for-IPA.tab", delim = "\t", 
+#               col_names = TRUE, quote = "none")
 ```
 
 
@@ -656,7 +690,7 @@ genes.stats <- gene.counts.norm %>% group_by(Treatment, gene) %>%
   mutate(DEG=factor(DEG, levels=c("Non-DEG", "DEG"))) %>% 
   mutate(change=factor(change, levels=c("Non-DEG", "Down-regulated", "Up-regulated"))) %>%
   ungroup() %>% 
-  left_join(P.plat.bestblast %>% select(id, hit_acc, hit_desc, e_value), by=c("gene"="id")) %>%
+  left_join(P.plat.bestblast %>% select(id, id_gtf, hit_acc, hit_desc, e_value), by=c("gene"="id")) %>%
   left_join(P.plat.blast.GO %>% select(gene_id, spid, protein_names, evalue), by=c("gene"="gene_id"))
 save(genes.stats, file = "../results/bowtie/per-gene-summary-stats")
 
@@ -680,7 +714,8 @@ genes.stats %>% filter(mean>10 & cv<.02 & change=="Down-regulated" & Treatment!=
 # e.g. heat shock protein\nevm.TU.HiC_scaffold_43.188
 # e.g. peroxiredoxin\nevm.TU.HiC_scaffold_16.208
 # e.g. superoxide dismutase [Mn], mitochondrial-like\nevm.TU.HiC_scaffold_64.12
-a <-  plotCounts(dds.DESeq.pH, gene="evm.TU.HiC_scaffold_16.208", intgroup=c("Treatment"), returnData = TRUE) %>% 
+# e.g. Methylcytosine dioxygenase TET1\nevm.TU.HiC_scaffold_78.1
+a <-  plotCounts(dds.DESeq.pH, gene="evm.TU.HiC_scaffold_43.188", intgroup=c("Treatment"), returnData = TRUE) %>% 
   mutate(Treatment=factor(Treatment, levels=c("Ambient", "Moderate", "Low")))
   
 ggplot(a %>% rownames_to_column("sample"),
@@ -689,8 +724,9 @@ ggplot(a %>% rownames_to_column("sample"),
   geom_point(size=2, position=position_jitter(w = 0.15,h = 0)) +
     #geom_text(size=2) +
     theme_bw() +
-    #ggtitle("superoxide dismutase [Mn], mitochondrial-like\nevm.TU.HiC_scaffold_64.12") +
-    theme(axis.title.x = element_blank(), plot.title = element_text(hjust = 0.5, size=10), legend.position = "none")
+    ggtitle("heat shock protein\nevm.TU.HiC_scaffold_43.188") +
+    theme(axis.title.x = element_blank(), plot.title = element_text(hjust = 0.5, size=10), legend.position = "none") +
+  scale_color_manual(values = c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c"))
 
 
 # For DEGs - Reaction Norm Plot 
@@ -710,12 +746,12 @@ genes.stats %>% filter(change!="Non-DEG") %>%
 # Exploring differences in within-group variances 
 
 ## Broad differences using multivariate approaches
+- Identify centroid (mean of points on PC axes), calculate euclidean distances, compare those  
+- Perform a multivariate homogeneity of variance test - betadisper from vegan package
 
-Identify centroid (mean of points on PC axes), calculate euclidean distances, compare those 
+### All genes in matrix 
 
 ```{r}
-# All genes in matrix 
-
 a <- plotPCA(vsd.pH, intgroup="Treatment")
 
 # calculate centroids for each 
@@ -732,7 +768,21 @@ c <- a$data %>% left_join(b, by = "Treatment") %>%
 ggplot(c, aes(x=Treatment, y=dist.cent, colour=Treatment)) + 
   geom_boxplot() + geom_jitter(width = .2) +
   ggtitle("Euclidean distances to centroid of PCA by treatment\nAll genes") +
-  theme_minimal() + theme(legend.position = "none", axis.title.x = element_blank())
+  theme_minimal() + theme(legend.position = "none", axis.title.x = element_blank()) +
+  scale_color_manual(values = c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c"))
+
+ggplot(data=c, aes(x=PC1, y=PC2, group=Treatment, colour=Treatment)) + 
+  geom_point() + 
+    theme_minimal()+ stat_ellipse() +
+  geom_segment(aes(x=PC1.mean, y=PC2.mean, xend=PC1, yend=PC2)) +
+      geom_point(aes(x=PC1.mean, y=PC2.mean,fill=Treatment), col="black", shape=22, size=4) +
+   ggtitle("PCA by Treatment, All genes\n(var-stabilizing transformed)") + theme(legend.position = c(0.08, 0.85)) +
+  scale_color_manual(values = c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c")) +
+    scale_fill_manual(values = c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c")) 
+
+# Examine homogeneity of multivariate dispersions using all data 
+
+# By examining distance to centroid on PCA
 hist(c$dist.cent) #normal distribution? 
 shapiro.test(c$dist.cent) #not really 
 
@@ -741,16 +791,21 @@ shapiro.test(log(c$dist.cent)) #log transformed = yes
 summary(aov(log(dist.cent)~Treatment, data=c)) # no diff
 TukeyHSD(aov(log(dist.cent)~Treatment, data=c)) # no diff 
 
-ggplot(data=c, aes(x=PC1, y=PC2, group=Treatment, colour=Treatment)) + 
-  geom_point() + 
-    theme_minimal()+ stat_ellipse() +
-  geom_segment(aes(x=PC1.mean, y=PC2.mean, xend=PC1, yend=PC2)) +
-      geom_point(aes(x=PC1.mean, y=PC2.mean,fill=Treatment), col="black", shape=22, size=4) +
-   ggtitle("PCA by Treatment, All genes\n(var-stabilizing transformed)") + theme(legend.position = c(0.08, 0.85))
 
+# By using the vegan package's `betadisper` function 
+# This uses the sample-sample distance matrix, "sampleDistss", generated previously 
+all(rownames(dds.pH.df) == attributes(sampleDistss)$Labels) # should === TRUE
+print(disper <- betadisper(sampleDistss, dds.pH.df$Treatment)) 
+anova(disper) #yes a difference, but how?
+TukeyHSD(disper) #Dispersion varies between Ambient & Low pH treatments only 
+permutest(disper, pairwise = TRUE) #another way of testing, same result
+boxplot(disper)
+plot(disper)
+```
 
+### DEGs only 
 
-# DEGs only 
+```{r}
 degs.vst <- vst(
   DESeqDataSetFromMatrix(
     countData = counts.tk[,unique(c(rownames(diffex.AM),rownames(diffex.AL),rownames(diffex.ML)))] %>% t(),
@@ -773,7 +828,21 @@ c <- a$data %>% left_join(b, by = "Treatment") %>%
 ggplot(c, aes(x=Treatment, y=dist.cent, colour=Treatment)) + 
   geom_boxplot() + geom_jitter(width = .2) +
   ggtitle("Euclidean distances to centroid of PCA by treatment\nDEGs only") +
-  theme_minimal() + theme(legend.position = "none", axis.title.x = element_blank())
+  theme_minimal() + theme(legend.position = "none", axis.title.x = element_blank()) +
+  scale_color_manual(values = c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c"))
+
+ggplot(data=c, aes(x=PC1, y=PC2, group=Treatment, colour=Treatment)) + 
+  geom_point() + 
+    theme_minimal()+ stat_ellipse() +
+  geom_segment(aes(x=PC1.mean, y=PC2.mean, xend=PC1, yend=PC2)) +
+      geom_point(aes(x=PC1.mean, y=PC2.mean,fill=Treatment), col="black", shape=22, size=4) +
+   ggtitle("PCA by Treatment, DEGs only\n(var-stabilizing transformed)") + theme(legend.position = c(0.08, 0.85)) +
+  scale_color_manual(values = c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c")) +
+    scale_fill_manual(values = c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c")) 
+
+# Examine homogeneity of multivariate dispersions using all data 
+
+# By examining distance to centroid on PCA
 hist(c$dist.cent) #normal distribution? 
 shapiro.test(c$dist.cent) #not really 
 
@@ -782,17 +851,23 @@ shapiro.test(c$dist.cent^.5) #log transformed = yes
 summary(aov(dist.cent^.5~Treatment, data=c)) # very different 
 TukeyHSD(aov(dist.cent^.5~Treatment, data=c)) # ambient diff from other treatments - more spread 
 
-ggplot(data=c, aes(x=PC1, y=PC2, group=Treatment, colour=Treatment)) + 
-  geom_point() + 
-    theme_minimal()+ stat_ellipse() +
-  geom_segment(aes(x=PC1.mean, y=PC2.mean, xend=PC1, yend=PC2)) +
-      geom_point(aes(x=PC1.mean, y=PC2.mean,fill=Treatment), col="black", shape=22, size=4) +
-   ggtitle("PCA by Treatment, DEGs only\n(var-stabilizing transformed)") + theme(legend.position = c(0.08, 0.85))
 
+# By using the vegan package's `betadisper` function 
+# Need to generate new distance matrix after selecting only DEGs 
+sampleDistss.degs <- dist(t(assay(degs.vst)))
 
+all(rownames(dds.pH.df) == attributes(sampleDistss.degs)$Labels) # should === TRUE
+print(disper <- betadisper(sampleDistss.degs, dds.pH.df$Treatment)) 
+anova(disper) #yes a difference, but how?
+TukeyHSD(disper) #Dispersion varies between Ambient & other two factors  
+permutest(disper, pairwise = TRUE) #another way of testing, same result
+boxplot(disper)
+plot(disper)
+```
 
-  
-# Excluding DEGs 
+### Excluding DEGs 
+
+```{r}
 notdegs.vst <- vst(
   DESeqDataSetFromMatrix(countData = counts.tk[,-which(names(counts.tk) %in% c("Tank", "Treatment", "Treatment_Tank", rownames(diffex.AM),rownames(diffex.AL),rownames(diffex.ML)))] %>% t(),
                               colData = counts.tk[,"Treatment", drop=FALSE] ,
@@ -814,7 +889,21 @@ c <- a$data %>% left_join(b, by = "Treatment") %>%
 ggplot(c, aes(x=Treatment, y=dist.cent, colour=Treatment)) + 
   geom_boxplot() + geom_jitter(width = .2) +
   ggtitle("Euclidean distances to centroid of PCA by treatment\nAll genes except DEGs") +
-  theme_minimal() + theme(legend.position = "none", axis.title.x = element_blank())
+  theme_minimal() + theme(legend.position = "none", axis.title.x = element_blank()) +
+  scale_color_manual(values = c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c"))
+
+ggplot(data=c, aes(x=PC1, y=PC2, group=Treatment, colour=Treatment)) + 
+  geom_point() + 
+    theme_minimal()+ stat_ellipse() +
+  geom_segment(aes(x=PC1.mean, y=PC2.mean, xend=PC1, yend=PC2)) +
+      geom_point(aes(x=PC1.mean, y=PC2.mean,fill=Treatment), col="black", shape=22, size=4) +
+     ggtitle("PCA by Treatment, excluding DEGs\n(var-stabilizing transformed)") + theme(legend.position = c(0.08, 0.85)) +
+  scale_color_manual(values = c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c")) +
+    scale_fill_manual(values = c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c")) 
+
+# Examine homogeneity of multivariate dispersions using all data 
+
+# By examining distance to centroid on PCA
 hist(c$dist.cent) #normal distribution? 
 shapiro.test(c$dist.cent) #not really 
 
@@ -823,14 +912,19 @@ shapiro.test(c$dist.cent^.5) #sqrt transformed = yes
 summary(aov(dist.cent^.5~Treatment, data=c)) # not different at all  
 TukeyHSD(aov(dist.cent^.5~Treatment, data=c)) # no differences at all 
 
-ggplot(data=c, aes(x=PC1, y=PC2, group=Treatment, colour=Treatment)) + 
-  geom_point() + 
-    theme_minimal()+ stat_ellipse() +
-  geom_segment(aes(x=PC1.mean, y=PC2.mean, xend=PC1, yend=PC2)) +
-      geom_point(aes(x=PC1.mean, y=PC2.mean,fill=Treatment), col="black", shape=22, size=4) +
-     ggtitle("PCA by Treatment, excluding DEGs\n(var-stabilizing transformed)") + theme(legend.position = c(0.08, 0.85))
+# By using the vegan package's `betadisper` function 
+# Need to generate new distance matrix after selecting only DEGs 
+sampleDistss.notdegs <- dist(t(assay(notdegs.vst)))
 
+all(rownames(dds.pH.df) == attributes(sampleDistss.notdegs)$Labels) # should === TRUE
+print(disper <- betadisper(sampleDistss.notdegs, dds.pH.df$Treatment)) 
+anova(disper) #yes a difference, but how?
+TukeyHSD(disper) #Dispersion varies between Ambient & other two factors  
+permutest(disper, pairwise = TRUE) #another way of testing, same result
+boxplot(disper)
+plot(disper)
 ```
+
 
 ## Gene-wise variance 
 
@@ -877,7 +971,7 @@ f <- e %>% mutate(DEG=if_else(gene %in% c(rownames(diffex.AM),rownames(diffex.AL
   mutate(DEG=factor(DEG, levels=c("Non-DEG", "DEG"))) %>% 
   mutate(change=factor(change, levels=c("Non-DEG", "Down-regulated", "Up-regulated"))) %>%
   ungroup() %>% 
-  left_join(P.plat.bestblast %>% select(id, hit_acc, hit_desc, e_value), by=c("gene"="id")) %>%
+  left_join(P.plat.bestblast %>% select(id, id_gtf, hit_acc, hit_desc, e_value), by=c("gene"="id")) %>%
   left_join(P.plat.blast.GO %>% select(gene_id, spid, protein_names, evalue), by=c("gene"="gene_id"))
 
 # create vector of gene names that are diff. expressed among moderate and low pH - not included in this variance comparison

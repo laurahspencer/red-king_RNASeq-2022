@@ -69,7 +69,7 @@ results=gomwuPlot(input,goAnnotations,goDivisions[j],
  	#colors=c(color, color, color, color, color)
  colors=c("dodgerblue2","firebrick1","skyblue2","lightcoral") # these are default colors, un-remar and change if needed
  )
-mtext(paste(contrast, " - ", goDivisions[j], sep=""), side = 3, line = 1, adj = -.05, col="black")
+mtext(paste(contrast, " - ", goDivisions[j], sep=""), side = 3, line = 2, adj = -.05, col="black")
  # manually rescale the plot so the tree matches the text 
  # if there are too many categories displayed, try make it more stringent with level1=0.05,level2=0.01,level3=0.001.  
  
@@ -123,7 +123,6 @@ error=function(e){cat("ERROR:", conditionMessage(e), "\n")})
 ```{r}
 go.mwu.degs(contrast="amb-mod")
 ```
-
 
 ## DEGs between ambient conditions (pH ~8.0) and severe OA (pH ~7.5)
 
@@ -275,6 +274,13 @@ module.lineplots[["darkgreen"]]
 go.mwu.wgcna(module="darkgreen", color="darkgreen")
 ```
 
+## Module == lightcyan1 
+
+```{r}
+module.lineplots[["lightcyan1"]]
+go.mwu.wgcna(module="lightcyan1", color="lightcyan1")
+```
+
 ## WGCNA modules that increase or decrease in moderate compared to ambient & low 
 
 These modules were hand-selected based on line plots 
@@ -300,3 +306,10 @@ Higher in moderate OA
 modules.all.lineplots[["saddlebrown"]]
 go.mwu.wgcna(module="saddlebrown", color="saddlebrown")
 ```
+
+# Look at specific GO terms and associated genes 
+
+```{r}
+
+```
+

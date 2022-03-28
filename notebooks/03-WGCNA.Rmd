@@ -34,52 +34,8 @@ Format of expression data should be:
 - columns = genes 
 - normalized 
 
-# If I want to start with raw count data and do my own outlier filtering 
+# Load in filtered datasets also used for DESeq2 
 
-```{r}
-# counts <- data.frame(read.table("../results/featureCounts/featurecounts_redking_gene-v3", header = T, stringsAsFactors = F, fill = FALSE))
-# counts <- counts %>%  column_to_rownames(var="Geneid")
-# counts <- counts %>% rename_all(~as.character(str_sub(colnames(counts)) %>%
-#                              gsub("X.scratch.lspencer.2022.redking.OA.aligned.bowtie.sorted.deduped.", "", .) %>%
-#                              gsub(".sorted.bam", "", .)))
-# 
-# # Remove extraneous gene info, then transpose dataframe so each row = a sample (aka "objects"), and each column = genes (aka "variables") 
-# counts.t <- as.data.frame(t(counts[,-1:-5])) #remove extraneous columns, transform data to have each sample a row, each column a gene 
-# 
-# # Read in sample metadata 
-# sample.info <- read.csv("../data/RCK-exp-design.csv", header=T, na.strings = NA) %>%
-#           mutate_at(vars(Tank, Treatment, Treatment_Tank), as.factor)
-# 
-# # filter low-frequency genes 
-# keep1 <- colMeans(counts.t, na.rm=TRUE) >= 10 #identify genes with mean count across all samples (excluding NAs = 10)
-# keep2 <- rowSums( counts >= 10 ) >= 0.2*43 #identify genes with counts>=10 across at minimum 25% of the samples
-# keep <- unique(c(names(which(keep1 == T)), names(which(keep2 == T)))) # list of genes meeting one of the two above criteria
-# counts.ts <- counts.t[,keep]
-# 
-# print(paste("# genes remaining after pre-filtering:", ncol(counts.ts)))
-# print(paste("# of genes dropped:", ncol(counts.t) - ncol(counts.ts), sep=" "))
-# 
-# # merge count data with sample key, reset row names as sample names, and arrange by infection, then temperature, then day 
-# counts.tk <- merge(x=sample.info[,c("Sample", "Tank", "Treatment", "Treatment_Tank")], by.x="Sample", y=counts.ts, by.y="row.names") %>% 
-#   arrange(Treatment, Tank)  %>% column_to_rownames(var="Sample") %>% droplevels()
-# 
-# all(rownames(counts.tk) == counts.tk %>% dplyr::select(starts_with("evm")) %>% t() %>% colnames()) #check that rownames of untransformed matrix match column names of transformed matrix. Should print 'TRUE' 
-# 
-# # Use DESeq2 to perform a variance-stabilizing transformation 
-# dds.pH <- DESeqDataSetFromMatrix(countData = counts.tk[,grepl("evm", colnames(counts.tk))] %>% t(),
-#                               colData = counts.tk[,"Treatment", drop=FALSE] ,
-#                               design = ~ Treatment)
-# vsd.pH <- varianceStabilizingTransformation(dds.pH, blind=FALSE)
-# 
-# counts.trans <- assay(vsd.pH) %>% t() %>% as.matrix() %>% as.data.frame() %>%
-#   rownames_to_column(var = "Sample") %>% 
-#   left_join(sample.info[,c("Sample", "Treatment", "Tank", "Treatment_Tank")]) %>%
-#   column_to_rownames(var = "Sample") %>% 
-#   select(Treatment, Tank, Treatment_Tank, contains("evm")) %>% 
-#   mutate(Treatment=factor(Treatment, levels=c("Ambient", "Moderate", "Low")))
-# save(counts.trans, file = "../results/wgcna/counts.filt")
-```
-# If I want to load in filtered datasets also used for DESeq2 
 ```{r}
 # load data
 load(file = "../results/bowtie/counts.trans") #counts.trans
@@ -282,7 +238,7 @@ The Dynamic Tree Cut may identify modules whose expression profiles are very sim
 such modules since their genes are highly co-expressed. To quantify co-expression similarity of entire modules, we
 calculate their eigengenes and cluster them on their correlation.
 
-We choose a height cut of 0.25, corresponding to correlation of 0.75, to merge. (The WGCNA tutorial used a correlation threshold of 0.75, but I want to be a bit stricter when combining modules - so they have very similar patterns). 
+We choose a height cut of 0.25, corresponding to correlation of 0.75, to merge. 
 
 
 ```{r}
@@ -319,12 +275,12 @@ plotDendroAndColors(geneTree, cbind(dynamicColors, mergedColors),
                     addGuide = TRUE, guideHang = 0.05,
                     main = "Gene clustering on TOM-based dissimilarity\nDendrogram and module colors")
 # #dev.off()
-# #sizeGrWindow(12, 9)
-# plotDendroAndColors(geneTree, mergedColors,
-#                     c("Dynamic Tree Cut", "Merged dynamic"),
-#                     dendroLabels = FALSE, hang = 0.03,
-#                     addGuide = TRUE, guideHang = 0.05,
-#                     main = "Gene clustering on TOM-based dissimilarity\nFinalized modules")
+sizeGrWindow(12, 9)
+plotDendroAndColors(geneTree, mergedColors,
+                    c("Dynamic Tree Cut", "Merged dynamic"),
+                    dendroLabels = FALSE, hang = 0.03,
+                    addGuide = TRUE, guideHang = 0.05,
+                    main = "Gene clustering on TOM-based dissimilarity\nFinalized modules")
 ```
 
 
@@ -408,7 +364,7 @@ names(GSPvalue) = paste("p.GS.", names(pH), sep="");
 
 ```{r}
 # Need to have every gene represented in the annotation file - here I merge the best blast (has all genes) & uniprot blast (some genes) results to have all genes, and to also be able to use either blast result. 
-annot = left_join(P.plat.bestblast, P.plat.blast, by=c("id"="geneID")) %>% 
+annot = left_join(P.plat.bestblast, P.plat.blast, by=c("id_gtf"="geneID")) %>% 
   filter(id %in% names(datExpr))
 dim(annot)
 names(annot)
@@ -506,7 +462,7 @@ genes.stats <- gene.counts.norm %>% group_by(Treatment, gene) %>%
   mutate(DEG=factor(DEG, levels=c("Non-DEG", "DEG"))) %>% 
   mutate(change=factor(change, levels=c("Non-DEG", "Down-regulated", "Up-regulated"))) %>%
   ungroup() %>% 
-  left_join(P.plat.bestblast %>% select(id, hit_acc, hit_desc, e_value), by=c("gene"="id")) %>%
+  left_join(P.plat.bestblast %>% select(id, id_gtf, hit_acc, hit_desc, e_value), by=c("gene"="id_gtf")) %>%
   left_join(P.plat.blast.GO %>% select(gene_id, spid, protein_names, evalue), by=c("gene"="gene_id"))
 
 # Generate line plots of significant modules showing only genes significantly correlated to module 
@@ -556,12 +512,12 @@ print(module.lineplots)
 save(module.lineplots, file = "../results/wgcna/module.lineplots")
 
 #Save some figures to pdf
-fig <- ggarrange(plotlist=module.lineplots,
-                       ncol=2, nrow=2,
-                       common.legend = TRUE, legend="top")
-pdf("../results/wgcna/pH-associated-modules-genes.pdf", onefile = TRUE)
-fig
-dev.off()
+# fig <- ggarrange(plotlist=module.lineplots,
+#                        ncol=2, nrow=2,
+#                        common.legend = TRUE, legend="top")
+# pdf("../results/wgcna/pH-associated-modules-genes.pdf", onefile = TRUE)
+# fig
+# dev.off()
 
 ```
 
@@ -586,58 +542,101 @@ verboseScatterplot(abs(geneModuleMembership[moduleGenes, column]),
 
 ```
 
-Finding genes with high gene significance and high intramodular connectivity in pH-associated modules (i.e. "hub genes")
+# Which metric to use for IPA? 
 
 ```{r}
-geneInfo %>% select(id, hit_acc, hit_desc, moduleColor, GS.pH, p.GS.pH, MM.brown, p.MM.brown) %>%
-  filter(moduleColor %in% modules) %>% 
-#  filter(p.MM.brown<0.05) %>%
-  ggplot(aes(x=MM.brown, group=moduleColor, fill=moduleColor)) + geom_density(alpha=0.5) + 
-  scale_fill_manual(values=sort(modules)) + 
-  ggtitle("Brown")
+# ggplotly(geneInfo %>% select(id, hit_acc, hit_desc, moduleColor, GS.pH, p.GS.pH, MM.brown, p.MM.brown) %>%
+#   filter(moduleColor %in% modules) %>% 
+#   filter(p.MM.brown<0.05) %>%
+#   ggplot(aes(x=MM.brown, group=moduleColor, fill=moduleColor)) + geom_density(alpha=0.5) + 
+#   scale_fill_manual(values=sort(modules)) + 
+#   ggtitle("Brown"))
+# 
+# ggplotly(geneInfo %>% select(id, hit_acc, hit_desc, moduleColor, GS.pH, p.GS.pH, MM.cyan, p.MM.cyan) %>%
+#   filter(moduleColor %in% modules) %>%
+#   filter(p.MM.cyan<0.05) %>%
+#   ggplot(aes(x=MM.cyan, group=moduleColor, fill=moduleColor)) + geom_density(alpha=0.5) + 
+#   scale_fill_manual(values=sort(modules)) + 
+#   ggtitle("Cyan"))
+# 
+# ggplotly(geneInfo %>% select(id, hit_acc, hit_desc, moduleColor, GS.pH, p.GS.pH, MM.darkgreen, p.MM.darkgreen) %>%
+#   filter(moduleColor %in% modules) %>%
+# #  filter(p.MM.darkgreen<0.05) %>%
+#   ggplot(aes(x=MM.darkgreen, group=moduleColor, fill=moduleColor)) + geom_density(alpha=0.5) + 
+#   scale_fill_manual(values=sort(modules)) + 
+#   ggtitle("Darkgreen"))
+# 
+# ggplotly(geneInfo %>% select(id, hit_acc, hit_desc, moduleColor, GS.pH, p.GS.pH, MM.green, p.MM.green) %>%
+#   filter(moduleColor %in% modules) %>%
+# #  filter(p.MM.green<0.05) %>%
+#   ggplot(aes(x=MM.green, group=moduleColor, fill=moduleColor)) + geom_density(alpha=0.5) + 
+#   scale_fill_manual(values=sort(modules)) + 
+#   ggtitle("Green"))
+# 
+# ggplotly(geneInfo %>% select(id, hit_acc, hit_desc, moduleColor, GS.pH, p.GS.pH, MM.lightcyan1, p.MM.lightcyan1) %>%
+#   filter(moduleColor %in% modules) %>%
+# #  filter(p.MM.lightcyan1<0.05) %>%
+#   ggplot(aes(x=MM.lightcyan1, group=moduleColor, fill=moduleColor)) + geom_density(alpha=0.5) + 
+#   scale_fill_manual(values=sort(modules)) + 
+#   ggtitle("Lightcyan1"))
+# 
+# ggplotly(geneInfo %>% select(id, hit_acc, hit_desc, moduleColor, GS.pH, p.GS.pH, MM.pink, p.MM.pink) %>%
+#   filter(moduleColor %in% modules) %>%
+# #  filter(p.MM.pink<0.05) %>%
+#   ggplot(aes(x=MM.pink, group=moduleColor, fill=moduleColor)) + geom_density(alpha=0.5) + 
+#   scale_fill_manual(values=sort(modules)) + 
+#   ggtitle("Pink"))
+# 
+# ggplotly(geneInfo %>% select(id, hit_acc, hit_desc, moduleColor, GS.pH, p.GS.pH, MM.red, p.MM.red) %>%
+#   filter(moduleColor %in% modules) %>%
+#   filter(p.MM.red<0.05) %>%
+#   ggplot(aes(x=MM.red, group=moduleColor, fill=moduleColor)) + geom_density(alpha=0.5) + 
+#   scale_fill_manual(values=sort(modules)) + 
+#   ggtitle("Red"))
+# 
+# # How does module membership stat for each color vary for genes assigned to that color vs. those that are not 
+# ggplotly(geneInfo %>% 
+#            mutate(x=if_else(moduleColor == "brown", "yes", "no")) %>%
+#   ggplot(aes(x=MM.brown, group=x, fill=x)) + geom_density(alpha=0.5) + 
+#   ggtitle("Brown"))
+# 
+# ggplotly(geneInfo %>% 
+#            mutate(x=if_else(moduleColor == "cyan", "yes", "no")) %>%
+#   ggplot(aes(x=MM.cyan, group=x, fill=x)) + geom_density(alpha=0.5) + 
+#   ggtitle("cyan"))
+# 
+# ggplotly(geneInfo %>% 
+#            mutate(x=if_else(moduleColor == "red", "yes", "no")) %>%
+#   ggplot(aes(x=MM.red, group=x, fill=x)) + geom_density(alpha=0.5) + 
+#   ggtitle("Red"))
+# 
+# ggplotly(geneInfo %>% 
+#            mutate(x=if_else(moduleColor == "red", "yes", "no")) %>%
+#   ggplot(aes(x=MM.red, group=x, fill=x)) + geom_density(alpha=0.5) + 
+#   ggtitle("Red"))
+# 
+# ggplotly(geneInfo %>% 
+#            mutate(x=if_else(moduleColor == "green", "yes", "no")) %>%
+#   ggplot(aes(x=MM.green, group=x, fill=x)) + geom_density(alpha=0.5) + 
+#   ggtitle("green"))
+```
+# Which metric to use for IPA? 
+Here is gene signficance for pH (GS.pH) by module color - certainly looks like the pH-associated modules have larger abs(GS.pH) and much lower p.GS.pH. Good candidate!. 
 
-geneInfo %>% select(id, hit_acc, hit_desc, moduleColor, GS.pH, p.GS.pH, MM.cyan, p.MM.cyan) %>%
-  filter(moduleColor %in% modules) %>%
-#  filter(p.MM.cyan<0.05) %>%
-  ggplot(aes(x=MM.cyan, group=moduleColor, fill=moduleColor)) + geom_density(alpha=0.5) + 
-  scale_fill_manual(values=sort(modules)) + 
-  ggtitle("Cyan")
-
-geneInfo %>% select(id, hit_acc, hit_desc, moduleColor, GS.pH, p.GS.pH, MM.darkgreen, p.MM.darkgreen) %>%
-  filter(moduleColor %in% modules) %>%
-#  filter(p.MM.darkgreen<0.05) %>%
-  ggplot(aes(x=MM.darkgreen, group=moduleColor, fill=moduleColor)) + geom_density(alpha=0.5) + 
-  scale_fill_manual(values=sort(modules)) + 
-  ggtitle("Darkgreen")
-
-geneInfo %>% select(id, hit_acc, hit_desc, moduleColor, GS.pH, p.GS.pH, MM.green, p.MM.green) %>%
-  filter(moduleColor %in% modules) %>%
-#  filter(p.MM.green<0.05) %>%
-  ggplot(aes(x=MM.green, group=moduleColor, fill=moduleColor)) + geom_density(alpha=0.5) + 
-  scale_fill_manual(values=sort(modules)) + 
-  ggtitle("Green")
-
-geneInfo %>% select(id, hit_acc, hit_desc, moduleColor, GS.pH, p.GS.pH, MM.lightcyan1, p.MM.lightcyan1) %>%
-  filter(moduleColor %in% modules) %>%
-#  filter(p.MM.lightcyan1<0.05) %>%
-  ggplot(aes(x=MM.lightcyan1, group=moduleColor, fill=moduleColor)) + geom_density(alpha=0.5) + 
-  scale_fill_manual(values=sort(modules)) + 
-  ggtitle("Lightcyan1")
-
-geneInfo %>% select(id, hit_acc, hit_desc, moduleColor, GS.pH, p.GS.pH, MM.pink, p.MM.pink) %>%
-  filter(moduleColor %in% modules) %>%
-#  filter(p.MM.pink<0.05) %>%
-  ggplot(aes(x=MM.pink, group=moduleColor, fill=moduleColor)) + geom_density(alpha=0.5) + 
-  scale_fill_manual(values=sort(modules)) + 
-  ggtitle("Pink")
-
-geneInfo %>% select(id, hit_acc, hit_desc, moduleColor, GS.pH, p.GS.pH, MM.red, p.MM.red) %>%
-  filter(moduleColor %in% modules) %>%
-#  filter(p.MM.red<0.05) %>%
-  ggplot(aes(x=MM.red, group=moduleColor, fill=moduleColor)) + geom_density(alpha=0.5) + 
-  scale_fill_manual(values=sort(modules)) + 
-  ggtitle("Red")
-
+```{r}
+# ggplotly(geneInfo %>% 
+# #  filter(moduleColor %in% modules) %>% 
+# #  filter(p.MM.brown<0.05) %>%
+#   ggplot(aes(x=GS.pH, group=moduleColor, fill=moduleColor)) + geom_density(alpha=0.5) + 
+#   #scale_fill_manual(values=sort(modules)) + 
+#   ggtitle("GS.pH by module"))
+# 
+# ggplotly(geneInfo %>% 
+# #  filter(moduleColor %in% modules) %>% 
+# #  filter(p.MM.brown<0.05) %>%
+#   ggplot(aes(x=p.GS.pH, group=moduleColor, fill=moduleColor)) + geom_density(alpha=0.5) + 
+#   #scale_fill_manual(values=sort(modules)) + 
+#   ggtitle("p.GS.pH by module"))
 ```
 
 # Look at overlap among WGCNA and DESeq2 results 
@@ -667,8 +666,32 @@ geneInfo %>%
 # 73.9% of the DEGs were both assigned to a pH-associated module, AND those genes are sign. associated with pH (p.GS.pH<0.05)
 
 ```
+## What percentage of DEGs are also identified as correlated with pH via WGCNA (and assigned to any module)
 
-# Venn diagram of DEGs and significant genes in WGCNA pH-associated modules 
+```{r}
+geneInfo %>%
+  left_join(genes.stats %>% select(gene, DEG) %>% distinct(), by = c("id"="gene")) %>% #join with table indicating DEG
+  mutate(moduleColor = as.factor(moduleColor)) %>%
+  group_by(moduleColor, DEG) %>% summarise(n=n(), sign=sum(p.GS.pH<0.05), not.sign=sum(p.GS.pH>0.05)) %>% 
+  filter(DEG=="DEG") %>% 
+  ungroup() %>% select(n, sign, not.sign) %>% colSums()/n.DEGs*100 
+
+# 85% of DEGs are deemed to be significantly correlated with pH
+```
+
+## How many genes are correlated with pH (any module?)
+
+```{r}
+geneInfo %>%
+  mutate(moduleColor = as.factor(moduleColor)) %>%
+  group_by(moduleColor) %>% summarise(n=n(), sign=sum(p.GS.pH<0.05), not.sign=sum(p.GS.pH>0.05)) %>% 
+  select(moduleColor, n, sign, not.sign) %>% 
+  mutate(perc.sig=sign/n) %>% 
+  select(sign, not.sign) %>% colSums()
+```
+
+
+# Venn diagram of DEGs and genes in WGCNA pH-associated modules 
 
 ```{r}
 display_venn <- function(x, ...){
@@ -685,7 +708,8 @@ module.genes[[i]] <- geneInfo %>%
   # filter for genes assigned to pH-associated modules 
   filter(moduleColor==modules[i]) %>% 
 ## further filter for genes that are significantly associated with pH and significantly assigned to their respective module
-  #filter(p.GS.pH<0.05) %>% #filter(!!as.symbol(modules.p[i])<0.05) %>%
+  #filter(p.GS.pH<0.05) %>% 
+  #filter(!!as.symbol(modules.p[i])<0.05) %>%
 ## alternative approach to just select "hub genes"   
   #    filter(abs(GS.pH)>0.2) %>% filter(!!as.symbol(modules.cor[i])>0.8) %>% 
   rownames()
@@ -718,7 +742,7 @@ display_venn(
 # EFFECT OF VARIOUS FILTERING SETTINGS: 
 # When I include all genes assigned to pH-associated modules, the % of DEGs included in WGCNA modules is 80.1%
 # When I filter for only genes that are significantly associated with pH (p.GS.pH<0.05), that drops to 73.3%
-# When I filter for gens that are sign. associated with pH (p.GS.pH<0.05) AND module membership is sign. (p.MM<0.05) that drops to 72.2%
+# When I filter for genEs that are sign. associated with pH (p.GS.pH<0.05) AND module membership is sign. (p.MM<0.05) that drops to 72.2%
 # Because I am using all genes assigned to a pH-associated module in the GO Enrichment analysis and IPA, I shall use the least filtered set. 
 
 ```
@@ -759,6 +783,21 @@ for (i in 1:length(modules)) {
 geneInfo %>%  
   filter(moduleColor %in% modules) %>%
   dplyr::count(moduleColor)
+
+# How many total genes assigned to any pH-associated module? 
+geneInfo %>%  
+  filter(moduleColor %in% modules) %>%
+  dplyr::count(moduleColor) #%>% select(n) %>% colSums()
+
+#9298/18150
+
+# How many total genes assigned to any pH-associated module AND have high Gene Significance (significantly associated with pH)? 
+geneInfo %>%  
+  filter(moduleColor %in% modules) %>%
+  filter(p.GS.pH<0.05) %>%
+  dplyr::count(moduleColor) # %>% select(n) %>% colSums()
+
+2809/18150
 ```
 
 
@@ -799,7 +838,7 @@ pheatmap(counts.modules.matrix[,colnames(counts.modules.matrix) !="module"],
          cluster_cols = FALSE, cluster_rows=F, 
          show_rownames=FALSE, na.rm=TRUE, scale="row", 
          main = "Expression by pH-associated module\n(significant genes only)", fontsize = 8, 
-         annotation_colors = list(Treatment=c(Ambient="Blue", Moderate="Purple", Low="Red"),
+         annotation_colors = list(Treatment=c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c"),
                                   module=c(brown="brown", pink="pink", lightcyan1="lightcyan1", 
                                            red="red", cyan="cyan", green="green", darkgreen="darkgreen")),
          annotation_col=s[,"Treatment", drop=F],
@@ -829,6 +868,29 @@ for (i in 1:length(modules)) {
   write.csv(geneInfo.mwu.mods[[i]], paste("../results/GO_MWU/WGCNA-module_",modules[[i]],".csv", sep = ""), quote = F,row.names = F)
 }
 
+```
+
+## Prep for IPA
+
+```{r}
+IPA.wgcna <- geneInfo %>% 
+  select(id,GS.pH, p.GS.pH,  
+         p.MM.brown, 
+         p.MM.pink, 
+         p.MM.lightcyan1, 
+         p.MM.red, 
+         p.MM.cyan, 
+         p.MM.green, 
+         p.MM.darkgreen) %>% remove_rownames()
+
+load(file = "../results/IPA/IPA.degs") #IPA.degs
+
+# Merge DEG stats and WGCNA stats, save to file for IPA 
+left_join(IPA.degs, IPA.wgcna, by=c("geneID"="id")) %>%
+  left_join(P.plat.bestblast %>% select(id, id_gtf), by=c("geneID"="id_gtf")) %>%
+  select(id, everything(), -geneID) %>% 
+write_delim(file = "../results/IPA/RKC-results-for-IPA.tab", delim = "\t",
+              col_names = TRUE, quote = "none")
 ```
 
 What about the modules - that aren't sign. associated with pH? any patterns there? E.g. do some modules contain genes that are higher at moderate pH? 
@@ -984,4 +1046,48 @@ rownames(cmd1) <- colorh1
 ```
 
 
+# If I want to start with raw count data and do my own outlier filtering 
 
+```{r}
+# counts <- data.frame(read.table("../results/featureCounts/featurecounts_redking_gene-v3", header = T, stringsAsFactors = F, fill = FALSE))
+# counts <- counts %>%  column_to_rownames(var="Geneid")
+# counts <- counts %>% rename_all(~as.character(str_sub(colnames(counts)) %>%
+#                              gsub("X.scratch.lspencer.2022.redking.OA.aligned.bowtie.sorted.deduped.", "", .) %>%
+#                              gsub(".sorted.bam", "", .)))
+# 
+# # Remove extraneous gene info, then transpose dataframe so each row = a sample (aka "objects"), and each column = genes (aka "variables") 
+# counts.t <- as.data.frame(t(counts[,-1:-5])) #remove extraneous columns, transform data to have each sample a row, each column a gene 
+# 
+# # Read in sample metadata 
+# sample.info <- read.csv("../data/RCK-exp-design.csv", header=T, na.strings = NA) %>%
+#           mutate_at(vars(Tank, Treatment, Treatment_Tank), as.factor)
+# 
+# # filter low-frequency genes 
+# keep1 <- colMeans(counts.t, na.rm=TRUE) >= 10 #identify genes with mean count across all samples (excluding NAs = 10)
+# keep2 <- rowSums( counts >= 10 ) >= 0.2*43 #identify genes with counts>=10 across at minimum 25% of the samples
+# keep <- unique(c(names(which(keep1 == T)), names(which(keep2 == T)))) # list of genes meeting one of the two above criteria
+# counts.ts <- counts.t[,keep]
+# 
+# print(paste("# genes remaining after pre-filtering:", ncol(counts.ts)))
+# print(paste("# of genes dropped:", ncol(counts.t) - ncol(counts.ts), sep=" "))
+# 
+# # merge count data with sample key, reset row names as sample names, and arrange by infection, then temperature, then day 
+# counts.tk <- merge(x=sample.info[,c("Sample", "Tank", "Treatment", "Treatment_Tank")], by.x="Sample", y=counts.ts, by.y="row.names") %>% 
+#   arrange(Treatment, Tank)  %>% column_to_rownames(var="Sample") %>% droplevels()
+# 
+# all(rownames(counts.tk) == counts.tk %>% dplyr::select(starts_with("evm")) %>% t() %>% colnames()) #check that rownames of untransformed matrix match column names of transformed matrix. Should print 'TRUE' 
+# 
+# # Use DESeq2 to perform a variance-stabilizing transformation 
+# dds.pH <- DESeqDataSetFromMatrix(countData = counts.tk[,grepl("evm", colnames(counts.tk))] %>% t(),
+#                               colData = counts.tk[,"Treatment", drop=FALSE] ,
+#                               design = ~ Treatment)
+# vsd.pH <- varianceStabilizingTransformation(dds.pH, blind=FALSE)
+# 
+# counts.trans <- assay(vsd.pH) %>% t() %>% as.matrix() %>% as.data.frame() %>%
+#   rownames_to_column(var = "Sample") %>% 
+#   left_join(sample.info[,c("Sample", "Treatment", "Tank", "Treatment_Tank")]) %>%
+#   column_to_rownames(var = "Sample") %>% 
+#   select(Treatment, Tank, Treatment_Tank, contains("evm")) %>% 
+#   mutate(Treatment=factor(Treatment, levels=c("Ambient", "Moderate", "Low")))
+# save(counts.trans, file = "../results/wgcna/counts.filt")
+```

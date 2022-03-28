@@ -1,0 +1,513 @@
+---
+title: "Genetic Structure Analysis"
+author: "Laura H Spencer"
+date: "3/24/2022"
+output: html_document
+---
+```{r, message=FALSE, warning=FALSE, results=FALSE}
+# Add all required libraries that are installed with install.packages() here
+list.of.packages <- c("tidyverse", "reshape2", "plotly", "vcfR", "network", "janitor", "corrplot", "PerformanceAnalytics", "ggpubr", "RColorBrewer", "usedist", "vegan", "forcats")
+
+# Add all libraries that are installed using BiocManager here
+bioconductor.packages <- c("SNPRelate", "DESeq2")
+
+# Install BiocManager if needed
+if(!requireNamespace("BiocManager", quietly = TRUE)) install.packages("BiocManager")
+
+# Get names of all required packages that aren't installed
+new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[, "Package"])]
+new.bioc.packages <- bioconductor.packages[!(bioconductor.packages %in% installed.packages()[, "Package"])]
+# Install all new packages
+if(length(new.packages)) install.packages(new.packages)
+if(length(new.bioc.packages)) BiocManager::install(new.bioc.packages)
+
+# Load all required libraries
+all.packages <- c(list.of.packages, bioconductor.packages)
+lapply(all.packages, FUN = function(X) {
+  do.call("require", list(X))
+})
+
+source("../references/biostats.R")
+```
+
+## Load sample info and create dataframes for each stage 
+
+```{r}
+sample.info <- read.csv("../data/RCK-exp-design.csv", header=T, na.strings = NA)
+```
+
+## Use SNPRelate to filter vcf files. Remove: 
+- Select biallelic loci only 
+- Loci with minor allele frequency < 5%
+- Select loci that are present across all samples (missing.rate=0) 
+
+```{r}
+#snpgdsClose(genofile)
+vcf.fn <- "../results/genotype/rkc_rnaseq_genotypes-filtered-true.vcf.gz"
+SNPRelate::snpgdsVCF2GDS(vcf.fn, "../results/genotype/genotypes.gds", method="biallelic.only")
+snpgdsSummary("../results/genotype/genotypes.gds")
+```
+
+## Open gds and check out genofile contents 
+
+```{r}
+(genofile <- snpgdsOpen("../results/genotype/genotypes.gds"))
+```
+## Prune/Clean SNPs 
+- Remove those in linkage-disequilibrium
+- Remove those with Minor Allele Frequency <5%
+- Remove those that are missing from X% of samples  
+
+```{r}
+snpset <- snpgdsLDpruning(genofile, maf=.05, missing.rate=0.2, autosome.only=FALSE)
+snpset.id <- unlist(unname(snpset))
+```
+
+# ~1,086 SNPs remain after all filtering steps 
+
+## PCA  
+
+```{r}
+# PCA using SNPRelate 
+pca <- snpgdsPCA(genofile, num.thread=2, autosome.only=FALSE, verbose = TRUE, 
+                 need.genmat = TRUE, snp.id =snpset.id )
+pc.percent <- pca$varprop*100
+head(round(pc.percent, 2)) #This is the proportion variance explained by each PC 
+tab <- data.frame(sample.id = pca$sample.id,
+    PC1.gen = pca$eigenvect[,1],    # the first eigenvector
+    PC2.gen = pca$eigenvect[,2],    # the second eigenvector
+    PC3.gen = pca$eigenvect[,3],    # the third eigenvector
+    PC4.gen = pca$eigenvect[,4],    # the fourth eigenvector
+    PC5.gen = pca$eigenvect[,5],    # the fifth eigenvector
+    stringsAsFactors = FALSE)
+
+# PCA using prcomp etc., but NOTE that I pull the covariance matrix from the SNPRelate PCA command  
+pca.princomp.gen <- princomp(covmat=pca$genmat, scores=T, cor = F) #specify "covmat" because input is a covariance matrix (not raw data!)
+summary(pca.princomp.gen)
+pca.eigenval(pca.princomp.gen)[2,1:5] #The Proporation of Variance (aka %variance)  
+screeplot(pca.princomp.gen, bstick=TRUE) #PC axes aren't super sign. - just look at PC1 
+
+tab <- data.frame(sample.id = pca$sample.id,
+    PC1.gen = pca.princomp.gen$loadings[,1],    # the first eigenvector
+    PC2.gen = pca.princomp.gen$loadings[,2],    # the second eigenvector
+    PC3.gen = pca.princomp.gen$loadings[,3],    # the third eigenvector
+    PC4.gen = pca.princomp.gen$loadings[,4],    # the fourth eigenvector
+    stringsAsFactors = FALSE)
+
+shapiro.test(pca.princomp.gen$loadings) #Multivariate normality assumption not met
+
+tab.annot.gen <- left_join(tab, sample.info, by=c("sample.id"="Sample")) %>% droplevels() %>%
+  mutate(Treatment=as.factor(Treatment))
+group <- as.factor(tab.annot.gen$Treatment)
+
+# PC1 X PC2
+ggplot(tab.annot.gen, aes(x=PC1.gen, y=PC2.gen)) + 
+  geom_point(aes(col=Treatment), size=3.5, alpha=0.75) + 
+  theme_minimal() + ggtitle("Genetic Structure, PC1xPC2") + 
+  xlab(paste("PC1 (", round(pc.percent[1], digits = 2), "%)", sep="")) + 
+  ylab(paste("PC2 (", round(pc.percent[2], digits = 2), "%)", sep="")) + 
+  theme(legend.position = "right") + 
+  scale_color_manual(values=c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c"), name="pH Treatment") +
+  guides(colour = guide_legend(override.aes = list(size=3.5))) + 
+  stat_ellipse(aes(col=Treatment), size=0.3)
+
+# PC1 X PC3
+ggplot(tab.annot.gen, aes(x=PC1.gen, y=PC3.gen)) + 
+  geom_point(aes(col=Treatment), size=3.5, alpha=0.75) + 
+  theme_minimal() + ggtitle("Genetic Structure, PC1xPC3") + 
+  xlab(paste("PC1 (", round(pc.percent[1], digits = 2), "%)", sep="")) + 
+  ylab(paste("PC2 (", round(pc.percent[3], digits = 2), "%)", sep="")) + 
+  theme(legend.position = "right") + 
+  scale_color_manual(values=c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c"), name="pH Treatment") +
+  guides(colour = guide_legend(override.aes = list(size=3.5))) + 
+  stat_ellipse(aes(col=Treatment), size=0.3)
+
+# PC2 X PC3
+ggplot(tab.annot.gen, aes(x=PC2.gen, y=PC3.gen)) + 
+  geom_point(aes(col=Treatment), size=3.5, alpha=0.75) + 
+  theme_minimal() + ggtitle("Genetic Structure, PC2xPC3") + 
+  xlab(paste("PC1 (", round(pc.percent[2], digits = 2), "%)", sep="")) + 
+  ylab(paste("PC2 (", round(pc.percent[3], digits = 2), "%)", sep="")) + 
+  theme(legend.position = "right") + 
+  scale_color_manual(values=c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c"), name="pH Treatment") +
+  guides(colour = guide_legend(override.aes = list(size=3.5))) + 
+  stat_ellipse(aes(col=Treatment), size=0.3)
+
+# PC1 X PC2 color coded by tank 
+ggplot(tab.annot.gen, aes(x=PC1.gen, y=PC2.gen)) + 
+  geom_point(aes(col=as.factor(Tank)), size=3.5, alpha=0.75) + 
+  theme_minimal() + ggtitle("Genetic Structure, PC1xPC2 (showing tank no.)") + 
+  xlab(paste("PC1 (", round(pc.percent[1], digits = 2), "%)", sep="")) + 
+  ylab(paste("PC2 (", round(pc.percent[2], digits = 2), "%)", sep="")) + 
+  theme(legend.position = "right") + 
+  guides(colour = guide_legend(override.aes = list(size=3.5)))
+
+save(tab.annot.gen, file="../results/genotype/tab.annot.gen")
+```
+
+## cluster analysis 
+
+```{r}
+# To perform cluster analysis on the matrix of genome-wide IBS pairwise distances, 
+# and determine the groups by a permutation score. 
+# Result= only 1 group (?)
+ibs.hc <- snpgdsHCluster(snpgdsIBS(genofile, snp.id=snpset.id, num.thread=2, autosome.only=FALSE))
+rv <- snpgdsCutTree(ibs.hc)
+plot(rv$dendrogram, leaflab="none", main="HapMap Phase II")
+
+# Determine groups of individuals by population information
+rv2 <- snpgdsCutTree(ibs.hc, samp.group=tab.annot.gen$Treatment)
+plot(rv2$dendrogram, leaflab="none", main="HapMap Phase II")
+legend("bottom", legend=levels(group), col=1:nlevels(group), pch=19, ncol=3, cex=0.6, pt.cex=1)
+```
+
+## Allele frequencies 
+
+```{r}
+AF.ambient <- snpgdsSNPRateFreq(genofile, snp.id=snpset.id, sample.id=subset(tab.annot.gen, Treatment=="Ambient")$sample.id, with.id = TRUE)
+
+AF.moderate <- snpgdsSNPRateFreq(genofile, snp.id=snpset.id, sample.id=subset(tab.annot.gen, Treatment=="Moderate")$sample.id, with.id = TRUE)
+
+AF.low <- snpgdsSNPRateFreq(genofile, snp.id=snpset.id, sample.id=subset(tab.annot.gen, Treatment=="Low")$sample.id, with.id = TRUE)
+
+AFs <- rbind(
+  do.call(cbind.data.frame, AF.ambient[c("snp.id", "AlleleFreq")]) %>% 
+    mutate(Treatment=as.factor("Ambient")), 
+do.call(cbind.data.frame, AF.moderate[c("snp.id", "AlleleFreq")]) %>% 
+  mutate(Treatment=as.factor("Moderate")), 
+do.call(cbind.data.frame, AF.low[c("snp.id", "AlleleFreq")]) %>% 
+  mutate(Treatment=as.factor("Low")))
+
+ggplot(AFs, aes(x=Treatment, y=AlleleFreq, fill=Treatment)) + geom_violin(trim = F, alpha=0.5) + 
+  theme_minimal() + 
+  stat_summary(fun.y=mean, geom="point", shape=8, size=4, color="black", fill="black") + 
+  xlab("pCO2 exposure") + ylab("Allele Frequency") +
+  scale_fill_manual(values = c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c")) +
+  ggtitle(paste("SNP Allele Frequency by pH Treatment\n", 
+                "(No. loci = ", length(snpset.id), ")", sep="")) +
+    geom_text(data=AFs %>% group_by(Treatment) %>% 
+                summarize(mean=mean(AlleleFreq)), 
+              aes(x=Treatment, y=mean+.1, label=round(mean, 3)))
+```
+##  Fst Calculations 
+### Note: snpgdsFst() returns 5 things:
+  - sample IDs 
+  - SNP ids (i.e. indices)
+  - "Fst" = weighted Fst estimate 
+  - "MeanFst" = average of Fst estimates across all SNPs 
+  - "FstSNP" = A vector of Fst for each SNP 
+
+
+```{r}
+# Fst among all 3 treatments 
+Fst <- snpgdsFst(genofile, snp.id=snpset.id, 
+                        sample.id=tab.annot.gen$sample.id, 
+                  population=tab.annot.gen$Treatment,
+    method="W&C84", autosome.only=FALSE, with.id = TRUE)
+paste("Weir and Cockerham mean Fst estimate, all treatments compared: ", round(Fst$MeanFst, 5))
+hist(Fst$FstSNP, breaks = 75, main="Fst distribution", col="dodgerblue3")
+
+Fst.AM <- snpgdsFst(genofile, snp.id=snpset.id, 
+                        sample.id=subset(tab.annot.gen, Treatment %in% c("Ambient", "Moderate"))$sample.id, 
+               population=droplevels(subset(tab.annot.gen, Treatment %in% c("Ambient", "Moderate"))$Treatment),
+    method="W&C84", autosome.only=FALSE, with.id = TRUE)
+
+Fst.AL <- snpgdsFst(genofile, snp.id=snpset.id, 
+                        sample.id=subset(tab.annot.gen, Treatment %in% c("Ambient", "Low"))$sample.id, 
+               population=droplevels(subset(tab.annot.gen, Treatment %in% c("Ambient", "Low"))$Treatment),
+    method="W&C84", autosome.only=FALSE, with.id = TRUE)
+
+Fst.ML <- snpgdsFst(genofile, snp.id=snpset.id, 
+                        sample.id=subset(tab.annot.gen, Treatment %in% c("Moderate", "Low"))$sample.id, 
+               population=droplevels(subset(tab.annot.gen, Treatment %in% c("Moderate", "Low"))$Treatment),
+    method="W&C84", autosome.only=FALSE, with.id = TRUE)
+
+
+Fsts <- rbind(
+  
+  do.call(cbind.data.frame, Fst[c("snp.id", "FstSNP")]) %>% mutate(contrast=as.factor("all")), 
+
+  do.call(cbind.data.frame, Fst.AM[c("snp.id", "FstSNP")]) %>% mutate(contrast=as.factor("AvsM")),
+
+  do.call(cbind.data.frame, Fst.AL[c("snp.id", "FstSNP")]) %>% mutate(contrast=as.factor("AvsL")),
+
+  do.call(cbind.data.frame, Fst.ML[c("snp.id", "FstSNP")]) %>% mutate(contrast=as.factor("MvsL"))) 
+
+ggplot(Fsts, aes(x=contrast, y=FstSNP, fill=contrast)) + geom_violin(trim = F) + 
+  stat_summary(fun.y=mean, geom="point", shape=8, size=3.5, color="black", fill="black") +
+  ggtitle(paste("SNP Fst, Adults by pCO2 treatment\n", "(No. loci = ", length(snpset.id), ")", sep="")) +
+    geom_text(data=Fsts %>% group_by(contrast) %>% summarize(mean=mean(FstSNP)), aes(x=contrast, y=.65, label=round(mean, 3)))
+```
+
+## Adult Identity-by-state 
+
+```{r}
+lbls <- paste("PC", 1:4, "\n", format(pc.percent[1:4], digits=2), "%", sep="")
+pairs(pca$eigenvect[,1:4], col=as.color(tab.annot.gen$Treatment), labels=lbls, main="Colors = pH Treatment")
+pairs(pca$eigenvect[,1:4], col=as.color(tab.annot.gen$Tank), labels=lbls, main="Colors = Tank")
+```
+
+```{r}
+ibs <- snpgdsIBS(genofile, snp.id=snpset.id, num.thread=2, autosome.only=FALSE)
+pop.idx <- order(tab.annot.gen$Treatment)
+
+#par(xpd=TRUE)
+#heatmap(ibs$ibs, col=terrain.colors(16), labCol=TRUE, 
+#        RowSideColors=c("black","red","green","blue")[tab.annot.gen$pop_code])
+#legend(0,-.05, legend=levels(tab.annot.gen$pop_code), pch="o", col=1:nlevels(tab.annot.gen$pop_code), 
+#       text.col=1:nlevels(tab.annot.gen$pop_code), cex=.75, ncol=4)
+
+#Perform multidimensional scaling analysis on the matrix of genome-wide IBS pairwise distances:
+loc <- cmdscale(1 - ibs$ibs, k = 2)
+x <- loc[, 1]; y <- loc[, 2]
+
+plot(x, y, col=group, xlab = "", ylab = "",
+    main = "Multidimensional Scaling Analysis (IBS)", cex=2, pch=16)
+#text(x, y+.01, labels=tab.annot.gen$sample.id, cex=0.7, font=2, col=as.integer(group))
+legend("bottomright", legend=levels(group), pch="o", text.col=1:nlevels(group))
+```
+
+## Correlation analysis, Genetic PCAs ~ Expression PCAs 
+
+### Generage PCAs from expression data for integration 
+
+#### PCA with all genes using princomp and showing broken stick 
+
+```{r}
+load(file = "../results/deseq2/vsd.pH") #vsd.pH
+pca.princomp.expr <- prcomp(cov(assay(vsd.pH)), scale=F) #scale=F for variance-covariance matrix
+pca.eigenval(pca.princomp.expr) #The Proporation of Variance = %variance 
+(pc.percent <- pca.eigenval(pca.princomp.expr)[2,1:4]*100)
+screeplot(pca.princomp.expr, bstick=TRUE) #looks like PC 1-2 are significant, but also pull the 3rd 
+tab.expr <- data.frame(sample.id = colnames(assay(vsd.pH)),
+    PC1.expr = pca.princomp.expr$x[,1],    # the first eigenvector
+    PC2.expr = pca.princomp.expr$x[,2],    # the second eigenvector
+    PC3.expr = pca.princomp.expr$x[,3],    # the third eigenvector
+    PC4.expr = pca.princomp.expr$x[,4],    # the fourth eigenvector
+    stringsAsFactors = FALSE)
+shapiro.test(pca.princomp.expr$x) #multivariate normality not met 
+tab.expr.annot <- left_join(tab.expr, sample.info, by=c("sample.id"="Sample")) %>% droplevels()
+group.expr <- as.factor(tab.expr.annot$Treatment)
+```
+
+```{r}
+ggplot(tab.expr.annot, aes(x=PC1.expr, y=PC2.expr)) + 
+  geom_point(aes(col=Treatment), size=3.5, alpha=0.85) + 
+  theme_minimal() + ggtitle("Expression, all genes, PC1xPC2") + 
+  xlab(paste("PC1 (", round(pc.percent[1], digits = 1), "%)", sep="")) + 
+  ylab(paste("PC2 (", round(pc.percent[2], digits = 1), "%)", sep="")) + 
+  theme(legend.position = "right") + 
+  scale_color_manual(values = c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c"), name="pH Treatment") +
+  guides(colour = guide_legend(override.aes = list(size=3.5))) + 
+  stat_ellipse(aes(color=Treatment), size=0.3)
+
+save(tab.expr.annot, file="../results/genotype/tab.expr.annot")
+
+# GGSCATTER with ellipses and stars 
+ggscatter(tab.expr.annot, x="PC1.expr", y="PC2.expr",
+          color="Treatment", size=3.5, alpha=0.85, 
+           palette = c("#2c7bb6","#fdae61", "#d7191c"),
+   ellipse = TRUE, star.plot = TRUE) + 
+  theme_minimal() + ggtitle("Expression, all genes, PC1xPC2") + 
+  xlab(paste("PC1 (", round(pc.percent[1], digits = 1), "%)", sep="")) + 
+  ylab(paste("PC2 (", round(pc.percent[2], digits = 1), "%)", sep="")) + 
+  theme(legend.position = "right") + 
+  guides(colour = guide_legend(override.aes = list(size=3.5))) 
+```
+
+## PCA with gene set that are DEGs among any pH comparison 
+
+```{r}
+# load in DEG lists 
+load(file = "../results/deseq2/diffex.AM")
+load(file = "../results/deseq2/diffex.AL")
+load(file = "../results/deseq2/diffex.ML")
+
+pca.princomp.expr.pH <-
+  princomp(cov(assay(vsd.pH[unique(c(rownames(diffex.AM),rownames(diffex.AL),rownames(diffex.ML))),])))
+pca.eigenval(pca.princomp.expr.pH) #The Proporation of Variance = %variance 
+(pc.percent.pH <- pca.eigenval(pca.princomp.expr.pH)[2,1:4]*100)
+screeplot(pca.princomp.expr.pH, bstick=TRUE) #looks like PC 1 & 2
+tab.expr.pH <- data.frame(sample.id = colnames(assay(vsd.pH)),
+    PC1.degs = pca.princomp.expr.pH$scores[,1],    # the first eigenvector
+    PC2.degs = pca.princomp.expr.pH$scores[,2],    # the second eigenvector
+    PC3.degs = pca.princomp.expr.pH$scores[,3],    # the third eigenvector
+    PC4.degs = pca.princomp.expr.pH$scores[,4],    # the third eigenvector
+    stringsAsFactors = FALSE)
+tab.expr.pH.annot <- left_join(tab.expr.pH, sample.info, by=c("sample.id"="Sample")) %>% droplevels()
+group.pH.expr <- as.factor(tab.expr.pH.annot$Treatment)
+```
+
+```{r}
+ggplot(tab.expr.pH.annot, aes(x=PC1.degs, y=PC2.degs)) + 
+  geom_point(aes(col=Treatment), size=3.5, alpha=0.85) + 
+  theme_minimal() + ggtitle("Expression PC1xPC2, DEGs in response to pH") + 
+  xlab(paste("PC1 (", round(pc.percent.pH[1], digits = 1), "%)", sep="")) + 
+  ylab(paste("PC2 (", round(pc.percent.pH[2], digits = 1), "%)", sep="")) + 
+  theme(legend.position = "right") + 
+  scale_color_manual(values = c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c"), name="pH Treatment") +
+  guides(colour = guide_legend(override.aes = list(size=3.5))) + 
+  stat_ellipse(aes(color=Treatment), size=0.3)
+save(tab.expr.pH.annot, file="../results/genotype/tab.expr.pH.annot")
+```
+## Merge PC axes from genetic analyis, expression analysis using all data, and expression analysis using DEGs only  
+
+```{r}
+PCA.merged <- left_join(left_join(
+  tab.annot.gen %>% select(sample.id, Treatment, Tank, starts_with("PC")),
+  tab.expr.annot %>% select(starts_with("PC"),sample.id), by=c("sample.id")), 
+  tab.expr.pH.annot %>% select(starts_with("PC"),sample.id), by=c("sample.id"))
+```
+
+## Examine correlation among genetic and expression PC axes
+
+```{r}
+chart.Correlation(PCA.merged %>% select(starts_with("PC")), histogram=F, pch=19, method = "pearson")
+mtext("PC Axes Correlation, Genetic (.gen) ~ Expression (.all & .degs)", side=3, line=1.25)
+```
+Correlated PC axes: 
+- PC2.gen x PC4.degs (positive correlation, highly significant)
+- PC1.gen x PC3 expr (negativel ycorrelated, modestly significant)
+- PC2.gen x PC3 expr (negativel ycorrelated, modestly significant)
+
+```{r}
+# PCA.merged.4plots <- PCA.merged %>% dplyr::select(PC1.gen, PC2.gen, PC3.expr, PC4.degs) %>% 
+#   pivot_longer(cols = c(PC3.expr, PC4.degs), values_to = "score", names_to = "PC.expr") %>% 
+#   mutate(PC.expr=as.factor(PC.expr))
+
+# Most significant correlation, PC2.gen x PC4.degs
+ggscatter(PCA.merged, x="PC2.gen", y="PC4.degs", add="reg.line", conf.int = TRUE,
+          color="white", 
+          add.params = list(color = "gray50", fill = "gray70")) + 
+    ggtitle("Genetic PC2 ~ Expression (DEGs only) PC4 Axes") + 
+  xlab("Genetic PC2") + ylab("DEGs PC4") + 
+  stat_cor(method = "pearson", show.legend=FALSE) +
+  theme_pubclean() +theme(legend.position = "bottom") + 
+  scale_color_manual(values=c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c"), name="pH Treatment") +
+  guides(colour = guide_legend(override.aes = list(size=3.5))) + 
+  geom_point(aes(col=Treatment), alpha=0.85, size=1.8)
+
+# Modestly sign. correlation
+ggscatter(PCA.merged, x="PC1.gen", y="PC3.expr", add="reg.line", conf.int = TRUE,
+          color="white", 
+          add.params = list(color = "gray50", fill = "gray70")) + 
+    ggtitle("Genetic PC1 ~ Expression (all genes) PC3 Axes") + 
+  xlab("Genetic PC1") + ylab("DEGs PC4") + 
+  stat_cor(method = "pearson", show.legend=FALSE) +
+  theme_pubclean() +theme(legend.position = "bottom") + 
+  scale_color_manual(values=c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c"), name="pH Treatment") +
+  guides(colour = guide_legend(override.aes = list(size=3.5))) + 
+  geom_point(aes(col=Treatment), alpha=0.85, size=1.8)
+
+# Modestly sign. correlation
+ggscatter(PCA.merged, x="PC2.gen", y="PC3.expr", add="reg.line", conf.int = TRUE,
+          color="white", 
+          add.params = list(color = "gray50", fill = "gray70")) + 
+    ggtitle("Genetic PC2 ~ Expression (all genes) PC3 Axes") + 
+  xlab("Genetic PC2") + ylab("DEGs PC4") + 
+  stat_cor(method = "pearson", show.legend=FALSE) +
+  theme_pubclean() +theme(legend.position = "bottom") + 
+  scale_color_manual(values=c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c"), name="pH Treatment") +
+  guides(colour = guide_legend(override.aes = list(size=3.5))) + 
+  geom_point(aes(col=Treatment), alpha=0.85, size=1.8)
+
+# Run linear models 
+# Normal? 
+hist(PCA.merged$PC1.gen)
+hist(PCA.merged$PC2.gen)
+hist(PCA.merged$PC4.degs)
+hist(PCA.merged$PC3.expr)
+shapiro.test(PCA.merged$PC1.gen)
+shapiro.test(PCA.merged$PC2.gen)
+shapiro.test(PCA.merged$PC4.degs)
+shapiro.test(PCA.merged$PC3.expr)
+
+# Examine linear relationship between Expression PC axes and genetic PC axes, also testing for effect of & interaction with Treatment 
+anova(lm(PC4.degs ~ PC2.gen*Treatment, data=PCA.merged)) 
+anova(lm(PC3.expr ~ PC1.gen*Treatment, data=PCA.merged)) 
+anova(lm(PC3.expr ~ PC2.gen*Treatment, data=PCA.merged)) 
+```
+
+
+## Correlation between pairwise genetic distances and expression distances 
+
+Step 1: generate pairwise genetic distances between samples based on SNPs
+Step 2: generate pairwise distance matrices from expression data using: 
+  - All expressed genes
+  - pH-DEGs
+Step 3: Calculate Pearson & Spearman correlations between genetic and expression distances 
+
+### Source of distance matrices: 
+  - For **genetic pairwise distances** the SPRelate Identiy-By-State analysis produced an nxn matrix of genome-wide average IBS pairwise identities
+  - For **expression pairwise distances**  DESeq2 is used to calculate  Euclidean distance between samples on the rlog-transformed count data. 
+
+```{r}
+# Genetic distance matrices 
+snp.dists <- ibs$ibs %>% `colnames<-` (ibs$sample.id) %>% `rownames<-` (ibs$sample.id)
+
+# Expression distance matrices, ALL expression data   
+sampleDistss <- dist(t(assay(vsd.pH)))
+
+# Expression distance matrix, pH DEGs 
+sampleDistss.pH <- dist(t(assay(vsd.pH[rownames(vsd.pH) %in%
+  unique(c(rownames(diffex.AM),rownames(diffex.AL),rownames(diffex.ML))),])))
+
+# Create list of samples that are found in both the genetic and expression distance matrices 
+dist.sampless <- c(as.matrix(sampleDistss) %>% rownames())[c(as.matrix(sampleDistss) %>% rownames()) %in% rownames(snp.dists)]
+
+# Subset each distance matrix to only include samples found in both 
+snp.dists.filt <- dist_subset(d=snp.dists, idx=dist.sampless) # genetic distance matrix, common samples
+sampleDistss.filt  <- dist_subset(d=sampleDistss, idx=dist.sampless) # expression distance matrix, common samples
+sampleDistss.pH.filt  <- dist_subset(d=sampleDistss.pH, idx=dist.sampless) # DEG distance matrix, common samples
+
+# Check to see if matrices are in same order 
+all(snp.dists.filt %>% as.matrix() %>% rownames() == sampleDistss.filt %>% as.matrix() %>% rownames()) # yes! 
+
+# Perform correlation 
+plot(x=snp.dists.filt, y=sampleDistss.filt, main="Correlation between pairwise distances\nSNP-based ~ Expr-based")
+plot(x=snp.dists.filt, y=sampleDistss.pH.filt, main="Correlation between pairwise distances\nSNP-based ~ DEG-based")
+```
+```{r}
+# Perform mantel test 
+mantel(snp.dists.filt, sampleDistss.filt, permutations=9999 ) #distance matrices are not sign. correlated 
+mantel(snp.dists.filt, sampleDistss.pH.filt, permutations=9999 ) #distance matrices are not sign. correlated 
+
+distancess <- cbind(
+  melt(as.matrix(sampleDistss.filt), varnames = c("row", "col"), value.name = "expr.all"),
+melt(as.matrix(sampleDistss.pH.filt), varnames = c("row", "col"), value.name = "expr.pH")["expr.pH"],
+melt(as.matrix(snp.dists.filt), varnames = c("row", "col"), value.name = "snp")["snp"])
+
+# remove 0 distances and join with factors (population, pCO2 treatment)
+distancess <- distancess %>% 
+  dplyr::filter(snp!=0) %>% 
+  left_join((sample.info %>% 
+               dplyr::select(Sample, Treatment)), by=c("row"="Sample")) %>%
+  mutate(Treatment=as.factor(Treatment))
+
+# Inspect expression distance matrices vs. snp distance matrix for possible correlations? 
+chart.Correlation(distancess[3:5] %>% filter(expr.all!=0),histogram=F, pch=19) #snp vs. expr & deg correlation are both weak but significant 
+
+cor.test(distancess$snp, distancess$expr.all, method = "pearson") #cor -0.15
+cor.test(distancess$snp, distancess$expr.pH, method = "pearson") #cor -0.08
+
+ggscatter(distancess, x = "snp", y = "expr.all", size=1,
+   add = "reg.line",  # Add regressin line
+   add.params = list(color = "black", fill = "gray50"), # Customize reg. line
+   conf.int = TRUE # Add confidence interval
+   ) + stat_cor(method = "pearson", size=5, colour="red") +
+  xlab("Genetic Distance") + ylab("Expression Distance") + 
+  ggtitle("Sample-sample distances, SNPs ~ All genes") +
+  theme(legend.position = "right") + 
+  guides(colour = guide_legend(override.aes = list(size=3.5)))
+
+ggscatter(distancess, x = "snp", y = "expr.pH", size=1,
+   add = "reg.line",  # Add regressin line
+   add.params = list(color = "black", fill = "gray50"), # Customize reg. line
+   conf.int = TRUE # Add confidence interval
+   ) + stat_cor(method = "pearson", size=5, colour="red") +
+  xlab("Genetic Distance") + ylab("Expression Distance") + 
+  ggtitle("Sample-sample distances, SNPs ~ DEGs only") +
+  theme(legend.position = "right") + 
+  guides(colour = guide_legend(override.aes = list(size=3.5)))
+```
+
