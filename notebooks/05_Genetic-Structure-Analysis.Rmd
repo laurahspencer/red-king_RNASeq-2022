@@ -122,6 +122,17 @@ ggplot(tab.annot.gen, aes(x=PC1.gen, y=PC3.gen)) +
   guides(colour = guide_legend(override.aes = list(size=3.5))) + 
   stat_ellipse(aes(col=Treatment), size=0.3)
 
+# PC1 X PC4
+ggplot(tab.annot.gen, aes(x=PC1.gen, y=PC3.gen)) + 
+  geom_point(aes(col=Treatment), size=3.5, alpha=0.75) + 
+  theme_minimal() + ggtitle("Genetic Structure, PC1xPC4") + 
+  xlab(paste("PC1 (", round(pc.percent[1], digits = 2), "%)", sep="")) + 
+  ylab(paste("PC4 (", round(pc.percent[4], digits = 2), "%)", sep="")) + 
+  theme(legend.position = "right") + 
+  scale_color_manual(values=c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c"), name="pH Treatment") +
+  guides(colour = guide_legend(override.aes = list(size=3.5))) + 
+  stat_ellipse(aes(col=Treatment), size=0.3)
+
 # PC2 X PC3
 ggplot(tab.annot.gen, aes(x=PC2.gen, y=PC3.gen)) + 
   geom_point(aes(col=Treatment), size=3.5, alpha=0.75) + 
@@ -150,10 +161,6 @@ save(tab.annot.gen, file="../results/genotype/tab.annot.gen")
 ```{r}
 pca$genmat %>% hist(breaks=100, main="Histogram of genetic covariance\nfrom SNPRelate")
 ```
-```{r}
-
-```
-
 ## Relatedness Analysis using SNPRelate 
 
 ```{r}
@@ -735,7 +742,7 @@ Mac suggested that I only keep SNPs with very high minor allele frequencies. Her
 snpset.4Colony <- snpgdsLDpruning(genofile, maf=.20, missing.rate=.15, autosome.only=FALSE)
 snpset.id.4Colony <- unlist(unname(snpset.4Colony))
 snpgdsCreateGenoSet(src.fn="../results/genotype/genotypes.gds",
-                    dest.fn="../results/genotype/genotypes-4Colony.gds",
+                    dest.fn="../results/genotype/colony/genotypes-4Colony.gds",
                     snp.id=snpset.id.4Colony)
 ```
 
@@ -751,7 +758,7 @@ So, here I manually re-code the genotype matrix.
 
 ```{r}
 # Extract genotype matrix 
-geno.matrix4Colony <- snpgdsGetGeno(gdsobj="../results/genotype/genotypes-4Colony.gds", with.id=TRUE)
+geno.matrix4Colony <- snpgdsGetGeno(gdsobj="../results/genotype/colony/genotypes-4Colony.gds", with.id=TRUE)
 
 paste("No. of SNPs for Colony sibship analysis: ", ncol(geno.matrix4Colony$genotype), sep="") 
 paste("No. of samples for Colony sibship analysis: ", nrow(geno.matrix4Colony$genotype), sep="") 
@@ -793,7 +800,7 @@ c[[evens.names[i]]] <- substring(b[[evens.names[i]]], first = 2, last = 2)
 # Save genotype matrix to file, while also adding a column with sample number 
 write_delim(cbind(sampleID=paste("O", geno.matrix4Colony$sample.id, sep=""),
                   geno.matrix4Colony.recode),
-            file="../results/genotype/geno.matrix.tab", delim="   ", col_names=FALSE)
+            file="../results/genotype/colony/geno.matrix.tab", delim="   ", col_names=FALSE)
 ```
 
 # Create Colony input file 
@@ -802,9 +809,36 @@ I created a text file that will be the input for Colony. I used Colony's example
 
 Here's a snapshot of the input file, truncating the genotype info (there are 53 samples, but here I only show 2)
 
-```{bash}
-head -n 28 ../qc-processing/colony/colony2_adults.dat
-tail -n 12 ../qc-processing/colony/colony2_adults.dat
+```
+'rkc_snps'  !Dataset name
+'rkc_colony'  !Output file name
+43         ! Number of offspring in the sample
+263        ! Number of loci
+100        ! Seed for random number generator
+0          ! 0/1=Not updating/updating allele frequency
+2          ! 2/1=Dioecious/Monoecious species
+0          ! 0/1=No inbreeding/inbreeding
+0          ! 0/1=Diploid species/HaploDiploid species
+0  0       ! 0/1=Polygamy/Monogamy for males & females
+0          ! 0/1=Clone inference =No/Yes
+0          ! 0/1=Full sibship size scaling =No/Yes
+0          ! 0,1,2,3=No,weak,medium,strong sibship size prior; mean paternal & meteral sibship size
+0          ! 0/1=Unknown/Known population allele frequency
+1         ! Number of runs
+2         ! Length of run
+0         ! 0/1=Monitor method by Iterate#/Time in second
+100000    ! Monitor interval in Iterate# / in seconds
+0         ! non-Windows version
+1         ! Fulllikelihood
+3         ! 1/2/3=low/medium/high Precision for Full likelihood
+
+V@        !Marker names
+0@        !Marker types, 0/1 = codominant/dominant
+0.000@    !Allelic dropout rate
+0.0001@   !false allele rate
+
+OTank_10_Crab_1 1 1 2 1 2 2 2 2 2 2 2 2 1 1 0 0 2 2 1 1 2 2 2 2 2 1 1 1 2 2 2 2 2 1 2 2 1 1 2 2 2 1 2 2 1 1 1 1 2 1 2 1 2 2 1 1 2 2 2 2 2 2 1 1 2 2 1 1 2 2 0 0 2 2 2 2 2 1 2 2 1 1 0 0 1 1 1 1 2 1 1 1 1 1 1 1 2 2 2 2 0 0 2 2 1 1 1 1 2 2 1 1 2 2 2 2 2 1 2 2 0 0 1 1 2 1 1 1 1 1 2 2 1 1 2 2 1 1 1 1 0 0 2 2 2 1 2 2 2 1 1 1 0 0 2 2 2 1 2 1 2 1 2 1 2 2 2 2 2 2 2 1 2 1 2 2 2 2 2 1 1 1 2 1 1 1 2 2 0 0 2 2 2 2 1 1 2 2 2 1 2 2 2 2 2 1 1 1 1 1 0 0 1 1 2 1 2 2 2 2 0 0 0 0 1 1 2 1 0 0 2 1 2 1 1 1 2 1 1 1 0 0 2 2 2 1 2 2 2 2 0 0 2 2 2 1 1 1 1 1 1 1 2 2 0 0 0 0 2 2 2 2 1 1 2 2 2 1 2 2 2 2 1 1 2 2 0 0 2 1 2 2 1 1 1 1 1 1 2 1 2 1 0 0 2 2 2 1 1 1 1 1 2 2 2 2 1 1 1 1 0 0 2 2 2 2 1 1 2 2 2 2 1 1 2 2 2 2 0 0 1 1 2 2 2 2 1 1 1 1 2 1 0 0 0 0 1 1 1 1 2 2 2 2 2 2 2 2 2 2 1 1 2 1 2 1 2 1 2 1 2 2 1 1 2 1 2 2 0 0 2 1 2 1 1 1 2 2 2 1 2 1 2 2 2 2 2 2 1 1 0 0 2 1 2 2 2 2 2 2 2 2 1 1 1 1 2 2 1 1 1 1 2 1 1 1 1 1 1 1 2 2 2 1 2 2 2 1 2 1 2 2 2 2 1 1 1 1 2 1 2 1 2 2 2 2 2 2 2 2 2 2 1 1 2 2 2 2 2 1 1 1 2 1 2 2 1 1 2 1 0 0 2 2 2 1 2 2 2 2 2 2 2 2 0 0 1 1 2 2 2 2 1 1 2 1 2 2 2 1 2 2 1 1 2 1
+OTank_10_Crab_2 0 0 2 2 0 0 0 0 2 2 1 1 0 0 1 1 2 2 0 0 1 1 0 0 2 2 1 1 2 2 0 0 2 2 1 1 0 0 0 0 1 1 2 2 1 1 0 0 2 1 0 0 0 0 0 0 2 2 2 1 2 2 2 1 1 1 1 1 2 2 0 0 1 1 2 2 0 0 2 2 0 0 0 0 1 1 0 0 1 1 2 2 1 1 1 1 1 1 0 0 2 2 2 2 1 1 0 0 0 0 1 1 0 0 2 2 0 0 2 2 1 1 2 2 0 0 0 0 1 1 1 1 2 2 1 1 1 1 2 2 1 1 0 0 2 2 0 0 0 0 2 1 2 2 0 0 2 2 1 1 0 0 2 2 2 2 1 1 1 1 2 2 1 1 0 0 2 2 2 2 0 0 1 1 2 2 2 2 0 0 0 0 0 0 2 2 0 0 0 0 2 2 2 2 1 1 2 2 2 2 2 2 0 0 1 1 1 1 0 0 0 0 2 2 0 0 2 2 0 0 0 0 1 1 2 2 2 2 2 2 2 2 1 1 2 2 0 0 0 0 1 1 1 1 0 0 2 2 0 0 0 0 2 2 2 2 2 2 1 1 1 1 1 1 2 2 2 2 2 2 2 2 0 0 0 0 2 2 0 0 2 2 0 0 1 1 0 0 2 2 2 2 0 0 0 0 0 0 2 2 1 1 0 0 0 0 0 0 0 0 2 2 0 0 1 1 2 2 2 2 2 2 0 0 1 1 2 2 1 1 0 0 1 1 2 2 1 1 2 2 1 1 2 2 2 1 2 2 0 0 2 2 1 1 0 0 2 2 2 2 0 0 0 0 1 1 0 0 0 0 2 2 2 2 0 0 1 1 2 2 0 0 0 0 2 2 2 2 2 2 2 2 2 2 2 2 1 1 1 1 1 1 2 2 2 1 2 2 0 0 1 1 1 1 0 0 2 2 2 2 2 2 0 0 0 0 0 0 2 2 2 2 2 1 2 2 1 1 0 0 0 0 1 1 2 1 2 2 2 2 2 2 0 0 2 2 2 2 1 1 2 2 0 0 0 0 2 2 2 2 0 0 2 2 2 2 1 1 2 2 0 0 2 2 2 2 2 2 2 2 2 2 0 0 1 1 0 0 2 2 1 1 0 0 2 2 2 2 2 2 2 2 0 0 0 0
 ```
 
 # Run Colony analysis on samples 
@@ -812,12 +846,12 @@ tail -n 12 ../qc-processing/colony/colony2_adults.dat
 Note: I have to be in the colony directory to run it, so I change my directory in the same code chunk prior to executing the ./colony2s.out script 
 
 ```{bash, eval = FALSE}
-cd ../qc-processing/colony/
-./colony2s.out IFN:colony2_adults.dat
+cd ../results/genotype/colony
+./colony2s.out IFN:colony2_rkc.dat
 ```
 
 ```{bash}
-cat ../qc-processing/colony/adult_colony.BestCluster
+cat ../results/genotype/colony/rkc_colony.BestCluster
 ```
 
 ```{r}
