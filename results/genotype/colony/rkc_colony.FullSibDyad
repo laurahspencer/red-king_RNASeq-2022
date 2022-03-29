@@ -1,0 +1,9 @@
+OffspringID1,OffspringID2,Probability
+OTank_10_Crab_1,OTank_2_Crab_2, 0.002
+OTank_10_Crab_1,OTank_9_Crab_1, 0.074
+OTank_13_Crab_1,OTank_18_Crab_3, 0.052
+OTank_13_Crab_2,OTank_7_Crab_3, 0.804
+OTank_15_Crab_1,OTank_4_Crab_1, 0.006
+OTank_18_Crab_2,OTank_2_Crab_3, 0.002
+OTank_2_Crab_3,OTank_4_Crab_3, 0.007
+OTank_7_Crab_4,OTank_9_Crab_2, 0.250
