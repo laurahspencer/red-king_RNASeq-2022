@@ -157,7 +157,7 @@ pca$genmat %>% hist(breaks=100, main="Histogram of genetic covariance\nfrom SNPR
 ## Relatedness Analysis using SNPRelate 
 
 ```{r}
-ibd.mle <- snpgdsIBDMLE(genofile, snp.id=snpset.id, maf=0.05, missing.rate=0.20get , num.thread=2, autosome.only = F)
+ibd.mle <- snpgdsIBDMLE(genofile, snp.id=snpset.id, maf=0.05, missing.rate=0.20, num.thread=2, autosome.only = F)
 
 ibd.mle.coeff <- snpgdsIBDSelection(ibd.mle)
 head(ibd.mle.coeff)
@@ -296,7 +296,7 @@ ggplot(Fsts, aes(x=contrast, y=FstSNP, fill=contrast)) + geom_violin(trim = F) +
     geom_text(data=Fsts %>% group_by(contrast) %>% summarize(mean=mean(FstSNP)), aes(x=contrast, y=.65, label=round(mean, 3)))
 ```
 
-## Adult Identity-by-state 
+## Identity-by-state 
 
 ```{r}
 lbls <- paste("PC", 1:4, "\n", format(pc.percent[1:4], digits=2), "%", sep="")
@@ -579,10 +579,11 @@ ggscatter(distancess, x = "snp", y = "expr.pH", size=1,
   guides(colour = guide_legend(override.aes = list(size=3.5)))
 ```
 
-## Are there any SNPs located in genes that are differentially expressed? 
+### More analysis via vcfR - compare allelic richness and heterozygosity by pH exposure
 
 ### First create a vcf of SNPs filtered for loci with max 20% missing rate, and remove loci with <5% minor allele frequency
 I did this on Sedna using the slurm script [filter-vcf.sh])(../scripts/filter-vcf.sh), which executed the following code:
+
 ```
 vcftools --gzvcf \
 "/scratch/lspencer/2022-redking-OA/genotypes/rkc_rnaseq_genotypes-filtered-true.vcf.gz" \
@@ -591,127 +592,6 @@ vcftools --gzvcf \
 ```
 This created the file rkc_rnaseq_genotypes-final.recode.vcf  
 
-```{r}
-# next load that vcf
-vcf.corr <- read.vcfR("../results/genotype/rkc_rnaseq_genotypes-final.recode.vcf", verbose = FALSE )
-# It results in 1,429 SNPs, which does not match SNPRelate's number (1,355). Why? 
-
-# Use vcfR to generate a dataframe with snp location information. Also generates a ton of other info 
-(snps.map <- genetic_diff(vcf.corr, pops = as.factor(sample.info$Treatment), method = 'nei') %>% 
-  mutate(POS=as.numeric(POS)) %>% mutate(start=POS-1, end=POS+1) %>% rename("CHROM"="chrom"))
-```
-
-```{r}
-load(file = "../references/P.plat.bestblast")
-genes <- read_delim(file = "../references/P.platypus_genes.bed", delim = "\t", col_names = c("chrom", "start", "end", "geneID"))
-
-# Look for intersection among snps, genes, and DEGs 
-bed_intersect(x=genes, y=snps.map %>% select(chrom, start, end), suffix = c(".gene", ".snp")) %>% #286 SNPs located in known genes 
-  left_join(P.plat.bestblast, by = c("geneID.gene"="id_gtf")) %>% #annotate genes containing SNPs 
-  filter(geneID.gene %in% unique(c(rownames(diffex.AM), rownames(diffex.AL), rownames(diffex.ML)))) # 35 SNPs located in DEGs
-  
-# Look for intersection among snps, genes, and WGCNA modules 
-load("../results/wgcna/geneInfo")
-load(file="../results/wgcna/modules")
-load(file="../results/wgcna/modules.p")
-load(file="../results/wgcna/modules.cor")
-
-bed_intersect(x=genes, y=snps.map %>% select(chrom, start, end), suffix = c(".gene", ".snp")) %>% #286 SNPs located in known genes 
-  left_join(P.plat.bestblast, by = c("geneID.gene"="id_gtf")) %>% #annotate genes containing SNPs 
-  left_join(geneInfo, by=c("geneID.gene"="id"))
-  filter(geneID.gene %in% unique(c(rownames(diffex.AM), rownames(diffex.AL), rownames(diffex.ML)))) # 35 SNPs located in DEGs
-```
-
-
-# Identify genes wit SNPs and calculate Fst of thoes genes 
-
-```{r}
-readr::write_delim(snps.map %>% mutate(start=POS.orig-1, stop=POS.orig+1)  %>% dplyr::select(NAME, start, stop) %>% dplyr::rename(chr=NAME),
-                   "../results/SNPs.bed",  delim = '\t', col_names = FALSE)
-
-#Olurida_gene_uniprot %>% dplyr::select(contig, start, end)
-```
-
-### Identify genes containing SNPs 
-
-```{bash}
-intersectBed \
-  -wb \
-  -a "../results/SNPs.bed" \
-  -b "../references/Olurida_v081-20190709.gene.gff" \
-  > "../results/SNPs.genes.tab"
-```
-
-### Here is the number of DML loci associated with DM gene regions: 
-
-```{bash}
-wc -l "../results/SNPs.genes.tab"
-```
-
-```{r}
-# Read in O. lurida file with genes that contain SNPs - are any also differentially expressed in adults?  
-SNPs.geness <- read_delim(file = "../results/SNPs.genes.tab", delim = "\t", col_names = c("contig.SNP", "start.SNP", "end.SNP", "contig", "source", "feature", "start", "end", "unknown1", "strand", "unknown2", "notes")) %>%
-# Split giant gene "Notes" column into separate columns 
-  mutate(ID=str_extract(notes, "ID=(.*?);"),
-       Parent=str_extract(notes, "Parent=(.*?);"),
-       Name=str_extract(notes, "Name=(.*?);"),
-       Alias=str_extract(notes, "Alias=(.*?);"),
-       AED=str_extract(notes, "AED=(.*?);"),
-       eAED=str_extract(notes, "eAED=(.*?);"),
-       Note=str_extract(notes, "Note=(.*?);"),
-       Ontology_term=str_extract(notes, "Ontology_term=(.*?);"),
-       Dbxref=str_extract(notes, "Dbxref=(.*?);"),
-       SPID=str_extract(notes, "SPID=(.*?);")
-       ) %>% 
-  
-  #remove extraneous info from Olur gene ID and Uniprot species ID ("SPID")
-  mutate(Name=str_remove(Name, "Name=")) %>% mutate(Name=str_remove(Name, ";")) %>%
-  mutate(SPID=str_remove(SPID, "SPID=")) %>% mutate(SPID=str_remove(SPID, ";"))
-
-# Write to bedtools to look at all SNPs with alignment data and genes 
-write_delim(SNPs.geness %>% dplyr::select(contig.SNP, start.SNP, end.SNP, Name), file = "../results/SNPs.genes.bed", col_names = FALSE, delim = "\t")
-
-# Are any genes with SNPs differentially expressed? 
-
-# Adult DEGs by pco2, all pops combined
-SNPs.geness %>% filter(Name %in% rownames(diffex %>% as.data.frame())) %>% dplyr::select(contig.SNP, start.SNP, end.SNP, Name, Note, SPID)
-100*(2/71)
-
-# Adult DEGs by pco2, FB
-SNPs.geness %>% filter(Name %in% rownames(diffex.FB %>% as.data.frame())) %>% dplyr::select(contig.SNP, start.SNP, end.SNP, Name, Note, SPID)
-100*(5/76)
-
-# Adult DEGs by pco2, DB 
-SNPs.geness %>% filter(Name %in% rownames(diffex.DB %>% as.data.frame())) %>% dplyr::select(contig.SNP, start.SNP, end.SNP, Name, Note, SPID)
-100*(3/132)
-
-# Adult DEGs by population, DB vs FB 
-SNPs.geness %>% filter(Name %in% rownames(diffex.DBFB %>% as.data.frame())) %>% dplyr::select(contig.SNP, start.SNP, end.SNP, Name, Note, SPID)
-100*(32/689)
-
-# Adult DEGs by pco2, DB vs OB1 
-SNPs.geness %>% filter(Name %in% rownames(diffex.DBOB1 %>% as.data.frame())) %>% dplyr::select(contig.SNP, start.SNP, end.SNP, Name, Note, SPID)
-100*(47/1107)
-
-# Adult DEGs by pco2, FB vs OB1 
-SNPs.geness %>% filter(Name %in% rownames(diffex.FBOB1 %>% as.data.frame())) %>% dplyr::select(contig.SNP, start.SNP, end.SNP, Name, Note, SPID)
-100*(3/450)
-```
-
-
-
-
-
-
-
-
-# CODE NOT YET USED 
-
-
-# More analysis via vcfR - compare allelic richness and heterozygosity by population, stage and parental pCO2 exposure 
-
-First filter the vcf files for each stage (adult, larvae, adult) to remove loci with tons if missing data. Do this via vcftools. 
-
 I used [this tutorial](http://www.ddocent.com/filtering/) as an example. 
   - call vcftools
   - feed it a vcf file after the --vcf flag
@@ -719,65 +599,126 @@ I used [this tutorial](http://www.ddocent.com/filtering/) as an example.
   - The --recode flag tells the program to write a new vcf file with the filters
   - The --recode-INFO-all keeps all the INFO flags from the old vcf file in the new one. 
   - Lastly, --out designates the name of the output
-  
-```{bash}
-# adults 
-vcftools --gzvcf "../results/genotype/rkc_rnaseq_genotypes-filtered-true.vcf.gz" \
---max-missing 0.85 --recode --recode-INFO-all --out \
-"../results/genotype/rkc_rnaseq_genotypes-adult-4vcfR"
-```
+
 ```{r}
 # Load the data
-vcf <- read.vcfR("../qc-processing/gatk/Olurida_QuantSeq2020_genotypes-adult-4vcfR.recode.vcf", verbose = FALSE )
+vcf <- read.vcfR("../results/genotype/rkc_rnaseq_genotypes-final.recode.vcf", verbose = FALSE )
+# It results in 1,429 SNPs, which does not match SNPRelate's number (1,355). Why? 
 
 # Quantify missing data for each sample 
 myMiss <- apply(extract.gt(vcf), MARGIN = 2, function(x){ sum(is.na(x)) })
 myMiss <- myMiss/nrow(vcf)
 par(mar = c(12,4,4,2))
-barplot(myMiss, las = 2)
-title(ylab = "Adult Sample Missingness (%)")
+barplot(myMiss, las = 2, cex.names = .5)
+title(ylab = "Sample Missingness (%)")
+```
 
+```{r}
 # Confirm order of samples in vcf matches order of samples in the "sample.info" dataframe 
-colnames(extract.gt(vcf)) == sample.info$sample #yes, all are TRUE
+all(colnames(extract.gt(vcf)) == sample.info$Sample) # no, not in same order. Need to create a re-ordered sample.info object
 
-# How many samples per pop + parental pCO2 treatment?
-nsamples <- sample.info[match(colnames(extract.gt(vcf)), sample.info$sample),] %>% group_by(population, Treatment) %>% count()
+sample.info.vcf <- sample.info %>% slice(match(colnames(extract.gt(vcf)), Sample)) %>%
+  mutate(Treatment=as.factor(Treatment))
 
-# Calculate differentiation / diversity stats for all population + pCO2 groups 
-myDiff <- genetic_diff(vcf, pops = sample.info$pop_code, method = 'nei')
-paste("No. SNPs included in this vcfR analysis, adults ", nrow(myDiff), sep="")
+# How many samples per pH treatment?
+nsamples <- sample.info.vcf[match(colnames(extract.gt(vcf)), sample.info.vcf$Sample),] %>% group_by(Treatment) %>% tally()
+
+# Calculate differentiation / diversity stats for each treatment
+myDiff <- genetic_diff(vcf, pops = sample.info.vcf$Treatment, method = 'nei')
+paste("No. SNPs included in this vcfR analysis ", nrow(myDiff), sep="")
 
 # Summarize diversity indices (mean)
 knitr::kable(round(colMeans(myDiff[,-1:-2], na.rm = TRUE), digits = 3))
+```
+# Heterozygosity by pH Treatment
 
-# # Violin plots of Heterozygosity 
-# dpf <- melt(myDiff[,c(3:8)], varnames=c('Index', 'Sample'), value.name = 'Depth', na.rm=TRUE) %>%
-#   mutate(population=substring(variable, 4)) %>% separate(population, into = c("population", "pCO2"), sep = "-") %>%
-#   mutate(population=as.factor(population), pCO2=as.factor(pCO2))
-# 
-# ggplot(dpf, aes(x=population:pCO2, y=Depth)) + geom_violin(aes(fill=population, alpha=pCO2), adjust = 1.2) + xlab("") + ylab("") + theme_bw() +
-#     theme(axis.text.x = element_text(size=7, angle=50, hjust=1)) + ggtitle(paste("Heterozygosity, Adults \nNo. SNPs =", nrow(myDiff))) +  
-#   scale_alpha_discrete(range = c(0.35, 0.9)) +
-#         stat_summary(fun.y=mean, geom="point", shape=15, size=3, color="black", fill="black") +
-#     geom_text(data=dpf %>% group_by(population, pCO2) %>% summarize(mean=mean(Depth)), aes(x=population:pCO2, y=-0.05, label=round(mean, 2)), size=3) + 
-#   scale_alpha_discrete(guide="none")
+```{r}
+dpf <- melt(myDiff[,c(3:5)], varnames=c('Index', 'Sample'), value.name = 'Depth', na.rm=TRUE) %>%
+  mutate(Treatment=as.factor(substring(variable, 4)))
 
-# Boxplots of allelic richness 
-dpf.n <- melt(myDiff[,c(10:15)], varnames=c('Index', 'Sample'), value.name = 'Depth', na.rm=TRUE) %>%
-  mutate(population=substring(variable, 3)) %>% separate(population, into = c("population", "pCO2"), sep = "-") %>%
-  mutate(population=as.factor(population), pCO2=as.factor(pCO2))
-
-ggplot(dpf.n, aes(x=population:pCO2, y=Depth)) + geom_violin(aes(fill=population, alpha=pCO2), adjust = 1.2) + xlab("") + ylab("") + theme_bw() +
-    theme(axis.text.x = element_text(size=7, angle=50, hjust=1)) + ggtitle(paste("Allelic Richness, Adults \nNo. SNPs =", nrow(myDiff))) +  
-  scale_alpha_discrete(range = c(0.35, 0.9)) +
+ggplot(dpf, aes(x=Treatment, y=Depth)) + 
+  geom_violin(aes(fill=Treatment), adjust = 1.2, alpha=0.75) + 
+  xlab("") + ylab("") + theme_bw() +
+    theme(axis.text.x = element_text(size=7, angle=50, hjust=1)) + 
+  ggtitle(paste("Heterozygosity by pH Treatment \nNo. SNPs =", nrow(myDiff))) +
         stat_summary(fun.y=mean, geom="point", shape=15, size=3, color="black", fill="black") +
-    geom_text(data=dpf.n %>% group_by(population, pCO2) %>% summarize(mean=mean(Depth)), aes(x=population:pCO2, y=18.5, label=round(mean, 2)), size=3) + 
-    geom_text(data=nsamples, aes(x=as.factor(population):as.factor(Treatment), y=20, label=paste("n=",n, sep="")), size=3)  +
-  scale_alpha_discrete(guide="none")
+    geom_text(data=dpf %>% group_by(Treatment) %>% 
+                summarize(mean=mean(Depth)), aes(x=Treatment, y=.45, label=round(mean, 4)), size=3) +
+  scale_fill_manual(values = c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c"))
 ```
 
+# Allelic richness - but that seems to be skewed by missing samples and data for SNPs
 
+```{r}
+dpf.n <- melt(myDiff[,c(7:9)], varnames=c('Index', 'Sample'), value.name = 'Depth', na.rm=TRUE) %>%
+  mutate(Treatment=as.factor(substring(variable, 3)))
 
+ggplot(dpf.n, aes(x=Treatment, y=Depth)) + 
+  geom_violin(aes(fill=Treatment), adjust = 1.2, alpha=0.75) + 
+  xlab("") + ylab("") + theme_bw() +
+    theme(axis.text.x = element_text(size=7, angle=50, hjust=1)) + 
+  ggtitle(paste("Allelic Richnes by pH Treatment \nNo. SNPs =", nrow(myDiff))) +
+        stat_summary(fun.y=mean, geom="point", shape=15, size=3, color="black", fill="black") +
+    geom_text(data=dpf %>% group_by(Treatment) %>% 
+                summarize(mean=mean(Depth)), aes(x=Treatment, y=31, label=round(mean, 4)), size=3) +
+  scale_fill_manual(values = c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c"))
+
+```
+
+## Are there any SNPs located in genes that are differentially expressed? 
+
+```{r}
+# Use vcfR to generate a dataframe with snp location information. Also generates a ton of other info 
+(snps.map <- genetic_diff(vcf, pops = as.factor(sample.info.vcf$Treatment), method = 'nei') %>% 
+  mutate(POS=as.numeric(POS)) %>% mutate(start=POS-1, end=POS+1) %>% rename("chrom"="CHROM"))
+```
+
+### Annotate SNPs by looking for intersection among SNPs and genes - there are 286 SNPSs located within gene coding regions
+
+```{r}
+load(file = "../references/P.plat.bestblast")
+genes <- read_delim(file = "../references/P.platypus_genes.bed", delim = "\t", col_names = c("chrom", "start", "end", "geneID"))
+
+(snps.annot <- bed_intersect(x=genes, y=snps.map %>% select(chrom, start, end), suffix = c(".gene", ".snp")) %>% 
+  left_join(P.plat.bestblast, by = c("geneID.gene"="id_gtf"))) #annotate genes containing SNPs 
+```
+
+### 35 SNPs are located within genes that are differentially expressed among pH treatments 
+
+```{r}
+snps.annot %>% 
+  filter(geneID.gene %in% 
+           unique(c(rownames(diffex.AM), rownames(diffex.AL), rownames(diffex.ML)))) # 35 SNPs located in DEGs
+```
+
+### 66 SNPs are located within genes associated with pH according to WGCNA
+
+```{r}
+load("../results/wgcna/geneInfo")
+load(file="../results/wgcna/modules")
+load(file="../results/wgcna/modules.p")
+load(file="../results/wgcna/modules.cor")
+
+snps.annot %>% 
+  left_join(geneInfo %>% select(id, moduleColor, GS.pH, p.GS.pH, match(modules.cor,names(geneInfo)), match(modules.p,names(geneInfo))), by=c("geneID.gene"="id")) %>%
+  filter(p.GS.pH < 0.05) 
+```
+
+### 133 SNPS are located within genes assigned to pH-associated modules from WGCNA
+
+```{r}
+snps.annot %>% 
+  left_join(geneInfo %>% select(id, moduleColor, GS.pH, p.GS.pH, match(modules.cor,names(geneInfo)), match(modules.p,names(geneInfo))), by=c("geneID.gene"="id")) %>%
+  filter(moduleColor %in% modules)
+```
+
+### 50 SNPS are located within genes assigned to pH-associated modules from WGCNA _and_ are correlated with pH 
+
+```{r}
+snps.annot %>% 
+  left_join(geneInfo %>% select(id, moduleColor, GS.pH, p.GS.pH, match(modules.cor,names(geneInfo)), match(modules.p,names(geneInfo))), by=c("geneID.gene"="id")) %>%
+  filter(moduleColor %in% modules) %>% filter(p.GS.pH < 0.05)
+```
 
 # Identify siblings using Colony 
 
@@ -788,13 +729,13 @@ Colony identifies siblings, which I would like to do with my juveniles. Here I p
 
 Mac suggested that I only keep SNPs with very high minor allele frequencies. Here I use SNPRelate to export SNPs with MAF >=2%. 
 
-## Adult Sibship analysis via Colony 
+## Sibship analysis via Colony 
 
 ```{r}
-snpset.4Colony <- snpgdsLDpruning(genofile, maf=.2, missing.rate=0, autosome.only=FALSE)
+snpset.4Colony <- snpgdsLDpruning(genofile, maf=.20, missing.rate=.15, autosome.only=FALSE)
 snpset.id.4Colony <- unlist(unname(snpset.4Colony))
 snpgdsCreateGenoSet(src.fn="../results/genotype/genotypes.gds",
-                    dest.fn="../qc-processing/colony/genotypes-adult-4Colony.gds",
+                    dest.fn="../results/genotype/genotypes-4Colony.gds",
                     snp.id=snpset.id.4Colony)
 ```
 
@@ -810,10 +751,10 @@ So, here I manually re-code the genotype matrix.
 
 ```{r}
 # Extract genotype matrix 
-geno.matrix4Colony <- snpgdsGetGeno(gdsobj="../qc-processing/colony/genotypes-adult-4Colony.gds", with.id=TRUE)
+geno.matrix4Colony <- snpgdsGetGeno(gdsobj="../results/genotype/genotypes-4Colony.gds", with.id=TRUE)
 
-paste("No. of adult SNPs for Colony sibship analysis: ", ncol(geno.matrix4Colony$genotype), sep="") 
-paste("No. of adult samples for Colony sibship analysis: ", nrow(geno.matrix4Colony$genotype), sep="") 
+paste("No. of SNPs for Colony sibship analysis: ", ncol(geno.matrix4Colony$genotype), sep="") 
+paste("No. of samples for Colony sibship analysis: ", nrow(geno.matrix4Colony$genotype), sep="") 
 
 # Replace SNPRelate numeric allele coding with character allele coding 
 a <- geno.matrix4Colony$genotype %>% as_data_frame() %>% 
@@ -852,7 +793,7 @@ c[[evens.names[i]]] <- substring(b[[evens.names[i]]], first = 2, last = 2)
 # Save genotype matrix to file, while also adding a column with sample number 
 write_delim(cbind(sampleID=paste("O", geno.matrix4Colony$sample.id, sep=""),
                   geno.matrix4Colony.recode),
-            file="../qc-processing/colony/geno.matrix.tab", delim="   ", col_names=FALSE)
+            file="../results/genotype/geno.matrix.tab", delim="   ", col_names=FALSE)
 ```
 
 # Create Colony input file 
@@ -866,7 +807,7 @@ head -n 28 ../qc-processing/colony/colony2_adults.dat
 tail -n 12 ../qc-processing/colony/colony2_adults.dat
 ```
 
-# Run Colony analysis on adult samples 
+# Run Colony analysis on samples 
 
 Note: I have to be in the colony directory to run it, so I change my directory in the same code chunk prior to executing the ./colony2s.out script 
 

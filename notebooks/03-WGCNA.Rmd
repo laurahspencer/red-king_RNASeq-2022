@@ -150,7 +150,6 @@ plotDendroAndColors(sampleTree2, traitColors,
 ```
 ```{r}
 options(stringsAsFactors = FALSE);
-#lnames = load(file = "../wgcna-testing/FemaleLiver-01-dataInput.RData");
 ```
 
 "Constructing a weighted gene network entails the choice of the soft thresholding power β to which co-expression
@@ -201,6 +200,7 @@ To minimize effects of noise and spurious associations, we transform the adjacen
 # save(dissTOM, file = "../results/wgcna/dissTom")
 load(file = "../results/wgcna/dissTom") #load if needed 
 ```
+
 We now use hierarchical clustering to produce a hierarchical clustering tree (dendrogram) of genes. Note that we use the function hclust that provides a much faster hierarchical clustering routine than the standard hclust function.
 
 ```{r}
@@ -341,7 +341,7 @@ labeledHeatmap(Matrix = moduleTraitCor,
 ```
 
 ```{r}
-# Define variable pH containing the weight column of datTrait
+# Define variable containing the pH column
 pH = as.data.frame(datTraits$pH);
 names(pH) = "pH"
 
@@ -398,6 +398,7 @@ for (mod in 1:ncol(geneModuleMembership))
 geneOrder = order(geneInfo0$moduleColor, -abs(geneInfo0$GS.pH));
 geneInfo = geneInfo0[geneOrder, ]
 write.csv(geneInfo, file = "../results/wgcna/geneInfo.csv")
+save(geneInfo, file="../results/wgcna/geneInfo")
 ```
 
 Visualizing the network of eigengenes
@@ -470,6 +471,11 @@ genes.stats <- gene.counts.norm %>% group_by(Treatment, gene) %>%
 modules <- moduleTraitPvalue %>% as.data.frame() %>% filter(pH<0.05) %>% rownames() %>% str_remove(pattern = "ME")
 modules.p <- paste("p.MM.", modules, sep = "")
 modules.cor <- noquote(paste("MM.", modules, sep = ""))
+
+
+save(modules, file="../results/wgcna/modules")
+save(modules.p, file="../results/wgcna/modules.p")
+save(modules.cor, file="../results/wgcna/modules.cor")
 
 # create empty list to store summary statistics for each modules' sign. genes 
 module.stats <- vector("list", length(modules))
@@ -620,6 +626,7 @@ verboseScatterplot(abs(geneModuleMembership[moduleGenes, column]),
 #   ggplot(aes(x=MM.green, group=x, fill=x)) + geom_density(alpha=0.5) + 
 #   ggtitle("green"))
 ```
+
 # Which metric to use for IPA? 
 Here is gene signficance for pH (GS.pH) by module color - certainly looks like the pH-associated modules have larger abs(GS.pH) and much lower p.GS.pH. Good candidate!. 
 
@@ -883,7 +890,7 @@ IPA.wgcna <- geneInfo %>%
          p.MM.green, 
          p.MM.darkgreen) %>% remove_rownames()
 
-save(IPA.wgcna, "../results/wgcna/IPA.wgcna")
+save(IPA.wgcna, file = "../results/wgcna/IPA.wgcna")
 load(file = "../results/IPA/IPA.degs") #IPA.degs
 
 # Merge DEG stats and WGCNA stats, save to file for IPA 
