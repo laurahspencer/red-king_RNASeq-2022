@@ -883,6 +883,7 @@ IPA.wgcna <- geneInfo %>%
          p.MM.green, 
          p.MM.darkgreen) %>% remove_rownames()
 
+save(IPA.wgcna, "../results/wgcna/IPA.wgcna")
 load(file = "../results/IPA/IPA.degs") #IPA.degs
 
 # Merge DEG stats and WGCNA stats, save to file for IPA 
