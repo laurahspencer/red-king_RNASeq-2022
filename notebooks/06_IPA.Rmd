@@ -1,0 +1,51 @@
+---
+title: "06_IPA"
+author: "Laura H Spencer"
+date: "3/31/2022"
+output: html_document
+---
+
+```{r}
+# read in data
+ipa.in <- read.csv("../results/IPA/ipa_upload.w_ipa_mapping_gene.csv", na.strings = c("", "NA"))
+
+# There are many identical rows - all cells are the same - why? 
+# Here I filter to remove those identical rows 
+ipa.in %>% distinct() %>% nrow()
+ipa.in %>% nrow()
+
+# Filter to retain only unique, mapped genes
+ipa.filt <- ipa.in %>% distinct() %>%  #Remove identical rows
+  filter(!is.na(Mapping)) %>%  #Remove genes that didn't map to a gene in IPA
+  filter(Flags != "D") # Remove genes that are marked as duplicate by IPA 
+
+# Create a vector of column names identifying those containing p-values
+p <- ipa.filt %>% select(contains("padj"), starts_with("p.")) %>% colnames() %>% noquote()
+
+# Count the number of significant genes (p-value <0.05) for each experiment 
+ipa.n <- data.frame(matrix(ncol = 7, nrow = length(p)))
+for (i in 1:length(p)) {
+ ipa.n[i,1] <- p[i] # identify experiment
+ ipa.n[i,2] <- ipa.in %>% distinct() %>% filter(!!as.symbol(p[[i]]) < 0.05) %>% nrow() #count how many genes are significant for each experiment
+ ipa.n[i,3] <- ipa.filt %>% filter(!!as.symbol(p[[i]]) < 0.05) %>% nrow() #count how many of those genes map to IPA and are not duplicates
+ ipa.n[i,4] <- round(100*ipa.n[i,3]/ipa.n[i,2], digits = 1) #what % of sign. genes are retained by IPA?
+
+ # Now count how many non-significant genes there are and what percent are retained - the percent should be very similar to the above 
+ ipa.n[i,5] <- ipa.in %>% distinct() %>% filter(!!as.symbol(p[[i]]) > 0.05) %>% nrow() 
+ ipa.n[i,6] <- ipa.filt %>% filter(!!as.symbol(p[[i]]) > 0.05) %>% nrow() 
+ ipa.n[i,7] <- round(100*ipa.n[i,6]/ipa.n[i,5], digits = 1) 
+}
+
+# Results
+ipa.n <- ipa.n %>% rename("X1"="experiment", "X2"="sign", "X3"="sign.good", "X4"="sign.perc.good",
+                          "X5"="not.sign", "X6"="not.sign.good", "X7"="not.sign.perc.good")
+ipa.n %>% select(sign.perc.good) %>% summary()
+ipa.n %>% select(not.sign.perc.good) %>% summary()
+
+100*nrow(ipa.in %>% distinct() %>% 
+       filter(!is.na(Mapping)) %>%
+  filter(Flags != "D")) /
+nrow(ipa.in %>% distinct())
+  
+```
+

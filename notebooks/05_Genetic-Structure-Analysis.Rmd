@@ -5,11 +5,26 @@ date: "3/24/2022"
 output: html_document
 ---
 ```{r, message=FALSE, warning=FALSE, results=FALSE}
+# for OutFLANK software
+
+### Install required package devtools if not installed
+if (!("devtools" %in% installed.packages())){install.packages("devtools")}
+library(devtools)
+
+### Install required package qvalue if not installed
+if (!("qvalue" %in% installed.packages())){
+  source("http://bioconductor.org/biocLite.R")
+  biocLite("qvalue")
+  }
+
+### Install OutFLANK from github if not installed
+if (!("OutFLANK" %in% installed.packages())){install_github("whitlock/OutFLANK")}
+
 # Add all required libraries that are installed with install.packages() here
-list.of.packages <- c("tidyverse", "reshape2", "plotly", "vcfR", "network", "janitor", "corrplot", "PerformanceAnalytics", "ggpubr", "RColorBrewer", "usedist", "vegan", "forcats", "valr")
+list.of.packages <- c("tidyverse", "reshape2", "plotly", "vcfR", "network", "janitor", "corrplot", "PerformanceAnalytics", "ggpubr", "RColorBrewer", "usedist", "vegan", "forcats", "valr", "pcadapt", "OutFLANK")
 
 # Add all libraries that are installed using BiocManager here
-bioconductor.packages <- c("SNPRelate", "DESeq2", "rtracklayer")
+bioconductor.packages <- c("SNPRelate", "DESeq2", "rtracklayer", "qvalue", "SeqArray")
 
 # Install BiocManager if needed
 if(!requireNamespace("BiocManager", quietly = TRUE)) install.packages("BiocManager")
@@ -30,11 +45,24 @@ lapply(all.packages, FUN = function(X) {
 source("../references/biostats.R")
 ```
 
-## Load sample info and create dataframes for each stage 
+## Load sample info and gene annotation files
 
 ```{r}
 sample.info <- read.csv("../data/RCK-exp-design.csv", header=T, na.strings = NA)
+
+load(file = "../references/P.plat.bestblast")
+load(file = "../references/P.plat.blast")
+load(file = "../references/P.plat.blast.GO")
+
+genes <- read_delim(file = "../references/P.platypus_genes.bed", delim = "\t", col_names = c("chrom", "start", "end", "geneID"))
 ```
+
+### Must close genofile if it's already open before running 
+
+```{r}
+#snpgdsClose(genofile)
+```
+
 
 ## Use SNPRelate to filter vcf files. Remove: 
 - Select biallelic loci only 
@@ -42,7 +70,6 @@ sample.info <- read.csv("../data/RCK-exp-design.csv", header=T, na.strings = NA)
 - Select loci that are present across all samples (missing.rate=0) 
 
 ```{r}
-#snpgdsClose(genofile)
 vcf.fn <- "../results/genotype/rkc_rnaseq_genotypes-filtered-true.vcf.gz"
 SNPRelate::snpgdsVCF2GDS(vcf.fn, "../results/genotype/genotypes.gds", method="biallelic.only")
 snpgdsSummary("../results/genotype/genotypes.gds")
@@ -60,10 +87,52 @@ snpgdsSummary("../results/genotype/genotypes.gds")
 
 ```{r}
 snpset <- snpgdsLDpruning(genofile, maf=.05, missing.rate=0.20, autosome.only=FALSE)
-snpset.id <- unlist(unname(snpset))
+#snpset.id <- unlist(unname(snpset))
+snpset.id <- unlist(snpset)
 ```
 
 # `length(snpset.id)` SNPs remain after all filtering steps 
+
+## IMPORTNAT NOTE: 
+Since my .vcf doesn't include unique SNP IDs, they are assigned unique integers ids by SNPRelate, where 1=first row in .vcf 
+
+### Extract data from the gds file to identify snp locations
+
+```{r}
+# take out integer-assigned snp id 
+snp.id <- read.gdsn(index.gdsn(genofile, "snp.id"))
+
+# # take out unique snp id from original VCF 
+# snp.id.rs <- read.gdsn(index.gdsn(genofile, "snp.rs.id")) #<-- no unique snp id in original VCF file
+
+# take out snp chromosome
+chrom <- read.gdsn(index.gdsn(genofile, "snp.chromosome"))
+
+# take out snp position on chromosome
+pos <- read.gdsn(index.gdsn(genofile, "snp.position"))
+
+# take out snp allele
+allele <- read.gdsn(index.gdsn(genofile, "snp.allele"))
+
+# Combine data into dataframe
+genofile.data <- (cbind(snp.id, chrom, pos, allele)) %>% as.data.frame()
+head(genofile.data)
+
+# Filter for snps retained by SNPRelate after filtering and pruning and annotate
+# Also add "start" and "end" columns for use with bed_intersect
+
+genofile.snpset.data <- genofile.data %>% filter(snp.id %in% snpset.id) %>% 
+  mutate(pos=as.numeric(pos)) %>% mutate(start=pos-1, end=pos+1)
+
+#annotate genes containing SNPs 
+(genofile.snpset.annot <- bed_intersect(x=genes, y=genofile.snpset.data, 
+                                        suffix = c(".gene", ".snp")) %>% 
+  left_join(P.plat.bestblast %>% select(id_gtf, hit_acc, hit_desc, e_value), by = c("geneID.gene"="id_gtf")) %>%
+    left_join(P.plat.blast %>% select(geneID, SPID, evalue), by=c("geneID.gene"="geneID")) %>%
+    left_join(P.plat.blast.GO %>% select(gene_id, protein_names, gene_ontology_biological_process), by=c("geneID.gene"="gene_id"))) 
+
+save(genofile.snpset.annot, file="../results/genotype/genofile.snpset.annot")
+```
 
 ## PCA  
 
@@ -92,6 +161,7 @@ tab <- data.frame(sample.id = pca$sample.id,
     PC2.gen = pca.princomp.gen$loadings[,2],    # the second eigenvector
     PC3.gen = pca.princomp.gen$loadings[,3],    # the third eigenvector
     PC4.gen = pca.princomp.gen$loadings[,4],    # the fourth eigenvector
+    PC5.gen = pca.princomp.gen$loadings[,5],    # the fourth eigenvector
     stringsAsFactors = FALSE)
 
 shapiro.test(pca.princomp.gen$loadings) #Multivariate normality assumption not met
@@ -99,10 +169,43 @@ shapiro.test(pca.princomp.gen$loadings) #Multivariate normality assumption not m
 tab.annot.gen <- left_join(tab, sample.info, by=c("sample.id"="Sample")) %>% droplevels() %>%
   mutate(Treatment=as.factor(Treatment))
 group <- as.factor(tab.annot.gen$Treatment)
+```
 
+## Per-sample missing rate for retained SNPs 
+
+```{r}
+RV <- snpgdsSampMissRate(genofile, snp.id = snpset.id)
+names(RV) <- pca$sample.id
+
+barplot(RV, las = 2, cex.names = .5, col = c("#2c7bb6", "#d7191c", "#fdae61")[group])
+title(ylab = "Sample Missingness (%)")
+legend("top", legend=levels(group), col=c("#2c7bb6", "#d7191c", "#fdae61"), pch=19, ncol=3, cex=0.6, pt.cex=1)
+
+# Add missingness rate to annotated PCA results file
+tab.annot.gen$missingness <- RV
+
+tab.annot.gen %>% mutate(Treatment=factor(Treatment, levels=c("Ambient", "Moderate", "Low"))) %>%
+  ggplot(aes(x=Treatment, y=missingness, fill=Treatment)) + geom_violin(alpha=0.75) + 
+  geom_jitter(col="black", width = 0.15) +
+  theme_minimal() +
+  stat_summary(fun.y=mean, geom="point", shape=8, size=4, color="black", fill="black") + 
+    scale_fill_manual(values=c(Ambient="#2c7bb6", 
+                               Moderate="#fdae61", Low="#d7191c"), name="pH Treatment") +
+  ggtitle(paste("% Missing Rate for retained SNPs, by pH Treatment ", 
+                "(No. loci = ", length(snpset.id), ")", sep="")) +
+    geom_text(data=tab.annot.gen %>% group_by(Treatment) %>% 
+                summarize(mean=mean(missingness)), 
+              aes(x=Treatment, y=c(0.45, 0.31, 0.39), label=round(mean, 2)))
+
+# There's a lot more missing SNP data from the ambient groups
+```
+
+## Examine first 5 PC axes 
+
+```{r}
 # PC1 X PC2
-ggplot(tab.annot.gen, aes(x=PC1.gen, y=PC2.gen)) + 
-  geom_point(aes(col=Treatment), size=3.5, alpha=0.75) + 
+ggplot(tab.annot.gen, aes(x=PC1.gen, y=PC2.gen, size=missingness)) + 
+  geom_point(aes(col=Treatment), alpha=0.75) + #size=3.5, 
   theme_minimal() + ggtitle("Genetic Structure, PC1xPC2") + 
   xlab(paste("PC1 (", round(pc.percent[1], digits = 2), "%)", sep="")) + 
   ylab(paste("PC2 (", round(pc.percent[2], digits = 2), "%)", sep="")) + 
@@ -112,30 +215,41 @@ ggplot(tab.annot.gen, aes(x=PC1.gen, y=PC2.gen)) +
   stat_ellipse(aes(col=Treatment), size=0.3)
 
 # PC1 X PC3
-ggplot(tab.annot.gen, aes(x=PC1.gen, y=PC3.gen)) + 
-  geom_point(aes(col=Treatment), size=3.5, alpha=0.75) + 
+ggplot(tab.annot.gen, aes(x=PC3.gen, y=PC1.gen, size=missingness)) + 
+  geom_point(aes(col=Treatment), alpha=0.75) + 
   theme_minimal() + ggtitle("Genetic Structure, PC1xPC3") + 
-  xlab(paste("PC1 (", round(pc.percent[1], digits = 2), "%)", sep="")) + 
-  ylab(paste("PC3 (", round(pc.percent[3], digits = 2), "%)", sep="")) + 
+  xlab(paste("PC3 (", round(pc.percent[3], digits = 2), "%)", sep="")) + 
+  ylab(paste("PC1 (", round(pc.percent[1], digits = 2), "%)", sep="")) + 
   theme(legend.position = "right") + 
   scale_color_manual(values=c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c"), name="pH Treatment") +
   guides(colour = guide_legend(override.aes = list(size=3.5))) + 
   stat_ellipse(aes(col=Treatment), size=0.3)
 
 # PC1 X PC4
-ggplot(tab.annot.gen, aes(x=PC1.gen, y=PC3.gen)) + 
-  geom_point(aes(col=Treatment), size=3.5, alpha=0.75) + 
+ggplot(tab.annot.gen, aes(x=PC4.gen, y=PC1.gen, size=missingness)) + 
+  geom_point(aes(col=Treatment), alpha=0.75) + 
   theme_minimal() + ggtitle("Genetic Structure, PC1xPC4") + 
-  xlab(paste("PC1 (", round(pc.percent[1], digits = 2), "%)", sep="")) + 
-  ylab(paste("PC4 (", round(pc.percent[4], digits = 2), "%)", sep="")) + 
+  xlab(paste("PC4 (", round(pc.percent[4], digits = 2), "%)", sep="")) + 
+  ylab(paste("PC1 (", round(pc.percent[1], digits = 2), "%)", sep="")) + 
+  theme(legend.position = "right") + 
+  scale_color_manual(values=c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c"), name="pH Treatment") +
+  guides(colour = guide_legend(override.aes = list(size=3.5))) + 
+  stat_ellipse(aes(col=Treatment), size=0.3)
+
+# PC1 X PC5
+ggplot(tab.annot.gen, aes(x=PC5.gen, y=PC1.gen, size=missingness)) + 
+  geom_point(aes(col=Treatment), alpha=0.75) + 
+  theme_minimal() + ggtitle("Genetic Structure, PC1xPC4") + 
+  xlab(paste("PC5 (", round(pc.percent[5], digits = 2), "%)", sep="")) + 
+  ylab(paste("PC1 (", round(pc.percent[1], digits = 2), "%)", sep="")) + 
   theme(legend.position = "right") + 
   scale_color_manual(values=c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c"), name="pH Treatment") +
   guides(colour = guide_legend(override.aes = list(size=3.5))) + 
   stat_ellipse(aes(col=Treatment), size=0.3)
 
 # PC2 X PC3
-ggplot(tab.annot.gen, aes(x=PC2.gen, y=PC3.gen)) + 
-  geom_point(aes(col=Treatment), size=3.5, alpha=0.75) + 
+ggplot(tab.annot.gen, aes(x=PC2.gen, y=PC3.gen, size=missingness)) + 
+  geom_point(aes(col=Treatment), alpha=0.75) + 
   theme_minimal() + ggtitle("Genetic Structure, PC2xPC3") + 
   xlab(paste("PC2 (", round(pc.percent[2], digits = 2), "%)", sep="")) + 
   ylab(paste("PC3 (", round(pc.percent[3], digits = 2), "%)", sep="")) + 
@@ -145,8 +259,8 @@ ggplot(tab.annot.gen, aes(x=PC2.gen, y=PC3.gen)) +
   stat_ellipse(aes(col=Treatment), size=0.3)
 
 # PC1 X PC2 color coded by tank 
-ggplot(tab.annot.gen, aes(x=PC1.gen, y=PC2.gen)) + 
-  geom_point(aes(col=as.factor(Tank)), size=3.5, alpha=0.75) + 
+ggplot(tab.annot.gen, aes(x=PC1.gen, y=PC2.gen, size=missingness)) + 
+  geom_point(aes(col=as.factor(Tank)), alpha=0.75) + 
   theme_minimal() + ggtitle("Genetic Structure, PC1xPC2 (showing tank no.)") + 
   xlab(paste("PC1 (", round(pc.percent[1], digits = 2), "%)", sep="")) + 
   ylab(paste("PC2 (", round(pc.percent[2], digits = 2), "%)", sep="")) + 
@@ -156,6 +270,19 @@ ggplot(tab.annot.gen, aes(x=PC1.gen, y=PC2.gen)) +
 save(tab.annot.gen, file="../results/genotype/tab.annot.gen")
 ```
 
+```{r}
+ggplot(tab.annot.gen %>% pivot_longer(cols=starts_with("PC"), names_to = "PC.axis", values_to = "PC.loc"), 
+       aes(x=abs(PC.loc), y=missingness, col=Treatment)) + geom_point(alpha=0.75) +
+  theme_minimal() + 
+  ggtitle("Correlation between % of SNPs missing (x) and abs(PC scores) (y) for each sample\nQuestion: do samples with many missing SNPs congregate near 0?") + 
+    theme(legend.position = "bottom") + stat_smooth(geom="smooth", method="lm", se=FALSE, size=0.5, aes(group=Treatment)) +
+    scale_color_manual(values=c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c"), name="pH Treatment") +
+  guides(colour = guide_legend(override.aes = list(size=3.5))) + 
+  stat_cor(method = "pearson", show.legend=FALSE, size=2.5) +
+  facet_wrap(~PC.axis, scales = "free")
+```
+
+
 ## Distribution of genetic covariance matrix 
 
 ```{r}
@@ -163,15 +290,58 @@ pca$genmat %>% hist(breaks=100, main="Histogram of genetic covariance\nfrom SNPR
 ```
 ## Relatedness Analysis using SNPRelate 
 
-```{r}
-ibd.mle <- snpgdsIBDMLE(genofile, snp.id=snpset.id, maf=0.05, missing.rate=0.20, num.thread=2, autosome.only = F)
+ID1: the id of the first individual
+ID2: the id of the second individual
+k0: the probability of sharing ZERO alleles
+k1: the probability of sharing ONE alleles
+kinship: kinship coefficient
 
+```{r}
+ibd.mle <- snpgdsIBDMLE(genofile, snp.id=snpset.id, num.thread=2, autosome.only = F)
+
+# Kinship metric
 ibd.mle.coeff <- snpgdsIBDSelection(ibd.mle)
 head(ibd.mle.coeff)
 hist(ibd.mle.coeff$kinship, breaks = 100)
-plot(ibd.mle.coeff$k0, ibd.mle.coeff$k1, #xlim=c(0,1), ylim=c(0,1),
-    xlab="k0", ylab="k1", main="relatedness (MLE)")
-lines(c(0,1), c(1,0), col="red", lty=2)
+
+kinship <- ibd.mle.coeff %>% 
+  left_join(sample.info %>% select(Sample, Treatment), by=c("ID1"="Sample")) %>% 
+  rename("Treatment"="Treatment1") %>%
+  left_join(sample.info %>% select(Sample, Treatment), by=c("ID2"="Sample")) %>% 
+  rename("Treatment"="Treatment2") %>%
+  mutate(contrast=case_when(
+      Treatment1 == Treatment2 ~ "same",
+      Treatment1 != Treatment2 ~ "different")) %>%
+  mutate(contrast.pairwise=case_when(
+      Treatment1 == "Ambient" & Treatment2 == "Ambient" ~ "Amb.Amb",
+      Treatment2 == "Ambient" & Treatment1 == "Ambient" ~ "Amb.Amb",
+      Treatment1 == "Moderate" & Treatment2 == "Moderate" ~ "Mod.Mod",
+      Treatment2 == "Moderate" & Treatment1 == "Moderate" ~ "Mod.Mod",
+      Treatment1 == "Low" & Treatment2 == "Low" ~ "Low.Low",
+      Treatment2 == "Low" & Treatment1 == "Low" ~ "Low.Low",
+      Treatment1 == "Ambient" & Treatment2 == "Moderate" ~ "Amb.Mod",
+      Treatment2 == "Ambient" & Treatment1 == "Moderate" ~ "Amb.Mod",
+      Treatment1 == "Ambient" & Treatment2 == "Low" ~ "Amb.Low",
+      Treatment2 == "Ambient" & Treatment1 == "Low" ~ "Amb.Low",
+      Treatment1 == "Moderate" & Treatment2 == "Low" ~ "Mod.Low",
+      Treatment2 == "Moderate" & Treatment1 == "Low" ~ "Mod.Low")) %>% 
+  mutate(contrast.pairwise=factor(contrast.pairwise, levels=c("Amb.Amb", "Mod.Mod", "Low.Low", "Amb.Mod", "Amb.Low", "Mod.Low")))
+
+ggplot(kinship, aes(x=contrast.pairwise, y=kinship, fill=contrast.pairwise)) + 
+  geom_violin() + 
+  theme_minimal() + 
+  ggtitle("Kindship coefficient by treatment contrast") +
+  geom_text(data=kinship %>% group_by(contrast.pairwise) %>% 
+                summarize(mean=mean(kinship)), 
+              aes(x=contrast.pairwise, y=mean+.11, label=round(mean, 3)))
+
+ggplot(kinship, aes(x=contrast, y=kinship, fill=contrast)) + 
+  geom_violin() + 
+  theme_minimal() + 
+  ggtitle("Kindship coefficient for individuals from \ndifferent treatment or same treatment") +
+  geom_text(data=kinship %>% group_by(contrast) %>% 
+                summarize(mean=mean(kinship)), 
+              aes(x=contrast, y=mean+.12, label=round(mean, 4)))
 ```
 
 
@@ -303,13 +473,31 @@ ggplot(Fsts, aes(x=contrast, y=FstSNP, fill=contrast)) + geom_violin(trim = F) +
     geom_text(data=Fsts %>% group_by(contrast) %>% summarize(mean=mean(FstSNP)), aes(x=contrast, y=.65, label=round(mean, 3)))
 ```
 
+## Identify SNPs with high Fst among populations, and use to re-generate PCAs 
+
+```{r}
+hist(Fsts$FstSNP, breaks = 100)
+
+# Identify Fst outliers via boxplot 
+out.min <- (boxplot(Fsts$FstSNP))$out %>% summary() %>% as.matrix() %>% t() %>% as.data.frame() %>% select("Min.") %>% unlist()
+
+Fsts %>% filter(FstSNP >=out.min) %>% select(snp.id) %>% unique() %>% nrow() #42 loci that have outlying Fst values (>= 0.1680)
+
+snps.fst <- Fsts %>% filter(FstSNP >=out.min) %>% select(snp.id) %>% unique() %>% pull(snp.id)
+```
+### Here is a list of SNPs that have the highest Fst values (outliers in boxplot, Fst>`out.min`) and are located within genes
+
+```{r}
+genofile.snpset.annot %>% filter(snp.id.snp %in% snps.fst)
+```
 ## Identity-by-state 
 
 ```{r}
-lbls <- paste("PC", 1:4, "\n", format(pc.percent[1:4], digits=2), "%", sep="")
-pairs(pca$eigenvect[,1:4], col=as.color(tab.annot.gen$Treatment), labels=lbls, main="Colors = pH Treatment")
-pairs(pca$eigenvect[,1:4], col=as.color(tab.annot.gen$Tank), labels=lbls, main="Colors = Tank")
+# lbls <- paste("PC", 1:4, "\n", format(pc.percent[1:4], digits=2), "%", sep="")
+# pairs(pca$eigenvect[,1:4], col=as.color(tab.annot.gen$Treatment), labels=lbls, main="Colors = pH Treatment")
+# pairs(pca$eigenvect[,1:4], col=as.color(tab.annot.gen$Tank), labels=lbls, main="Colors = Tank")
 ```
+
 ## Multidimensional scaling analysis using Identity-By-State (IBS) proportion
 ```{r}
 ibs <- snpgdsIBS(genofile, snp.id=snpset.id, num.thread=2, autosome.only=FALSE)
@@ -326,19 +514,31 @@ loc <- cmdscale(1 - ibs$ibs, k = 2)
 x <- loc[, 1]; y <- loc[, 2]
 
 plot(x, y, col=group, xlab = "", ylab = "",
-    main = "Multidimensional Scaling Analysis (IBS)", cex=2, pch=16)
-#text(x, y+.01, labels=tab.annot.gen$sample.id, cex=0.7, font=2, col=as.integer(group))
-legend("bottomright", legend=levels(group), pch="o", text.col=1:nlevels(group))
+    main = "Multidimensional Scaling Analysis (IBS)", cex=1.2, pch=16)
+#text(x, y+.01, labels=tab.annot.gen$sample.id, cex=0.4, font=2, col=as.integer(group))
+legend("topleft", legend=levels(group), pch="o", text.col=1:nlevels(group))
+
+# # Identify crab in each cluster and add to annotation file 
+# tab.annot.gen <- tab.annot.gen %>% left_join(
+#   data.frame(x, y, sample=tab.annot.gen$sample.id) %>% 
+#   mutate(ibs.cluster=case_when(x < -0.1 ~ "left",
+#                    x > 0.1 ~"right",
+#                    x < 0.05 & x > -0.1 & y > -0.1 ~ "middle",
+#                    y < -0.1 ~ "bottom")) %>% select(sample, ibs.cluster),
+#   by=c("sample.id"="sample"))
 ```
+
 ## Distribution of genetic covariance matrix 
 
 ```{r}
 ibs$ibs %>% hist(breaks=100, main="Histogram of Identity-By-State proportion\nfrom SNPRelate")
 ```
-```{r}
-test <- snpgdsGRM(genofile, snp.id=snpset.id, num.thread=2, autosome.only=FALSE, method="GCTA")
-test$grm %>% hist(breaks=100, main="Histogram of genetic relationship matrix, method=GCTA\nfrom SNPRelate", prob=TRUE)
 
+
+```{r}
+# Another look at relatedness estimate
+# test <- snpgdsGRM(genofile, snp.id=snpset.id, num.thread=2, autosome.only=FALSE, method="GCTA")
+# test$grm %>% hist(breaks=100, main="Histogram of genetic relationship matrix, method=GCTA\nfrom SNPRelate", prob=TRUE)
 ```
 
 
@@ -425,6 +625,7 @@ ggplot(tab.expr.pH.annot, aes(x=PC1.degs, y=PC2.degs)) +
   stat_ellipse(aes(color=Treatment), size=0.3)
 save(tab.expr.pH.annot, file="../results/genotype/tab.expr.pH.annot")
 ```
+
 ## Merge PC axes from genetic analyis, expression analysis using all data, and expression analysis using DEGs only  
 
 ```{r}
@@ -609,7 +810,7 @@ I used [this tutorial](http://www.ddocent.com/filtering/) as an example.
 
 ```{r}
 # Load the data
-vcf <- read.vcfR("../results/genotype/rkc_rnaseq_genotypes-final.recode.vcf", verbose = FALSE )
+vcf <- read.vcfR("../results/genotype/rkc_rnaseq_genotypes-final_miss20.recode.vcf", verbose = FALSE )
 # It results in 1,429 SNPs, which does not match SNPRelate's number (1,355). Why? 
 
 # Quantify missing data for each sample 
@@ -619,12 +820,16 @@ par(mar = c(12,4,4,2))
 barplot(myMiss, las = 2, cex.names = .5)
 title(ylab = "Sample Missingness (%)")
 ```
+```{r}
+extract.gt(vcf)
+```
+
 
 ```{r}
 # Confirm order of samples in vcf matches order of samples in the "sample.info" dataframe 
 all(colnames(extract.gt(vcf)) == sample.info$Sample) # no, not in same order. Need to create a re-ordered sample.info object
 
-sample.info.vcf <- sample.info %>% slice(match(colnames(extract.gt(vcf)), Sample)) %>%
+sample.info.vcf <- sample.info %>% dplyr::slice(match(colnames(extract.gt(vcf)), Sample)) %>%
   mutate(Treatment=as.factor(Treatment))
 
 # How many samples per pH treatment?
@@ -637,6 +842,7 @@ paste("No. SNPs included in this vcfR analysis ", nrow(myDiff), sep="")
 # Summarize diversity indices (mean)
 knitr::kable(round(colMeans(myDiff[,-1:-2], na.rm = TRUE), digits = 3))
 ```
+
 # Heterozygosity by pH Treatment
 
 ```{r}
@@ -677,15 +883,12 @@ ggplot(dpf.n, aes(x=Treatment, y=Depth)) +
 ```{r}
 # Use vcfR to generate a dataframe with snp location information. Also generates a ton of other info 
 (snps.map <- genetic_diff(vcf, pops = as.factor(sample.info.vcf$Treatment), method = 'nei') %>% 
-  mutate(POS=as.numeric(POS)) %>% mutate(start=POS-1, end=POS+1) %>% rename("chrom"="CHROM"))
+  mutate(POS=as.numeric(POS)) %>% mutate(start=POS-1, end=POS+1) %>% rename("CHROM"="chrom"))
 ```
 
-### Annotate SNPs by looking for intersection among SNPs and genes - there are 286 SNPSs located within gene coding regions
+### Annotate SNPs by looking for intersection among SNPs and genes - there are 286 (20% miss) 736 (25% miss) SNPSs located within gene coding regions
 
 ```{r}
-load(file = "../references/P.plat.bestblast")
-genes <- read_delim(file = "../references/P.platypus_genes.bed", delim = "\t", col_names = c("chrom", "start", "end", "geneID"))
-
 (snps.annot <- bed_intersect(x=genes, y=snps.map %>% select(chrom, start, end), suffix = c(".gene", ".snp")) %>% 
   left_join(P.plat.bestblast, by = c("geneID.gene"="id_gtf"))) #annotate genes containing SNPs 
 ```
@@ -695,7 +898,7 @@ genes <- read_delim(file = "../references/P.platypus_genes.bed", delim = "\t", c
 ```{r}
 snps.annot %>% 
   filter(geneID.gene %in% 
-           unique(c(rownames(diffex.AM), rownames(diffex.AL), rownames(diffex.ML)))) # 35 SNPs located in DEGs
+           unique(c(rownames(diffex.AM), rownames(diffex.AL), rownames(diffex.ML)))) # 94 SNPs located in DEGs
 ```
 
 ### 66 SNPs are located within genes associated with pH according to WGCNA
@@ -734,12 +937,12 @@ I will use Colony to identify siblings in my samples. The Colony software is onl
 Prepare files for Colony sibship analysis
 Colony identifies siblings, which I would like to do with my juveniles. Here I prepare files for Colony.
 
-Mac suggested that I only keep SNPs with very high minor allele frequencies. Here I use SNPRelate to export SNPs with MAF >=2%. 
+Mac suggested that I only keep SNPs with very high minor allele frequencies. Here I use SNPRelate to export SNPs with MAF >=20%, and keeping the missing rate <= 20%. 
 
 ## Sibship analysis via Colony 
 
 ```{r}
-snpset.4Colony <- snpgdsLDpruning(genofile, maf=.20, missing.rate=.15, autosome.only=FALSE)
+snpset.4Colony <- snpgdsLDpruning(genofile, maf=.20, missing.rate=.20, autosome.only=FALSE)
 snpset.id.4Colony <- unlist(unname(snpset.4Colony))
 snpgdsCreateGenoSet(src.fn="../results/genotype/genotypes.gds",
                     dest.fn="../results/genotype/colony/genotypes-4Colony.gds",
@@ -850,242 +1053,643 @@ cd ../results/genotype/colony
 ./colony2s.out IFN:colony2_rkc.dat
 ```
 
+## Colony finished! Here are some results: 
+
 ```{bash}
 cat ../results/genotype/colony/rkc_colony.BestCluster
 ```
 
 ```{r}
-colony.clusters <- read_table("../qc-processing/colony/adult_colony.BestCluster", col_names=TRUE) %>% clean_names() %>% 
+colony.clusters <- read_table("../results/genotype/colony/rkc_colony.BestCluster", col_names=TRUE) %>% clean_names() %>% 
   mutate_all(funs(str_replace(., "\\*|#", ""))) %>%
   mutate(cluster_index=as.numeric(cluster_index), father_id=as.numeric(father_id), mother_id=as.numeric(mother_id), probability=as.numeric(probability)) %>%
-  mutate(offspring_id=str_replace(offspring_id, "O", "")) %>% as.data.frame() %>% left_join(sample.info, by = c("offspring_id"="sample"))
+  mutate(offspring_id=str_replace(offspring_id, "O", "")) %>% 
+  as.data.frame() %>% left_join(sample.info, by = c("offspring_id"="Sample")) %>%
+  mutate(Treatment=factor(Treatment, levels=c("Ambient", "Moderate", "Low"))) %>% 
+  column_to_rownames("offspring_id") %>% 
+  mutate(offspring_id=rownames(.))
 
-save(colony.clusters, file = "../qc-processing/colony/best-cluster-adult")  
+save(colony.clusters, file = "../results/genotype/colony/best-cluster-adult")  
 
-# Plot mother ~ father ID 
-#ggplotly(
-  ggplot(colony.clusters, aes(x=father_id, y=mother_id, size=probability, colour=population, shape=Treatment)) + geom_jitter() + theme_minimal() + scale_shape_manual(values=c(1,2)) + scale_size_continuous(guide="none") #)
+father.order <- as.character(c(1,2,5,17,18,19,22,24,27,4,28,20,21,25,29,8,13,6,9,10,11,12,14,15,16,26,3,7,23))
+mother.order <- as.character(c(20,21,23,25,26,27,30,4,6,24,29,2,3,5,17,19,22,1,18,8,7,9,10,11,12,13,14,15,28,16))
 
-# How many fathers and mothers does each population + pCO2 group have? 
-colony.clusters %>%
-  group_by(population, Treatment) %>%
-  summarise(n_fathers=n_distinct(father_id),n_mothers=n_distinct(mother_id)) 
-  
-# How many fathers and mothers does each population have
-colony.clusters %>%
-  group_by(population) %>%
-  summarise(n_fathers=n_distinct(father_id),n_mothers=n_distinct(mother_id)) 
-```
+ggplot(colony.clusters, aes(x = father_id %>% as.character, fill = Treatment)) +
+  geom_dotplot(stackgroups = TRUE, binwidth = 1, binpositions = "all") +
+  theme_minimal() + scale_x_discrete(limits=father.order) +
+  scale_fill_manual(values = c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c")) +
+  xlab("Father ID") +
+  theme(axis.text.y = element_blank(), axis.title.y = element_blank())
 
+ggplot(colony.clusters, aes(x = mother_id %>% as.character, fill = Treatment)) +
+  geom_dotplot(stackgroups = TRUE, binwidth = 1, binpositions = "all") +
+  theme_minimal() + scale_x_discrete(limits=mother.order) +
+  scale_fill_manual(values = c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c")) +
+  xlab("Mother ID") +
+  theme(axis.text.y = element_blank(), axis.title.y = element_blank())
 
-## Larval Sibship analysis via Colony 
-
-```{r}
-snpset.larvae.4Colony <- snpgdsLDpruning(genofile.larvae, maf=.2, missing.rate=0.15, autosome.only=FALSE)
-snpset.larvae.id.4Colony <- unlist(unname(snpset.larvae.4Colony))
-snpgdsCreateGenoSet(src.fn="../qc-processing/gatk/genotypes-larvae.gds",
-                    dest.fn="../qc-processing/colony/genotypes-larvae-4Colony.gds",
-                    snp.id=snpset.larvae.id.4Colony)
-```
-
-## Recode genotypes for Colony 
-
-```{r}
-# Extract genotype matrix 
-geno.matrix4Colony.larvae <- snpgdsGetGeno(gdsobj="../qc-processing/colony/genotypes-larvae-4Colony.gds", with.id=TRUE)
-
-paste("No. of larvae SNPs for Colony sibship analysis: ", ncol(geno.matrix4Colony.larvae$genotype), sep="") 
-paste("No. of larvae samples for Colony sibship analysis: ", nrow(geno.matrix4Colony.larvae$genotype), sep="") 
-
-# Replace SNPRelate numeric allele coding with character allele coding 
-a <- geno.matrix4Colony.larvae$genotype %>% as_data_frame() %>% 
-  mutate_all(funs(str_replace(., "0", "BB"))) %>%
-  mutate_all(funs(str_replace(., "1", "AB"))) %>%
-  mutate_all(funs(str_replace(., "2", "AA")))
-
-# Duplicate each column. Now there's 2 columns per locus, both containing the same bi-allelic genotype info. 
-b <- a[rep(names(a), rep(2, times=ncol(a)))] %>% clean_names()
-ncol(b) == ncol(a)*2 #should be TRUE 
-
-# For each locus, extract the first allele in column 1, and the second allele in column 2. 
-c <- b  #duplicate dataframe 
-odds <- seq(from = 1, to = ncol(c), by = 2)
-evens <- seq(from = 2, to = ncol(c), by = 2)
-odds.names <- colnames(b[odds])
-evens.names <- colnames(b[evens])
-
-for (i in 1:length(odds.names)) {
-c[[odds.names[i]]] <- substring(b[[odds.names[i]]], first = 1, last = 1)  
-}
-for (i in 1:length(evens.names)) {
-c[[evens.names[i]]] <- substring(b[[evens.names[i]]], first = 2, last = 2)  
-}
-
-# Now replace the character allele information with Colony's way of numeric coding. 
-# There are 2 columns for each locus (e.g. v1 and v1_2), and only 3 options for each allele:
-# 1= B allele 
-# 2= A allele 
-# 0= missing allele 
-(geno.matrix4Colony.larvae.recode <- c %>% 
-  mutate_all(funs(str_replace(., "B", "1"))) %>%
-  mutate_all(funs(str_replace(., "A", "2"))) %>%
-  mutate(., across(everything(), ~replace_na(.x, 0))))
-
-# Save genotype matrix to file, while also adding a column with sample number 
-write_delim(cbind(sampleID=paste("O", geno.matrix4Colony.larvae$sample.id, sep=""),
-                  geno.matrix4Colony.larvae.recode),
-            file="../qc-processing/colony/geno.matrix.larvae.tab", delim="   ", col_names=FALSE)
-```
-
-# Create Colony input file 
-
-I created a text file that will be the input for Colony. I used Colony's example input file as template and edited by hand. For the genotype matrix I selected all contents in the "geno.matrix.larvae.tab" file and pasted it into the text file. 
-
-Here's a snapshot of the input file, truncating the genotype info (there are 76 samples, but here I only show 4)
-
-```{bash}
-head -n 30 ../qc-processing/colony/colony2_larvae.dat
-tail -n 12 ../qc-processing/colony/colony2_larvae.dat
-```
-
-# Run Colony analysis on larvae samples 
-
-Note: I have to be in the colony directory to run it, so I change my directory in the same code chunk prior to executing the ./colony2s.out script 
-
-```{bash, eval = FALSE}
-cd ../qc-processing/colony/
-./colony2s.out IFN:colony2_larvae.dat
-```
-
-```{bash}
-cat ../qc-processing/colony/larvae_colony.BestCluster
-```
-
-```{r}
-(colony.clusters.larvae <- read_table("../qc-processing/colony/larvae_colony.BestCluster", col_names=TRUE) %>% clean_names() %>% 
-  mutate_all(funs(str_replace(., "\\*|#", ""))) %>%
-  mutate(cluster_index=as.numeric(cluster_index), father_id=as.numeric(father_id), mother_id=as.numeric(mother_id), probability=as.numeric(probability)) %>%
-  mutate(offspring_id=str_replace(offspring_id, "O", "")) %>% as.data.frame() %>% left_join(sample.info.larvae, by = c("offspring_id"="sample")))
-
-save(colony.clusters.larvae, file = "../qc-processing/colony/best-cluster-larvae")  
 
 # Plot mother ~ father ID 
 ggplotly(
-  ggplot(colony.clusters.larvae, aes(x=father_id, y=mother_id, size=probability, colour=population, shape=Treatment)) + geom_jitter() + theme_minimal() + scale_shape_manual(values=c(1,2)) + scale_size_continuous(guide="none"))
+  ggplot(colony.clusters, 
+         aes(x=father_id %>% as.character, y=mother_id %>% as.character, colour=Treatment, text=offspring_id)) + #size=probability, 
+    geom_point(alpha=0.65, size=5, position = position_dodge(width=0.5)) + theme_minimal() + 
+    scale_size_continuous(guide="none") + 
+    scale_x_discrete(limits=father.order) +
+    scale_y_discrete(limits=mother.order) +
+    scale_color_manual(values = c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c")) +
+    xlab("Father ID") + ylab("Mother ID"), tooltip = "text")
 
-# How many fathers and mothers does each population + pCO2 group have? 
-colony.clusters.larvae %>%
-  group_by(population, Treatment) %>%
-  summarise(n_fathers=n_distinct(father_id),n_mothers=n_distinct(mother_id)) %>%
-  pivot_longer(names_to = "parent", values_to="n_parents", cols = c(n_fathers, n_mothers)) %>% 
-  mutate(population=as.factor(population),Treatment=as.factor(Treatment),parent=as.factor(parent)) %>%
-  ggplot(aes(fill=population, alpha=Treatment, x=population, y=n_parents)) + geom_bar(position="dodge", stat="identity") +
-  scale_alpha_discrete(range = c(0.35, 0.8)) + ylab("No. of parents") + 
-  facet_wrap(~parent) + theme_minimal() + theme(axis.text.x = element_blank()) + xlab("Population & parental pCO2 exposure")
+# How many fathers and mothers does each Ph group have? 
+colony.clusters %>%
+  group_by(Treatment) %>%
+  summarise(n_fathers=n_distinct(father_id),n_mothers=n_distinct(mother_id))
 ```
 
-## Juvenile Sibship analysis via Colony 
+I used the dotplots to identify parents that contributed multiple offspring in our samples, and selected samples to remove to get rid of siblings. 
 
 ```{r}
-snpset.juvenile.4Colony <- snpgdsLDpruning(genofile.juvenile, maf=.4, missing.rate=0, autosome.only=FALSE)
-snpset.juvenile.id.4Colony <- unlist(unname(snpset.juvenile.4Colony))
-snpgdsCreateGenoSet(src.fn="../qc-processing/gatk/genotypes-juvenile.gds",
-                    dest.fn="../qc-processing/colony/genotypes-juvenile-4Colony.gds",
-                    snp.id=snpset.juvenile.id.4Colony)
+# Count how many of each treatment remain after removing half and full sibs
+`%!in%` = Negate(`%in%`) #function that is the opposite of "%in%"
+
+# Generate a list of samples that should not contain full or half sibs 
+nosibs <- (sample.info %>% filter(Sample %!in% c("Tank_13_Crab_2", "Tank_7_Crab_4", "Tank_2_Crab_2", 
+               "Tank_11_Crab_1", "Tank_20_Crab_2", "Tank_11_Crab_3", 
+               "Tank_3_Crab_2", "Tank_5_Crab_3", "Tank_5_Crab_1", 
+               "Tank_7_Crab_3", "Tank_18_Crab_3", "Tank_18_Crab_2", 
+               "Tank_4_Crab_3", "Tank_15_Crab_1", "Tank_4_Crab_2", 
+               "Tank_10_Crab_3", "Tank_13_Crab_3")))$Sample
+
+# Now double check that we no longer have siblings 
+ggplot(colony.clusters %>% filter(offspring_id %in% nosibs), aes(x = father_id %>% as.character, fill = Treatment)) +
+  geom_dotplot(stackgroups = TRUE, binwidth = 1, binpositions = "all") +
+  theme_minimal() + scale_x_discrete(limits=father.order) +
+  scale_fill_manual(values = c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c")) +
+  xlab("Father ID") +
+  theme(axis.text.y = element_blank(), axis.title.y = element_blank())
+
+ggplot(colony.clusters %>% filter(offspring_id %in% nosibs), aes(x = mother_id %>% as.character, fill = Treatment)) +
+  geom_dotplot(stackgroups = TRUE, binwidth = 1, binpositions = "all") +
+  theme_minimal() + scale_x_discrete(limits=mother.order) +
+  scale_fill_manual(values = c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c")) +
+  xlab("Mother ID") +
+  theme(axis.text.y = element_blank(), axis.title.y = element_blank())
+
+# How many samples in each treatment remain? 
+colony.clusters %>% filter(offspring_id %in% nosibs) %>% group_by(Treatment) %>% tally()
 ```
 
-## Recode genotypes for Colony 
+
+# Using PCAdapt to detect outlier loci 
+
+## Read in data 
 
 ```{r}
+path_to_file <- "../results/genotype/rkc_rnaseq_genotypes-final_miss20.recode.vcf"
+filename <- read.pcadapt(path_to_file, type = "vcf")
+```
+
+### Create annotation vector
+
+This is the order of samples in the vcf 
+```
+Tank_10_Crab_1	Tank_10_Crab_2	Tank_10_Crab_3	Tank_11_Crab_1	Tank_11_Crab_2	Tank_11_Crab_3	Tank_13_Crab_1	Tank_13_Crab_2	Tank_13_Crab_3	Tank_15_Crab_1	Tank_15_Crab_2	Tank_15_Crab_3	Tank_16_Crab_1	Tank_16_Crab_2	Tank_16_Crab_4	Tank_18_Crab_1	Tank_18_Crab_2	Tank_18_Crab_3	Tank_1_Crab_1	Tank_1_Crab_2	Tank_1_Crab_3	Tank_20_Crab_1	Tank_20_Crab_2	Tank_20_Crab_3	Tank_2_Crab_1	Tank_2_Crab_2	Tank_2_Crab_3	Tank_3_Crab_1	Tank_3_Crab_2	Tank_3_Crab_3	Tank_4_Crab_1	Tank_4_Crab_2	Tank_4_Crab_3	Tank_5_Crab_1	Tank_5_Crab_2	Tank_5_Crab_3	Tank_7_Crab_1	Tank_7_Crab_3	Tank_7_Crab_4	Tank_9_Crab_1	Tank_9_Crab_2	Tank_9_Crab_3	Tank_9_Crab_4
+```
+
+```{r}
+tab.annot.gen$sample.id #good, this order (from the SNPRelate analysis) is the same as in the VCF. Can use this to annotate
+```
+
+## Choose number k of Principal Components 
+
+To choose K, principal component analysis should first be performed with a large enough number of principal components
+
+The ‘scree plot’ displays in decreasing order the percentage of variance explained by each PC. Up to a constant, it corresponds to the eigenvalues in decreasing order. The ideal pattern in a scree plot is a steep curve followed by a bend and a straight line. The eigenvalues that correspond to random variation lie on a straight line whereas the ones that correspond to population structure lie on a steep curve. We recommend to keep PCs that correspond to eigenvalues to the left of the straight line (Cattell’s rule).
+
+The first 8 PC axes could be informative. 
+
+```{r}
+x <- pcadapt(input = filename, K = 30, min.maf=0.05)
+plot(x, option = "screeplot") + theme_minimal() + scale_x_discrete(limits=seq(1:30))
+```
+
+## Further explore data to determine K
+
+Another option to choose the number of PCs is based on the ‘score plot’ that displays population structure. The score plot displays the projections of the individuals onto the specified principal components. Using the score plot, the choice of K can be limited to the values of K that correspond to a relevant level of population structure.
+
+```{r}
+plot(x, option = "scores", i=1, j=2, pop=tab.annot.gen$Treatment)
+plot(x, option = "scores", j=1, i=3, pop=tab.annot.gen$Treatment)
+plot(x, option = "scores", j=1, i=4, pop=tab.annot.gen$Treatment)
+plot(x, option = "scores", j=1, i=5, pop=tab.annot.gen$Treatment)
+plot(x, option = "scores", j=1, i=6, pop=tab.annot.gen$Treatment)
+plot(x, option = "scores", j=1, i=7, pop=tab.annot.gen$Treatment)
+plot(x, option = "scores", j=1, i=8, pop=tab.annot.gen$Treatment)
+plot(x, option = "scores", j=1, i=9, pop=tab.annot.gen$Treatment)
+plot(x, option = "scores", j=1, i=10, pop=tab.annot.gen$Treatment)
+plot(x, option = "scores", j=1, i=11, pop=tab.annot.gen$Treatment)
+plot(x, option = "scores", j=1, i=12, pop=tab.annot.gen$Treatment)
+plot(x, option = "scores", j=1, i=13, pop=tab.annot.gen$Treatment)
+plot(x, option = "scores", j=1, i=14, pop=tab.annot.gen$Treatment)
+
+```
+
+Certainly looks like the first 5 PC axes result in clusters, and additional PC axes results in no clustering. PC5 does indicate some slight differences between low pH and the other treatments (despite existence of outlier)
+
+```{r}
+x <- pcadapt(filename, K = 5)
+summary(x)
+```
+
+Identify the outlier on PC5 - is it Tank & Crab 4?
+
+```{r}
+x$scores %>% data.frame() %>% mutate(id=row_number()) %>% arrange(X5)
+tab.annot.gen$sample.id[2]
+```
+
+A Manhattan plot displays −log10 of the p-values.
+
+```{r}
+plot(x , option = "manhattan")
+```
+
+Check the expected uniform distribution of the p-values using a Q-Q plot
+
+```{r}
+plot(x, option = "qqplot")
+```
+
+Histogram of p-values confirms that most of the p-values follow an uniform distribution. The excess of small p-values indicates the presence of outliers.
+```{r}
+hist(x$pvalues, xlab = "p-values", main = NULL, breaks = 50, col = "orange")
+```
+
+The presence of outliers is also visible when plotting a histogram of the test statistic Dj.
+
+```{r}
+plot(x, option = "stat.distribution") + theme_minimal()
+```
+## Choosing a cutoff for outlier detection
+
+### q-values
+```{r}
+qval <- qvalue(x$pvalues)$qvalues
+alpha <- 0.1
+outliers <- which(qval < alpha)
+length(outliers)
+```
+
+### Benjamini-Hochberg Procedure
+```{r}
+# padj <- p.adjust(x$pvalues,method="BH")
+# alpha <- 0.1
+# outliers <- which(padj < alpha)
+# length(outliers)
+```
+
+### Bonferroni correction
+```{r}
+# padj <- p.adjust(x$pvalues,method="bonferroni")
+# alpha <- 0.1
+# outliers <- which(padj < alpha)
+# length(outliers)
+```
+
+### Association between PCs and outliers
+
+It may be interesting to associate outliers with one of the K principal component to have indication about evolutionary pressure. The function get.pc allows to achieve that:
+
+```{r}
+snp_pc <- get.pc(x, outliers)
+```
+
+```{r}
+x %>% str()
+```
+
+```{r}
+snps.outlier <- data.frame(locus=(extract.gt(vcf) %>% rownames())[outliers]) %>%
+  inner_join(snps.annot %>% mutate(locus=paste(chrom, start.snp+1, sep="_")),
+            by="locus")
+```
+
+### SNPs that are outliers and are found withing a DEG
+
+```{r}
+snps.outlier %>% 
+  filter(geneID.gene %in% 
+           unique(c(rownames(diffex.AM), rownames(diffex.AL), rownames(diffex.ML)))) # 35 SNPs located in DEGs
+```
+
+### SNPs that are outliers & located within genes associated with pH according to WGCNA
+
+```{r}
+snps.outlier %>% 
+  left_join(geneInfo %>% select(id, moduleColor, GS.pH, p.GS.pH, match(modules.cor,names(geneInfo)), match(modules.p,names(geneInfo))), by=c("geneID.gene"="id")) %>%
+  filter(p.GS.pH < 0.05) 
+```
+
+### SNPS that are located within genes assigned to pH-associated modules from WGCNA
+
+```{r}
+snps.outlier %>% 
+  left_join(geneInfo %>% select(id, moduleColor, GS.pH, p.GS.pH, match(modules.cor,names(geneInfo)), match(modules.p,names(geneInfo))), by=c("geneID.gene"="id")) %>%
+  filter(moduleColor %in% modules)
+```
+
+### Try to make a pretty Manhattan plot - CURRENTLY STUCK 
+
+```{r}
+snps.all <- data.frame(locus=extract.gt(vcf) %>% rownames()) %>% 
+  separate(locus, sep = "_", into = c("x", "y,", "chrom", "pos"), remove = FALSE) %>% 
+  select(locus, chrom, pos) %>% mutate(chrom=as.numeric(chrom), pos=as.numeric(pos))
+
+#manhattan_plot(x, chr.info = snps.all$chrom, snp.info = snps.all$locus) + theme_minimal()
+
+# install.packages("qqman")
+# require(qqman)
+# 
+# snps.all %>% cbind(x$pvalues)
+# nrow(snps.all)
+# length(x$pvalues)
+
+```
+
+# Identifying outlier loci using R package OutFLANK 
+
+OutFLANK's code to use a VCF as input didn't work for me (resulted in all NA values instead of genotypes), so here I will manually generate the genotype matrix 
+
+## Generate genotype matrix from SNPRelate object 
+
+- **SNPRelate codes alleles this way:** "There are four possible values stored in the variable genotype: 0, 1, 2 and 3. For bi-allelic SNP sites, “0” indicates two B alleles, “1” indicates one A allele and one B allele, “2” indicates two A alleles, and “3” is a missing genotype. (When you) take out genotype data with sample and SNP IDs, and four possible values are returned 0, 1, 2 and NA (3 is replaced by NA).  
+
+- **OutFLANK codes alleles this way:** "SNPmat (the input matrix) is an array with a row for each individual in the data set and a column for each locus. This function assumes biallelic (i.e. SNP) data, and the value in each column is either 0, 1 or 2, showing the number of the focal alleles that the individual carries at that locus. (i.e., 2 means that the individual is a homozygote for the focal allele, 0, means that the individual has no copies of that focal allele, and 1 indicates a heterozygote.) For any locus that is unknown for an individual, SNPmat should have a 9 for that locus on that row." 
+
+# ```{r}
+# # Extract genotype matrix 
+# geno.matrix4outflank <- snpgdsGetGeno(gdsobj="../results/genotype/genotypes.gds", snp.id = snpset.id, with.id=TRUE)
+# 
+# paste("No. of SNPs for OutFlank analysis: ", ncol(geno.matrix4outflank$genotype), sep="") 
+# paste("No. of samples for OutFlank analysis: ", nrow(geno.matrix4outflank$genotype), sep="") 
+# 
+# # Replace SNPRelate numeric allele coding with character allele coding 
+# 
+# #SNPRelate: 
+# ### 0 =  Homozygous for B
+# ### 1 =  Heterozygous
+# ### 2 =  Homozygous for A
+# ### 3 =  Missing data 
+# 
+# #OutFLANK:
+# ### 0 =  No copies of focal allele
+# ### 1 =  Heterozygous
+# ### 2 =  Homozygous
+# ### 9 =  Missing data 
+# 
+# geno.matrix4outflank.recode <- geno.matrix4outflank$genotype %>% as_data_frame() %>% 
+#   mutate_all(function(x) {
+#     case_when(
+#       x == 0 ~ 2, 
+#       x == 1 ~ 1,
+#       x == 2 ~ 2,
+#       is.na(x) ~ 9)}) %>% 
+#   as.matrix() %>% unname()
+# 
+# # Spot check that recode worked 
+# data.frame(geno.matrix4outflank$genotype %>% as_data_frame() %>% select(V1) %>% as.vector(),
+# geno.matrix4outflank.recode %>% as_data_frame() %>% select(V1) %>% as.vector) %>% 
+#   rename("V1"="snprelate", "V1.1"="outflank")
+# # looks good 
+# 
+# rownames(geno.matrix4outflank.recode) <- rownames(geno.matrix4outflank)
+# ```
+
+## Generate genotype matrix using vcfR 
+
+The VCF specification allows for genotypes to be delimited with a '|' when they are phased and a '/' when unphased. Phased data has identified which one of the pair of chromosomes holds each allele, whereas unphased doesn't identify the chromosomes. 
+
+Since OutFLANK doesn't use phasing information, I will treat the genotype info with "|" and "\" delimiter as the same. 
+
+2 = homozygote for the focal allele (i.e. reference allele) 
+0 = no copies of that focal allele
+1 = heterozygote
+9 = locus is unknown for an individual
+
+```{r}
+# Load the data
+vcf <- read.vcfR("../results/genotype/rkc_rnaseq_genotypes-final_miss20.recode.vcf", verbose = FALSE )
+
 # Extract genotype matrix 
-geno.matrix4Colony.juvenile <- snpgdsGetGeno(gdsobj="../qc-processing/colony/genotypes-juvenile-4Colony.gds", with.id=TRUE)
+geno.matrix4outflank <- extract.gt(vcf) %>% as.data.frame()
 
-paste("No. of juvenile SNPs for Colony sibship analysis: ", ncol(geno.matrix4Colony.juvenile$genotype), sep="") 
-paste("No. of juvenile samples for Colony sibship analysis: ", nrow(geno.matrix4Colony.juvenile$genotype), sep="") 
-
-# Replace SNPRelate numeric allele coding with character allele coding 
-a <- geno.matrix4Colony.juvenile$genotype %>% as_data_frame() %>% 
-  mutate_all(funs(str_replace(., "0", "BB"))) %>%
-  mutate_all(funs(str_replace(., "1", "AB"))) %>%
-  mutate_all(funs(str_replace(., "2", "AA")))
-
-# Duplicate each column. Now there's 2 columns per locus, both containing the same bi-allelic genotype info. 
-b <- a[rep(names(a), rep(2, times=ncol(a)))] %>% clean_names()
-ncol(b) == ncol(a)*2 #should be TRUE 
-
-# For each locus, extract the first allele in column 1, and the second allele in column 2. 
-c <- b  #duplicate dataframe 
-odds <- seq(from = 1, to = ncol(c), by = 2)
-evens <- seq(from = 2, to = ncol(c), by = 2)
-odds.names <- colnames(b[odds])
-evens.names <- colnames(b[evens])
-
-for (i in 1:length(odds.names)) {
-c[[odds.names[i]]] <- substring(b[[odds.names[i]]], first = 1, last = 1)  
-}
-for (i in 1:length(evens.names)) {
-c[[evens.names[i]]] <- substring(b[[evens.names[i]]], first = 2, last = 2)  
-}
-
-# Now replace the character allele information with Colony's way of numeric coding. 
-# There are 2 columns for each locus (e.g. v1 and v1_2), and only 3 options for each allele:
-# 1= B allele 
-# 2= A allele 
-# 0= missing allele 
-(geno.matrix4Colony.juvenile.recode <- c %>% 
-  mutate_all(funs(str_replace(., "B", "1"))) %>%
-  mutate_all(funs(str_replace(., "A", "2"))) %>%
-  mutate(., across(everything(), ~replace_na(.x, 0))))
-
-# Save genotype matrix to file, while also adding a column with sample number 
-write_delim(cbind(sampleID=paste("O", geno.matrix4Colony.juvenile$sample.id, sep=""),
-                  geno.matrix4Colony.juvenile.recode),
-            file="../qc-processing/colony/geno.matrix.juvenile.tab", delim="   ", col_names=FALSE)
+paste("No. of SNPs for OutFlank analysis: ", nrow(geno.matrix4outflank), sep="") 
+paste("No. of samples for OutFlank analysis: ", ncol(geno.matrix4outflank), sep="") 
 ```
 
-# Create Colony input file 
+Here are all the genotype codes in my SNP set
 
-I created a text file that will be the input for Colony. I used Colony's example input file as template and edited by hand. For the genotype matrix I selected all contents in the "geno.matrix.juvenile.tab" file and pasted it into the text file. 
-
-Here's a snapshot of the input file, truncating the genotype info (there are 16 samples, but here I only show 1)
-
-```{bash}
-head -n 28 ../qc-processing/colony/colony2_juveniles.dat
-tail -n 12 ../qc-processing/colony/colony2_juveniles.dat
-```
-
-# Run Colony analysis on juvenile samples 
-
-Note: I have to be in the colony directory to run it, so I change my directory in the same code chunk prior to executing the ./colony2s.out script 
-
-```{bash, eval = FALSE}
-cd ../qc-processing/colony/
-./colony2s.out IFN:colony2_juveniles.dat
-```
-
-```{bash}
-cat ../qc-processing/colony/juvenile_colony.BestCluster
+```{r}
+as.matrix(geno.matrix4outflank) %>% table()
 ```
 
 ```{r}
-(colony.clusters.juvenile <- read_table("../qc-processing/colony/juvenile_colony.BestCluster", col_names=TRUE) %>% clean_names() %>% 
-  mutate_all(funs(str_replace(., "\\*|#", ""))) %>%
-  mutate(cluster_index=as.numeric(cluster_index), father_id=as.numeric(father_id), mother_id=as.numeric(mother_id), probability=as.numeric(probability)) %>%
-  mutate(offspring_id=str_replace(offspring_id, "O", "")) %>% as.data.frame() %>% left_join(sample.info.juvenile, by = c("offspring_id"="sample")))
+# Replace allele coding with:
 
-save(colony.clusters.juvenile, file = "../qc-processing/colony/best-cluster-juvenile")  
+#OutFLANK:
+### 0 =  No copies of focal allele
+### 1 =  Heterozygous
+### 2 =  Homozygous
+### 9 =  Missing data 
 
-# Plot mother ~ father ID 
-ggplotly(
-  ggplot(colony.clusters.juvenile, aes(x=father_id, y=mother_id, size=probability, colour=population, shape=Treatment)) + geom_jitter() + theme_minimal() + scale_shape_manual(values=c(1,2)) + scale_size_continuous(guide="none"))
+geno.matrix4outflank.recode <- geno.matrix4outflank %>% 
+  mutate_all(function(x) {
+    case_when(
+      x == "0/0" ~ 2, # homozygous
+      x == "0/1" ~ 1, # heterozygous 
+      x == "0/2" ~ 1, # heterozygous
+      x == "0|0" ~ 2, # homozygous 
+      x == "0|1" ~ 1, # heterozygous
+      x == "0|2" ~ 1, # heterozygous       
+      x == "1/1" ~ 0, # no copies
+      x == "1/2" ~ 0, # no copies       
+      x == "1|1" ~ 0, # no copies 
+      x == "1|2" ~ 0, # no copies
+      x == "2/2" ~ 0, # no copies       
+      x == "2|2" ~ 0, # no copies
+      x == "3|3" ~ 0, # no copies        
+      is.na(x) ~ 9)}) %>% t() %>% as.data.frame() %>% 
+  mutate_if(is.numeric,as.integer)
 
-# How many fathers and mothers does each population + pCO2 group have? 
-colony.clusters.juvenile %>%
-  group_by(population, Treatment) %>%
-  summarise(n_fathers=n_distinct(father_id),n_mothers=n_distinct(mother_id)) %>%
-  pivot_longer(names_to = "parent", values_to="n_parents", cols = c(n_fathers, n_mothers)) %>% 
-  mutate(population=as.factor(population),Treatment=as.factor(Treatment),parent=as.factor(parent)) %>%
-  ggplot(aes(fill=population, alpha=Treatment, x=population, y=n_parents)) + geom_bar(position="dodge", stat="identity") +
-  scale_alpha_discrete(range = c(0.35, 0.8)) + ylab("No. of parents") + 
-  facet_wrap(~parent) + theme_minimal() + theme(axis.text.x = element_blank()) + xlab("Population & parental pCO2 exposure")
+# And I now only have 0, 1, 2, and 9 in the new matrix 
+table(as.matrix(geno.matrix4outflank.recode))
+
+# I reviewed the new dataframe visually, and still saw some NA's! 
+
+geno.matrix4outflank.recode[is.na(geno.matrix4outflank.recode)]
+```
+### Locus names 
+
+```{r}
+colnames(geno.matrix4outflank.recode) %>% head()
+```
+
+### Sample ids 
+
+#### Again, double check that my sample order is the same in the tab.annot.gen file as in the genofile (which I used to pull the genotype matrix from)
+
+```{r}
+# check to make sure samples are in the same order in my genotype matrix and the annotation object 
+all(rownames(geno.matrix4outflank.recode) == tab.annot.gen$sample.id) #yes, all=TRUE
+
+# this will be my popNames vector 
+as.vector(tab.annot.gen$Treatment)
+```
+### Calculate variables required for OutFLANK() function
+
+```{r}
+outflank.loci <- colnames(geno.matrix4outflank.recode)
+outflank.pops <- as.vector(tab.annot.gen$Treatment)
+ncol(geno.matrix4outflank.recode) == length(outflank.loci)
+nrow(geno.matrix4outflank.recode) == length(outflank.pops)
+
+FstDataFrame <- MakeDiploidFSTMat(SNPmat = geno.matrix4outflank.recode, 
+                                  locusNames = outflank.loci, 
+                                  popNames = outflank.pops)
+
+
+```
+Check for loci with low sample sizes or unusual values of uncorrected FST
+
+I'm unsure what to do here - I have lots of missing data, indicated by higher uncorrected Fst relative to corrected Fst 
+
+```{r}
+plot(FstDataFrame$FST, FstDataFrame$FSTNoCorr, 
+     xlim=c(-0.01,0.3), ylim=c(-0.01,0.3),
+     pch=20)
+abline(0,1)
+```
+
+Check if FST distribution looks chi-squared distributed
+
+```{r}
+plot(FstDataFrame$He, FstDataFrame$FSTNoCorr, pch=20, col="grey")
+```
+Note how, when all loci are included, this doesn't look chi-square distributed 
+
+```{r}
+hist(FstDataFrame$FSTNoCorr, breaks=200)
+```
+
+Removing low Heterozygosity variants results in a more chi-square looking FST distribution
+
+Not for my data! 
+
+```{r}
+hist(FstDataFrame$FSTNoCorr[FstDataFrame$He>0.1], breaks=200)
+summary(FstDataFrame$He) #He is very high 
+```
+```{r}
+hist(FstDataFrame$FST, breaks=200)
+summary(FstDataFrame$FST)
+```
+
+
+```{r}
+# Run outflank
+out1 <- OutFLANK(FstDataFrame, NumberOfSamples=43)
+
+# Visualize results
+ OutFLANKResultsPlotter(out1, withOutliers = TRUE,
+NoCorr = TRUE, Hmin = 0.1, binwidth = 0.001, Zoom =
+FALSE, RightZoomFraction = 0.05, titletext = NULL)
+ 
+hist(out1$results$pvaluesRightTail)
+
+sum(out1$results$qvalues<0.1, na.rm=TRUE) # how many outliers? 
+summary(out1$results$qvalues) #none! 
+```
+
+# Additional PCAs 
+
+## Re-generate PCAs without samples that are related (half- or full-sibs)
+
+```{r}
+# PCA using SNPRelate 
+pca.nosibs <- snpgdsPCA(genofile, num.thread=2, autosome.only=FALSE, verbose = TRUE, 
+                 need.genmat = TRUE, snp.id =snpset.id, sample.id = nosibs)
+pc.percent <- pca.nosibs$varprop*100
+head(round(pc.percent, 2)) #This is the proportion variance explained by each PC 
+tab <- data.frame(sample.id = pca.nosibs$sample.id,
+    PC1.gen = pca.nosibs$eigenvect[,1],    # the first eigenvector
+    PC2.gen = pca.nosibs$eigenvect[,2],    # the second eigenvector
+    PC3.gen = pca.nosibs$eigenvect[,3],    # the third eigenvector
+    PC4.gen = pca.nosibs$eigenvect[,4],    # the fourth eigenvector
+    PC5.gen = pca.nosibs$eigenvect[,5],    # the fifth eigenvector
+    stringsAsFactors = FALSE)
+
+# PCA using prcomp etc., but NOTE that I pull the covariance matrix from the SNPRelate PCA command  
+pca.nosibs.princomp.gen <- princomp(covmat=pca.nosibs$genmat, scores=T, cor = F) #specify "covmat" because input is a covariance matrix (not raw data!)
+summary(pca.nosibs.princomp.gen)
+pca.eigenval(pca.nosibs.princomp.gen)[2,1:5] #The Proporation of Variance (aka %variance)  
+screeplot(pca.nosibs.princomp.gen, bstick=TRUE) #PC axes aren't super sign. - just look at PC1 
+
+tab <- data.frame(sample.id = pca.nosibs$sample.id,
+    PC1.gen = pca.nosibs.princomp.gen$loadings[,1],    # the first eigenvector
+    PC2.gen = pca.nosibs.princomp.gen$loadings[,2],    # the second eigenvector
+    PC3.gen = pca.nosibs.princomp.gen$loadings[,3],    # the third eigenvector
+    PC4.gen = pca.nosibs.princomp.gen$loadings[,4],    # the fourth eigenvector
+    stringsAsFactors = FALSE)
+
+shapiro.test(pca.nosibs.princomp.gen$loadings) #Multivariate normality assumption not met
+
+tab.annot.gen.nosibs <- left_join(tab, sample.info, by=c("sample.id"="Sample")) %>% droplevels() %>%
+  mutate(Treatment=as.factor(Treatment))
+group.nosibs <- as.factor(tab.annot.gen$Treatment)
+
+# PC1 X PC2
+ggplot(tab.annot.gen.nosibs, aes(x=PC1.gen, y=PC2.gen)) + 
+  geom_point(aes(col=Treatment), size=3.5, alpha=0.75) + 
+  theme_minimal() + ggtitle("Genetic Structure, PC1xPC2") + 
+  xlab(paste("PC1 (", round(pc.percent[1], digits = 2), "%)", sep="")) + 
+  ylab(paste("PC2 (", round(pc.percent[2], digits = 2), "%)", sep="")) + 
+  theme(legend.position = "right") + 
+  scale_color_manual(values=c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c"), name="pH Treatment") +
+  guides(colour = guide_legend(override.aes = list(size=3.5))) + 
+  stat_ellipse(aes(col=Treatment), size=0.3)
+
+# PC1 X PC3
+ggplot(tab.annot.gen.nosibs, aes(x=PC1.gen, y=PC3.gen)) + 
+  geom_point(aes(col=Treatment), size=3.5, alpha=0.75) + 
+  theme_minimal() + ggtitle("Genetic Structure, PC1xPC3") + 
+  xlab(paste("PC1 (", round(pc.percent[1], digits = 2), "%)", sep="")) + 
+  ylab(paste("PC3 (", round(pc.percent[3], digits = 2), "%)", sep="")) + 
+  theme(legend.position = "right") + 
+  scale_color_manual(values=c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c"), name="pH Treatment") +
+  guides(colour = guide_legend(override.aes = list(size=3.5))) + 
+  stat_ellipse(aes(col=Treatment), size=0.3)
+
+# PC1 X PC4
+ggplot(tab.annot.gen.nosibs, aes(x=PC1.gen, y=PC4.gen)) + 
+  geom_point(aes(col=Treatment), size=3.5, alpha=0.75) + 
+  theme_minimal() + ggtitle("Genetic Structure, PC1xPC4") + 
+  xlab(paste("PC1 (", round(pc.percent[1], digits = 2), "%)", sep="")) + 
+  ylab(paste("PC4 (", round(pc.percent[4], digits = 2), "%)", sep="")) + 
+  theme(legend.position = "right") + 
+  scale_color_manual(values=c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c"), name="pH Treatment") +
+  guides(colour = guide_legend(override.aes = list(size=3.5))) + 
+  stat_ellipse(aes(col=Treatment), size=0.3)
+
+# PC2 X PC3
+ggplot(tab.annot.gen.nosibs, aes(x=PC2.gen, y=PC3.gen)) + 
+  geom_point(aes(col=Treatment), size=3.5, alpha=0.75) + 
+  theme_minimal() + ggtitle("Genetic Structure, PC2xPC3") + 
+  xlab(paste("PC2 (", round(pc.percent[2], digits = 2), "%)", sep="")) + 
+  ylab(paste("PC3 (", round(pc.percent[3], digits = 2), "%)", sep="")) + 
+  theme(legend.position = "right") + 
+  scale_color_manual(values=c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c"), name="pH Treatment") +
+  guides(colour = guide_legend(override.aes = list(size=3.5))) + 
+  stat_ellipse(aes(col=Treatment), size=0.3)
+
+# PC1 X PC2 color coded by tank 
+ggplot(tab.annot.gen.nosibs, aes(x=PC1.gen, y=PC2.gen)) + 
+  geom_point(aes(col=as.factor(Tank)), size=3.5, alpha=0.75) + 
+  theme_minimal() + ggtitle("Genetic Structure, PC1xPC2 (showing tank no.)") + 
+  xlab(paste("PC1 (", round(pc.percent[1], digits = 2), "%)", sep="")) + 
+  ylab(paste("PC2 (", round(pc.percent[2], digits = 2), "%)", sep="")) + 
+  theme(legend.position = "right") + 
+  guides(colour = guide_legend(override.aes = list(size=3.5)))
+
+save(tab.annot.gen.nosibs, file="../results/genotype/tab.annot.gen.nosibs")
+```
+
+## Re-generate PCAs using high Fst loci only (calculated among pH Treatments)
+
+```{r}
+# PCA using SNPRelate 
+pca.fst <- snpgdsPCA(genofile, num.thread=2, autosome.only=FALSE, verbose = TRUE, 
+                 need.genmat = TRUE, snp.id =snps.fst)
+pc.percent <- pca.fst$varprop*100
+head(round(pc.percent, 2)) #This is the proportion variance explained by each PC 
+tab <- data.frame(sample.id = pca.fst$sample.id,
+    PC1.gen = pca.fst$eigenvect[,1],    # the first eigenvector
+    PC2.gen = pca.fst$eigenvect[,2],    # the second eigenvector
+    PC3.gen = pca.fst$eigenvect[,3],    # the third eigenvector
+    PC4.gen = pca.fst$eigenvect[,4],    # the fourth eigenvector
+    PC5.gen = pca.fst$eigenvect[,5],    # the fifth eigenvector
+    stringsAsFactors = FALSE)
+
+# PCA using prcomp etc., but NOTE that I pull the covariance matrix from the SNPRelate PCA command  
+pca.fst.princomp.gen <- princomp(covmat=pca.fst$genmat, scores=T, cor = F) #specify "covmat" because input is a covariance matrix (not raw data!)
+summary(pca.fst.princomp.gen)
+pca.eigenval(pca.fst.princomp.gen)[2,1:5] #The Proporation of Variance (aka %variance)  
+screeplot(pca.fst.princomp.gen, bstick=TRUE) #PC axes aren't super sign. - just look at PC1 
+
+tab <- data.frame(sample.id = pca.fst$sample.id,
+    PC1.gen = pca.fst.princomp.gen$loadings[,1],    # the first eigenvector
+    PC2.gen = pca.fst.princomp.gen$loadings[,2],    # the second eigenvector
+    PC3.gen = pca.fst.princomp.gen$loadings[,3],    # the third eigenvector
+    PC4.gen = pca.fst.princomp.gen$loadings[,4],    # the fourth eigenvector
+    stringsAsFactors = FALSE)
+
+shapiro.test(pca.fst.princomp.gen$loadings) #Multivariate normality assumption met
+
+tab.annot.gen.fst <- left_join(tab, sample.info, by=c("sample.id"="Sample")) %>% droplevels() %>%
+  mutate(Treatment=as.factor(Treatment))
+group.fst <- as.factor(tab.annot.gen$Treatment)
+
+# PC1 X PC2
+ggplot(tab.annot.gen.fst, aes(x=PC1.gen, y=PC2.gen)) + 
+  geom_point(aes(col=Treatment), size=3.5, alpha=0.75) + 
+  theme_minimal() + ggtitle("Genetic Structure, PC1xPC2") + 
+  xlab(paste("PC1 (", round(pc.percent[1], digits = 2), "%)", sep="")) + 
+  ylab(paste("PC2 (", round(pc.percent[2], digits = 2), "%)", sep="")) + 
+  theme(legend.position = "right") + 
+  scale_color_manual(values=c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c"), name="pH Treatment") +
+  guides(colour = guide_legend(override.aes = list(size=3.5))) + 
+  stat_ellipse(aes(col=Treatment), size=0.3)
+
+# PC1 X PC3
+ggplot(tab.annot.gen.fst, aes(x=PC1.gen, y=PC3.gen)) + 
+  geom_point(aes(col=Treatment), size=3.5, alpha=0.75) + 
+  theme_minimal() + ggtitle("Genetic Structure, PC1xPC3") + 
+  xlab(paste("PC1 (", round(pc.percent[1], digits = 2), "%)", sep="")) + 
+  ylab(paste("PC3 (", round(pc.percent[3], digits = 2), "%)", sep="")) + 
+  theme(legend.position = "right") + 
+  scale_color_manual(values=c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c"), name="pH Treatment") +
+  guides(colour = guide_legend(override.aes = list(size=3.5))) + 
+  stat_ellipse(aes(col=Treatment), size=0.3)
+
+# PC1 X PC4
+ggplot(tab.annot.gen.fst, aes(x=PC1.gen, y=PC4.gen)) + 
+  geom_point(aes(col=Treatment), size=3.5, alpha=0.75) + 
+  theme_minimal() + ggtitle("Genetic Structure, PC1xPC4") + 
+  xlab(paste("PC1 (", round(pc.percent[1], digits = 2), "%)", sep="")) + 
+  ylab(paste("PC4 (", round(pc.percent[4], digits = 2), "%)", sep="")) + 
+  theme(legend.position = "right") + 
+  scale_color_manual(values=c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c"), name="pH Treatment") +
+  guides(colour = guide_legend(override.aes = list(size=3.5))) + 
+  stat_ellipse(aes(col=Treatment), size=0.3)
+
+# PC2 X PC3
+ggplot(tab.annot.gen.fst, aes(x=PC2.gen, y=PC3.gen)) + 
+  geom_point(aes(col=Treatment), size=3.5, alpha=0.75) + 
+  theme_minimal() + ggtitle("Genetic Structure, PC2xPC3") + 
+  xlab(paste("PC2 (", round(pc.percent[2], digits = 2), "%)", sep="")) + 
+  ylab(paste("PC3 (", round(pc.percent[3], digits = 2), "%)", sep="")) + 
+  theme(legend.position = "right") + 
+  scale_color_manual(values=c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c"), name="pH Treatment") +
+  guides(colour = guide_legend(override.aes = list(size=3.5))) + 
+  stat_ellipse(aes(col=Treatment), size=0.3)
+
+# PC1 X PC2 color coded by tank 
+ggplot(tab.annot.gen.fst, aes(x=PC1.gen, y=PC2.gen)) + 
+  geom_point(aes(col=as.factor(Tank)), size=3.5, alpha=0.75) + 
+  theme_minimal() + ggtitle("Genetic Structure, PC1xPC2 (showing tank no.)") + 
+  xlab(paste("PC1 (", round(pc.percent[1], digits = 2), "%)", sep="")) + 
+  ylab(paste("PC2 (", round(pc.percent[2], digits = 2), "%)", sep="")) + 
+  theme(legend.position = "right") + 
+  guides(colour = guide_legend(override.aes = list(size=3.5)))
+
+save(tab.annot.gen.fst, file="../results/genotype/tab.annot.gen.fst")
 ```
