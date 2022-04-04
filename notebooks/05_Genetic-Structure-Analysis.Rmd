@@ -60,7 +60,7 @@ genes <- read_delim(file = "../references/P.platypus_genes.bed", delim = "\t", c
 ### Must close genofile if it's already open before running 
 
 ```{r}
-#snpgdsClose(genofile)
+snpgdsClose(genofile)
 ```
 
 
@@ -204,8 +204,8 @@ tab.annot.gen %>% mutate(Treatment=factor(Treatment, levels=c("Ambient", "Modera
 
 ```{r}
 # PC1 X PC2
-ggplot(tab.annot.gen, aes(x=PC1.gen, y=PC2.gen, size=missingness)) + 
-  geom_point(aes(col=Treatment), alpha=0.75) + #size=3.5, 
+ggplot(tab.annot.gen, aes(x=PC1.gen, y=PC2.gen, size=missingness)) +
+  geom_point(aes(col=Treatment), alpha=0.75) + # 
   theme_minimal() + ggtitle("Genetic Structure, PC1xPC2") + 
   xlab(paste("PC1 (", round(pc.percent[1], digits = 2), "%)", sep="")) + 
   ylab(paste("PC2 (", round(pc.percent[2], digits = 2), "%)", sep="")) + 
@@ -664,7 +664,7 @@ ggscatter(PCA.merged, x="PC2.gen", y="PC4.degs", add="reg.line", conf.int = TRUE
   geom_point(aes(col=Treatment), alpha=0.85, size=1.8)
 
 # Modestly sign. correlation
-ggscatter(PCA.merged, x="PC1.gen", y="PC3.expr", add="reg.line", conf.int = TRUE,
+ggscatter(PCA.merged, x="PC1.gen", y="PC2.expr", add="reg.line", conf.int = TRUE,
           color="white", 
           add.params = list(color = "gray50", fill = "gray70")) + 
     ggtitle("Genetic PC1 ~ Expression (all genes) PC3 Axes") + 
@@ -676,7 +676,7 @@ ggscatter(PCA.merged, x="PC1.gen", y="PC3.expr", add="reg.line", conf.int = TRUE
   geom_point(aes(col=Treatment), alpha=0.85, size=1.8)
 
 # Modestly sign. correlation
-ggscatter(PCA.merged, x="PC2.gen", y="PC3.expr", add="reg.line", conf.int = TRUE,
+ggscatter(PCA.merged, x="PC3.gen", y="PC2.expr", add="reg.line", conf.int = TRUE,
           color="white", 
           add.params = list(color = "gray50", fill = "gray70")) + 
     ggtitle("Genetic PC2 ~ Expression (all genes) PC3 Axes") + 
@@ -821,7 +821,7 @@ barplot(myMiss, las = 2, cex.names = .5)
 title(ylab = "Sample Missingness (%)")
 ```
 ```{r}
-extract.gt(vcf)
+#extract.gt(vcf)
 ```
 
 
@@ -882,8 +882,10 @@ ggplot(dpf.n, aes(x=Treatment, y=Depth)) +
 
 ```{r}
 # Use vcfR to generate a dataframe with snp location information. Also generates a ton of other info 
-(snps.map <- genetic_diff(vcf, pops = as.factor(sample.info.vcf$Treatment), method = 'nei') %>% 
-  mutate(POS=as.numeric(POS)) %>% mutate(start=POS-1, end=POS+1) %>% rename("CHROM"="chrom"))
+snps.map <- genetic_diff(vcf, pops = as.factor(sample.info.vcf$Treatment), method = 'nei') %>% 
+  mutate(POS=as.numeric(POS)) %>% mutate(start=POS-1, end=POS+1) %>% rename("CHROM"="chrom")
+
+snps.map %>% head()
 ```
 
 ### Annotate SNPs by looking for intersection among SNPs and genes - there are 286 (20% miss) 736 (25% miss) SNPSs located within gene coding regions
@@ -946,7 +948,7 @@ snpset.4Colony <- snpgdsLDpruning(genofile, maf=.20, missing.rate=.20, autosome.
 snpset.id.4Colony <- unlist(unname(snpset.4Colony))
 snpgdsCreateGenoSet(src.fn="../results/genotype/genotypes.gds",
                     dest.fn="../results/genotype/colony/genotypes-4Colony.gds",
-                    snp.id=snpset.id.4Colony)
+                    snp.id=snpset.id.4Colony, verbose = FALSE)
 ```
 
 ## Recode genotypes for Colony 
