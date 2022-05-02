@@ -5,9 +5,16 @@ date: "3/22/2022"
 output: html_document
 ---
 
+```{r}
+require(ggpubr)
+require(tidyverse)
+```
+
 In this notebook I use GO_MWU to perform a gene ontology enrichment analysis for gene sets of interest, which include 1) Differentially expressed genes (DEGs) derived from DESeq2, and 2) Modules of genes associated with pH, derived from WGCNA. The input files for each of the gene sets were generated in the DESeq2 and WGCNA notebooks. 
 
 This notebook contains code from the GO_MWU program. 
+
+# NOTE: in dendrograms, RED=upregulated, BLUE=downregulated 
 
 ```{r}
 setwd("~/red-king_RNASeq-2022/results/GO_MWU")
@@ -227,58 +234,77 @@ error=function(e){cat("ERROR:", conditionMessage(e), "\n")})
 ```
 
 # pH-associated modules 
+```{r}
+load(file="../wgcna/modules")
+modules
+```
+
 
 This is the list of modules that are associated with pH 
 ```{r}
 load(file = "../wgcna/module.lineplots") #load lineplots to plot alongside enrichment to aid in interpretation 
 ```
 
-## Module == Brown 
+## Module == `modules[[1]]`
+
 ```{r}
-module.lineplots[["brown"]]
-go.mwu.wgcna(module = "brown", color = "darkgoldenrod4")
+module.lineplots[[1]]
+
+go.mwu.wgcna(module = modules[[1]], color = modules[[1]])
+#go.mwu.wgcna(module = "brown", color = "darkgoldenrod4")
 ```
 
 ## Module == Pink 
+## Module == `modules[[2]]`
 
 ```{r}
-module.lineplots[["pink"]]
-go.mwu.wgcna(module = "pink", color = "pink")
+module.lineplots[[2]]
+#module.lineplots[["pink"]]
+
+go.mwu.wgcna(module = modules[[2]], color = modules[[2]])
 ```
 
 ## Module == red 
+## Module == `modules[[3]]`
 
 ```{r}
-module.lineplots[["red"]]
-go.mwu.wgcna(module="red", color="red")
+module.lineplots[[3]]
+
+go.mwu.wgcna(module=modules[[3]], modules[[3]])
 ```
 
 ## Module == cyan 
+## Module == `modules[[4]]`
 
 ```{r}
-module.lineplots[["cyan"]]
-go.mwu.wgcna(module="cyan", color="cyan4")
+#module.lineplots[["cyan"]]
+module.lineplots[[4]]
+go.mwu.wgcna(module=modules[[4]], color=modules[[4]])
 ```
 
 ## Module == green 
+## Module == `modules[[5]]`
 
 ```{r}
-module.lineplots[["green"]]
-go.mwu.wgcna(module="green", color="green")
+#module.lineplots[["green"]]
+module.lineplots[[5]]
+go.mwu.wgcna(module=modules[[5]], color=modules[[5]])
 ```
 
 ## Module == darkgreen 
+## Module == `modules[[6]]`
 
 ```{r}
-module.lineplots[["darkgreen"]]
-go.mwu.wgcna(module="darkgreen", color="darkgreen")
+module.lineplots[[6]]
+go.mwu.wgcna(module=modules[[6]], color=modules[[6]])
 ```
 
 ## Module == lightcyan1 
+## Module == `modules[[7]]`
 
 ```{r}
-module.lineplots[["lightcyan1"]]
-go.mwu.wgcna(module="lightcyan1", color="lightcyan1")
+#module.lineplots[[7]]
+#go.mwu.wgcna(module=modules[[7]], color=modules[[7]])
 ```
 
 ## WGCNA modules that increase or decrease in moderate compared to ambient & low 
@@ -294,8 +320,8 @@ load(file = "../wgcna/modules.all.lineplots")
 Lower in moderate OA
 
 ```{r}
-modules.all.lineplots[["mediumpurple3"]]
-go.mwu.wgcna(module="mediumpurple3", color="mediumpurple3")
+# modules.all.lineplots[["mediumpurple3"]]
+# go.mwu.wgcna(module="mediumpurple3", color="mediumpurple3")
 ```
 
 ## Module == saddlebrown 
@@ -303,13 +329,384 @@ go.mwu.wgcna(module="mediumpurple3", color="mediumpurple3")
 Higher in moderate OA 
 
 ```{r}
-modules.all.lineplots[["saddlebrown"]]
-go.mwu.wgcna(module="saddlebrown", color="saddlebrown")
+# modules.all.lineplots[["saddlebrown"]]
+# go.mwu.wgcna(module="saddlebrown", color="saddlebrown")
 ```
 
-# Look at specific GO terms and associated genes 
+# Import GO_MWU results spreadsheets 
+```{r}
+read_delim(file="MWU_BP_WGCNA-module_cyan.csv",delim = " ") %>% mutate(module="cyan") %>% filter(p.adj<0.05)
+```
+
+```{bash}
+## Remove files which list GO_MWU results filenames if they already exist  
+rm BP_filenames.txt
+rm MF_filenames.txt
+rm CC_filenames.txt
+
+for file in MWU_BP*
+do
+filename="$(echo $file)"
+sample="$(basename -a $filename | cut -d "_" -f 4  | cut -d "." -f 1)"
+printf "%s\t%s\n" "$filename" "$sample" >> BP_filenames.txt
+done
+
+# Molecular functions results 
+for file in MWU_MF*
+do
+filename="$(echo $file)"
+sample="$(basename -a $filename | cut -d "_" -f 4  | cut -d "." -f 1)"
+printf "%s\t%s\n" "$filename" "$sample" >> MF_filenames.txt
+done
+
+# Cellular components results 
+for file in MWU_CC*
+do
+filename="$(echo $file)"
+sample="$(basename -a $filename | cut -d "_" -f 4  | cut -d "." -f 1)"
+printf "%s\t%s\n" "$filename" "$sample" >> CC_filenames.txt
+done
+```
+
+
+## Read in enriched Biological Processes 
 
 ```{r}
+filenames <- read_delim(file="BP_filenames.txt", col_names = c("filename", "gene_set"))
+files <- file.path(filenames$filename) #extract vector of filenames 
+all(file.exists(files)) #easy code to check that all files exist! 
+
+file_list <- vector(mode = "list", length = nrow(filenames))
+names(file_list) <- c(filenames$gene_set)
+
+for (i in 1:nrow(filenames)) {
+    file_list[[i]] <- data.frame(read_delim(file=files[i], delim = " "))}
+
+(gene_sets.BP <- bind_rows(file_list, .id = "gene_set") %>% filter(p.adj<0.05) %>%  # Bind dataframe for each gene_set together
+    mutate(category=as.factor("Biological Processes")) %>%  #add column designating go category 
+    mutate(gene_set=factor(gene_set, levels=c("amb-mod", "amb-low", "mod-low", modules))) %>% #Convert gene_set column to factor, define all gene_sets 
+    complete(gene_set, category) %>% # add rows for gene_sets that are missing from dataframe
+
+    # Create new column that identifies which treatment is upregulated in each DEG contrast (doesn't apply for WGCNA modules)
+    mutate(deg_up = case_when((gene_set == "amb-mod" & delta.rank < 0) ~ "Ambient",
+                                      (gene_set == "amb-mod" & delta.rank > 0) ~ "Moderate",
+                                        (gene_set == "amb-low" & delta.rank < 0) ~ "Ambient",
+                                        (gene_set == "amb-low" & delta.rank > 0) ~ "Low",
+                                        (gene_set == "mod-low" & delta.rank < 0) ~ "Moderate",
+                                        (gene_set == "mod-low" & delta.rank > 0) ~ "Moderate")))  
 
 ```
 
+## Read in enriched Molecular Functions
+
+```{r}
+filenames <- read_delim(file="MF_filenames.txt", col_names = c("filename", "gene_set"))
+files <- file.path(filenames$filename) #extract vector of filenames 
+all(file.exists(files)) #easy code to check that all files exist! 
+
+file_list <- vector(mode = "list", length = nrow(filenames))
+names(file_list) <- c(filenames$gene_set)
+
+for (i in 1:nrow(filenames)) {
+    file_list[[i]] <- data.frame(read_delim(file=files[i], delim = " "))}
+
+(gene_sets.MF <- bind_rows(file_list, .id = "gene_set") %>% filter(p.adj<0.05) %>%  # Bind dataframe for each gene_set together
+    mutate(category=as.factor("Molecular Functions")) %>%  #add column designating go category 
+    mutate(gene_set=factor(gene_set, levels=c("amb-mod", "amb-low", "mod-low", modules))) %>% #Convert gene_set column to factor, define all gene_sets 
+    complete(gene_set, category) %>% # add rows for gene_sets that are missing from dataframe
+
+    # Create new column that identifies which treatment is upregulated in each DEG contrast (doesn't apply for WGCNA modules)
+    mutate(deg_up = case_when((gene_set == "amb-mod" & delta.rank < 0) ~ "Ambient",
+                                      (gene_set == "amb-mod" & delta.rank > 0) ~ "Moderate",
+                                        (gene_set == "amb-low" & delta.rank < 0) ~ "Ambient",
+                                        (gene_set == "amb-low" & delta.rank > 0) ~ "Low",
+                                        (gene_set == "mod-low" & delta.rank < 0) ~ "Moderate",
+                                        (gene_set == "mod-low" & delta.rank > 0) ~ "Moderate")))  
+```
+
+## Read in enriched Cellular Componenets  
+
+```{r}
+filenames <- read_delim(file="CC_filenames.txt", col_names = c("filename", "gene_set"))
+files <- file.path(filenames$filename) #extract vector of filenames 
+all(file.exists(files)) #easy code to check that all files exist! 
+
+file_list <- vector(mode = "list", length = nrow(filenames))
+names(file_list) <- c(filenames$gene_set)
+
+for (i in 1:nrow(filenames)) {
+    file_list[[i]] <- data.frame(read_delim(file=files[i], delim = " "))}
+
+(gene_sets.CC <- bind_rows(file_list, .id = "gene_set") %>% filter(p.adj<0.05) %>%  # Bind dataframe for each gene_set together
+    mutate(category=as.factor("Cellular Components")) %>%  #add column designating go category 
+    mutate(gene_set=factor(gene_set, levels=c("amb-mod", "amb-low", "mod-low", modules))) %>% #Convert gene_set column to factor, define all gene_sets 
+complete(gene_set, category) %>% # add rows for gene_sets that are missing from dataframe
+
+    # Create new column that identifies which treatment is upregulated in each DEG contrast (doesn't apply for WGCNA modules)
+    mutate(deg_up = case_when((gene_set == "amb-mod" & delta.rank < 0) ~ "Ambient",
+                                      (gene_set == "amb-mod" & delta.rank > 0) ~ "Moderate",
+                                        (gene_set == "amb-low" & delta.rank < 0) ~ "Ambient",
+                                        (gene_set == "amb-low" & delta.rank > 0) ~ "Low",
+                                        (gene_set == "mod-low" & delta.rank < 0) ~ "Moderate",
+                                        (gene_set == "mod-low" & delta.rank > 0) ~ "Moderate")))  
+```
+
+## Bubble plot- enriched Biological Processes by module 
+
+TO DO:  Figure out how to denote which processes are UPREGULATED and DOWNREGULATED in the DEG contrasts 
+The column "delta-rank" denotes the up/down for those contrasts (it is zero for WGCNA modules)
+
+```{r}
+# Plot enriched Biological Processes 
+pdf(file="Enriched_BP.pdf", height = 7, width = 7.5)
+ggplot(gene_sets.BP, aes(y=str_wrap(name),x=gene_set, col=gene_set)) + 
+  geom_point(aes(alpha=p.adj,size=nseqs))+
+ facet_wrap(~category,scales="free", nrow = 2) +
+  scale_alpha("FDR-adjusted\nP-value", range = c(1,0.3), 
+              breaks = c(.25, .5, .75, 1), guide = guide_legend(override.aes = list(size=4))) + 
+  scale_size("Gene count", range = c(3,8), #breaks = c(2, 5, 10), 
+             guide = guide_legend(override.aes = list(col="gray50"))) + 
+  scale_color_manual(name="Gene Set", values=c("blue", "purple", "red", modules),
+             guide = guide_legend(override.aes = list(size=4))) +
+  scale_x_discrete(drop=FALSE) +
+  theme_cleveland() + 
+  theme(axis.title.x=element_blank(), 
+        axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1), 
+        #axis.ticks.x = element_blank(), 
+        legend.position = "right", axis.text.y=element_text(size=7.25), 
+        plot.title = element_text(size=10)) +
+  ylab("Enriched Gene Ontology (GO) Term") + 
+  ggtitle("Enriched Biological Processes in gene sets") +
+  geom_vline(xintercept = c(3.5), colour="gray50", linetype="dashed") #+
+  # geom_vline(xintercept = c(1.5,2.5,3.5,4.5,5.5,7.5), colour="gray50", linetype="dashed") 
+  # annotate("text", x = 1.4, y = -.75, label = "Dabob Bay\nvs. Fidalgo Bay", size=2.8, col="gray15") +  
+  # annotate("text", x = 3.5, y = -.75, label = "Dabob Bay\nvs. Oyster Bay", size=2.8, col="gray15") +  
+  # annotate("text", x = 5.6, y = -.75, label = "Fidalgo Bay\nvs. Oyster Bay", size=2.8, col="gray15") +  
+  # coord_cartesian(clip = "off", ylim = c(-1.75, 63.5))
+dev.off()
+```
+TO DO:  Figure out how to denote which processes are UPREGULATED and DOWNREGULATED in the DEG contrasts 
+
+```{r}
+# Plot enriched Molecular Functions
+pdf(file="Enriched_MF.pdf", height = 14, width = 7.5)
+ggplot(gene_sets.MF, aes(y=str_wrap(name),x=gene_set, col=gene_set)) + 
+  geom_point(aes(alpha=p.adj,size=nseqs))+
+ facet_wrap(~category,scales="free", nrow = 2) +
+  scale_alpha("FDR-adjusted\nP-value", range = c(1,0.3), 
+              breaks = c(.25, .5, .75, 1), guide = guide_legend(override.aes = list(size=4))) + 
+  scale_size("Gene count", range = c(3,8), #breaks = c(2, 5, 10), 
+             guide = guide_legend(override.aes = list(col="gray50"))) + 
+  scale_color_manual(name="Gene Set", values=c("blue", "purple", "red", modules),
+             guide = guide_legend(override.aes = list(size=4))) +
+  scale_x_discrete(drop=FALSE) +
+  theme_cleveland() + 
+  theme(axis.title.x=element_blank(), 
+        axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1), 
+        #axis.ticks.x = element_blank(), 
+        legend.position = "right", axis.text.y=element_text(size=7.25), 
+        plot.title = element_text(size=10)) +
+  ylab("Enriched Gene Ontology (GO) Term") + 
+  ggtitle("Enriched Molecular Functions in gene sets") +
+  geom_vline(xintercept = c(3.5), colour="gray50", linetype="dashed") #+
+  # geom_vline(xintercept = c(1.5,2.5,3.5,4.5,5.5,7.5), colour="gray50", linetype="dashed") 
+  # annotate("text", x = 1.4, y = -.75, label = "Dabob Bay\nvs. Fidalgo Bay", size=2.8, col="gray15") +  
+  # annotate("text", x = 3.5, y = -.75, label = "Dabob Bay\nvs. Oyster Bay", size=2.8, col="gray15") +  
+  # annotate("text", x = 5.6, y = -.75, label = "Fidalgo Bay\nvs. Oyster Bay", size=2.8, col="gray15") +  
+  # coord_cartesian(clip = "off", ylim = c(-1.75, 63.5))
+dev.off()
+```
+TO DO:  Figure out how to denote which processes are UPREGULATED and DOWNREGULATED in the DEG contrasts 
+
+```{r}
+# Plot enriched Cellular Components
+pdf(file="Enriched_CC.pdf", height = 4.5, width = 5.5)
+
+ggplot(gene_sets.CC, aes(y=str_wrap(name),x=gene_set, col=gene_set)) + 
+  geom_point(aes(alpha=p.adj,size=nseqs))+
+ facet_wrap(~category,scales="free", nrow = 2) +
+  scale_alpha("FDR-adjusted\nP-value", range = c(1,0.3), 
+              breaks = c(.25, .5, .75, 1), guide = guide_legend(override.aes = list(size=4))) + 
+  scale_size("Gene count", range = c(3,8), #breaks = c(2, 5, 10), 
+             guide = guide_legend(override.aes = list(col="gray50"))) + 
+  scale_color_manual(name="Gene Set", values=c("blue", "purple", "red", modules),
+             guide = guide_legend(override.aes = list(size=4))) +
+  scale_x_discrete(drop=FALSE) +
+  theme_cleveland() + 
+  theme(axis.title.x=element_blank(), 
+        axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1), 
+        #axis.ticks.x = element_blank(), 
+        legend.position = "right", axis.text.y=element_text(size=7.25), 
+        plot.title = element_text(size=10)) +
+  ylab("Enriched Gene Ontology (GO) Term") + 
+  ggtitle("Enriched Cellular Componenets in gene sets") +
+  geom_vline(xintercept = c(3.5), colour="gray50", linetype="dashed") #+
+  # geom_vline(xintercept = c(1.5,2.5,3.5,4.5,5.5,7.5), colour="gray50", linetype="dashed") 
+  # annotate("text", x = 1.4, y = -.75, label = "Dabob Bay\nvs. Fidalgo Bay", size=2.8, col="gray15") +  
+  # annotate("text", x = 3.5, y = -.75, label = "Dabob Bay\nvs. Oyster Bay", size=2.8, col="gray15") +  
+  # annotate("text", x = 5.6, y = -.75, label = "Fidalgo Bay\nvs. Oyster Bay", size=2.8, col="gray15") +  
+  # coord_cartesian(clip = "off", ylim = c(-1.75, 63.5))
+dev.off()
+```
+
+## ONLY WGCNA bubble plots 
+
+```{r}
+# Biological Processes
+ggplot(gene_sets.BP %>% filter(gene_set %in% modules) %>% droplevels(), aes(y=str_wrap(name),x=gene_set, col=gene_set)) + 
+  geom_point(aes(alpha=p.adj,size=nseqs))+
+ facet_wrap(~category,scales="free", nrow = 2) +
+  scale_alpha("FDR-adjusted\nP-value", range = c(1,0.3), 
+              breaks = c(.25, .5, .75, 1), guide = guide_legend(override.aes = list(size=4))) + 
+  scale_size("Gene count", range = c(3,8), #breaks = c(2, 5, 10), 
+             guide = guide_legend(override.aes = list(col="gray50"))) + 
+  scale_color_manual(name="Gene Set", values=modules,
+             guide = guide_legend(override.aes = list(size=4))) +
+  scale_x_discrete(drop=FALSE) +
+  theme_cleveland() + 
+  theme(axis.title.x=element_blank(), 
+        axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1), 
+        #axis.ticks.x = element_blank(), 
+        legend.position = "right", axis.text.y=element_text(size=7.25), 
+        plot.title = element_text(size=10)) +
+  ylab("Enriched Gene Ontology (GO) Term") + 
+  ggtitle("Enriched Biological Processes in gene sets")
+
+# Molecular Functions 
+ggplot(gene_sets.MF %>% filter(gene_set %in% modules) %>% droplevels(), aes(y=str_wrap(name),x=gene_set, col=gene_set)) + 
+  geom_point(aes(alpha=p.adj,size=nseqs))+
+ facet_wrap(~category,scales="free", nrow = 2) +
+  scale_alpha("FDR-adjusted\nP-value", range = c(1,0.3), 
+              breaks = c(.25, .5, .75, 1), guide = guide_legend(override.aes = list(size=4))) + 
+  scale_size("Gene count", range = c(3,8), #breaks = c(2, 5, 10), 
+             guide = guide_legend(override.aes = list(col="gray50"))) + 
+  scale_color_manual(name="Gene Set", values=modules,
+             guide = guide_legend(override.aes = list(size=4))) +
+  scale_x_discrete(drop=FALSE) +
+  theme_cleveland() + 
+  theme(axis.title.x=element_blank(), 
+        axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1), 
+        #axis.ticks.x = element_blank(), 
+        legend.position = "right", axis.text.y=element_text(size=7.25), 
+        plot.title = element_text(size=10)) +
+  ylab("Enriched Gene Ontology (GO) Term") + 
+  ggtitle("Enriched Molecular Functions in gene sets")
+
+# Cellular components
+ggplot(gene_sets.CC %>% filter(gene_set %in% modules) %>% droplevels(), aes(y=str_wrap(name),x=gene_set, col=gene_set)) + 
+  geom_point(aes(alpha=p.adj,size=nseqs))+
+ facet_wrap(~category,scales="free", nrow = 2) +
+  scale_alpha("FDR-adjusted\nP-value", range = c(1,0.3), 
+              breaks = c(.25, .5, .75, 1), guide = guide_legend(override.aes = list(size=4))) + 
+  scale_size("Gene count", range = c(3,8), #breaks = c(2, 5, 10), 
+             guide = guide_legend(override.aes = list(col="gray50"))) + 
+  scale_color_manual(name="Gene Set", values=modules,
+             guide = guide_legend(override.aes = list(size=4))) +
+  scale_x_discrete(drop=FALSE) +
+  theme_cleveland() + 
+  theme(axis.title.x=element_blank(), 
+        axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1), 
+        #axis.ticks.x = element_blank(), 
+        legend.position = "right", axis.text.y=element_text(size=7.25), 
+        plot.title = element_text(size=10)) +
+  ylab("Enriched Gene Ontology (GO) Term") + 
+  ggtitle("Enriched Cellular Componenets in gene sets")
+```
+
+
+## ONLY DEG bubble plots 
+
+```{r}
+# Create function that is the oppositve of %in% 
+`%!in%` = Negate(`%in%`)
+
+# Biological Processes
+pdf(file="Enriched_BP_DEGs.pdf", height = 4.15, width = 5.5)
+ggplot(gene_sets.BP %>% filter(gene_set %!in% modules) %>% droplevels(), 
+       aes(y=str_wrap(name),x=gene_set, col=deg_up)) + 
+  geom_point(aes(alpha=p.adj, size=nseqs)) + #size=6,  
+ facet_wrap(~category,scales="free", nrow = 2) +
+  scale_color_manual(name="Upregulated", values=c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c"),
+             guide = guide_legend(override.aes = list(size=4))) +
+  scale_alpha("FDR-adjusted\nP-value", range = c(1,0.35), #breaks = c(0, .25, .5, .75, 1), 
+              guide = guide_legend(override.aes = list(size=4))) + 
+  scale_size("Gene count", range = c(3,8), #breaks = c(2, 5, 10),
+             guide = guide_legend(override.aes = list(col="gray50"))) +
+  scale_x_discrete(drop=FALSE) +
+  theme_cleveland() + 
+  theme(axis.title.x=element_blank(), 
+        axis.text.x = element_blank(), #element_text(angle = 90, vjust = 0.5, hjust=1), 
+        axis.ticks.x = element_blank(), 
+        legend.position = "right", 
+        axis.text.y=element_text(size=7.25), 
+        plot.title = element_text(size=10),
+        legend.text=element_text(size=6), 
+        legend.title = element_text(size=6)) +
+  ylab("Enriched Gene Ontology (GO) Term") + 
+  ggtitle(NULL) +
+  annotate("text", x = 1, y = -.25, label = "Ambient\nvs. Moderate", size=2, col="gray15") +  
+  annotate("text", x = 2, y = -.25, label = "Ambient\nvs. Low", size=2, col="gray15") +  
+  annotate("text", x = 3, y = -.25, label = "Moderate\nvs. Low", size=2, col="gray15") +  
+  coord_cartesian(clip = "off", ylim = c(-0.5, 16.25))
+dev.off()
+
+# Molecular Functions 
+pdf(file="Enriched_MF_DEGs.pdf", height = 13.5, width = 6.5)
+ggplot(gene_sets.MF %>% filter(gene_set %!in% modules) %>% droplevels(), 
+       aes(y=str_wrap(name),x=gene_set, col=deg_up)) + 
+  geom_point(aes(alpha=p.adj, size=nseqs)) + #size=6,  
+ facet_wrap(~category,scales="free", nrow = 2) +
+  scale_color_manual(name="Upregulated", values=c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c"),
+             guide = guide_legend(override.aes = list(size=4))) +
+  scale_alpha("FDR-adjusted\nP-value", range = c(1,0.35), #breaks = c(0, .25, .5, .75, 1), 
+              guide = guide_legend(override.aes = list(size=4))) + 
+  scale_size("Gene count", range = c(3,8), #breaks = c(2, 5, 10),
+             guide = guide_legend(override.aes = list(col="gray50"))) +
+  scale_x_discrete(drop=FALSE) +
+  theme_cleveland() + 
+  theme(axis.title.x=element_blank(), 
+        axis.text.x = element_blank(), #element_text(angle = 90, vjust = 0.5, hjust=1), 
+        axis.ticks.x = element_blank(), 
+        legend.position = "right", 
+        axis.text.y=element_text(size=7.25), 
+        plot.title = element_text(size=10),
+        legend.text=element_text(size=6), 
+        legend.title = element_text(size=6)) +
+  ylab("Enriched Gene Ontology (GO) Term") + 
+  ggtitle(NULL) + 
+  annotate("text", x = 1, y = -.5, label = "Ambient\nvs. Moderate", size=2, col="gray15") +  
+  annotate("text", x = 2, y = -.5, label = "Ambient\nvs. Low", size=2, col="gray15") +  
+  annotate("text", x = 3, y = -.5, label = "Moderate\nvs. Low", size=2, col="gray15") +  
+  coord_cartesian(clip = "off", ylim = c(-1, 72))
+dev.off()
+
+# Cellular components
+pdf(file="Enriched_CC_DEGs.pdf", height = 3.25, width = 5)
+ggplot(gene_sets.CC %>% filter(gene_set %!in% modules) %>% droplevels(), 
+       aes(y=str_wrap(name),x=gene_set, col=deg_up)) + 
+  geom_point(aes(alpha=p.adj, size=nseqs)) + #size=6,  
+ facet_wrap(~category,scales="free", nrow = 2) +
+  scale_color_manual(name="Upregulated", values=c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c"),
+             guide = guide_legend(override.aes = list(size=4))) +
+  scale_alpha("FDR-adjusted\nP-value", range = c(1,0.35), #breaks = c(0, .25, .5, .75, 1), 
+              guide = guide_legend(override.aes = list(size=4))) + 
+  scale_size("Gene count", range = c(3,8), #breaks = c(2, 5, 10),
+             guide = guide_legend(override.aes = list(col="gray50"))) +
+  scale_x_discrete(drop=FALSE) +
+  theme_cleveland() + 
+  theme(axis.title.x=element_blank(), 
+        axis.text.x = element_blank(),  #element_text(angle = 90, vjust = 0.5, hjust=1), 
+        axis.ticks.x = element_blank(), 
+        legend.position = "right", 
+        axis.text.y=element_text(size=7.25), 
+        plot.title = element_text(size=10),
+        legend.text=element_text(size=6), 
+        legend.title = element_text(size=6)) +
+  ylab("Enriched Gene Ontology (GO) Term") + 
+  ggtitle(NULL) +
+  annotate("text", x = 1, y = -.05, label = "Ambient\nvs. Moderate", size=2, col="gray15") +  
+  annotate("text", x = 2, y = -.05, label = "Ambient\nvs. Low", size=2, col="gray15") +  
+  annotate("text", x = 3, y = -.05, label = "Moderate\nvs. Low", size=2, col="gray15") +  
+  coord_cartesian(clip = "off", ylim = c(-0.2, 9))
+dev.off()
+```

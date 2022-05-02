@@ -1,21 +1,21 @@
 #!/bin/bash
 
-#SBATCH --job-name=RNAseq-genotyping
-#SBATCH --output=/home/lspencer/2022-redking-OA/sbatch_logs/RNAseq-genotyping-testing.txt
+#SBATCH --job-name=RNAseq-genotyping-STAR
+#SBATCH --output=/home/lspencer/2022-redking-OA/sbatch_logs/RNAseq-genotyping-STAR.txt
 #SBATCH --mail-user=laura.spencer@noaa.gov
 #SBATCH --mail-type=ALL
 #SBATCH -c 20
-#SBATCH -t 10-0:0:0
+#SBATCH -t 30-0:0:0
 
 module load bio/gatk/4.2.0.0
 module load bio/samtools/1.11
 source /home/lspencer/venv/bin/activate
 
 REF=/home/lspencer/references/bluekingcrab
-#INPUT=/scratch/lspencer/2022-redking-OA/aligned/star #to use star aligned
-INPUT=/home/lspencer/2022-redking-OA/aligned/bowtie2-sorted/ #to use bowtie2 aligned
+INPUT=/scratch/lspencer/2022-redking-OA/aligned/star #to use star aligned
+#INPUT=/home/lspencer/2022-redking-OA/aligned/bowtie2-sorted/ #to use bowtie2 aligned
 #INPUT=/scratch/lspencer/2022-redking-OA/testing
-OUTPUT=/scratch/lspencer/2022-redking-OA/genotypes
+OUTPUT=/scratch/lspencer/2022-redking-OA/genotypes-star
 
 # Starting this pipeline with aligned and coordinate-sorted .bam files (STAR-aligned)
 
@@ -23,10 +23,13 @@ OUTPUT=/scratch/lspencer/2022-redking-OA/genotypes
 cd ${OUTPUT}
 
 # Deduplicate using picard (within gatk), output will have duplicates removed
-## use this code instead for star aligned data
-### for file in ${INPUT}/*.Aligned.sortedByCoord.out.bam
 echo "Deduplicating bams"
-for file in ${INPUT}/*.sorted.bam
+
+# Using STAR aligned
+for file in ${INPUT}/*.Aligned.sortedByCoord.out.bam
+
+# Using Bowtie2 aligned
+#for file in ${INPUT}/*.sorted.bam
 do
 sample="$(basename -a $file | cut -d "." -f 1)"
 
@@ -37,12 +40,12 @@ M="${OUTPUT}/$sample.dup_metrics.txt" \
 REMOVE_DUPLICATES=true
 done >> "${OUTPUT}/01_dedup_stout.txt" 2>&1
 
-# Create a FASTA sequence dictionary file for O.lurida genome (needed by gatk)
-echo "Creating sequence dictionary (.dict)"
-gatk CreateSequenceDictionary \
--R ${REF}/Paralithodes_platypus_genome.fasta \
--O ${REF}/Paralithodes_platypus_genome.dict \
- >> "${OUTPUT}/02-CreateSequenceDictionary.txt" 2>&1
+## Create a FASTA sequence dictionary file for genome (needed by gatk)
+#echo "Creating sequence dictionary (.dict)"
+#gatk CreateSequenceDictionary \
+#-R ${REF}/Paralithodes_platypus_genome.fasta \
+#-O ${REF}/Paralithodes_platypus_genome.dict \
+# >> "${OUTPUT}/02-CreateSequenceDictionary.txt" 2>&1
 
 # Split reads spanning splicing events
 echo "Splitting reads spanning splice junctions (SplitNCigarReads)"
@@ -88,6 +91,12 @@ do
 samtools index $file
 done >> "${OUTPUT}/05-index-bams.txt" 2>&1
 
+# create interval list (just a list of all contigs in genome)
+# This will be used in HaplotypeCaller and GenomicsDBImport to increase speed
+# Note: the intervals file requires a specific name - e.g. for .bed format, it MUST be "intervals.bed"
+echo "Creating intervals list"
+awk 'BEGIN {FS="\t"}; {print $1 FS "0" FS $2}' ${REF}/Paralithodes_platypus_genome.fasta.fai > intervals.bed
+
 # Call variants
 echo "Calling variants using HaplotypeCaller"
 for file in *dedup-split-RG.bam
@@ -98,6 +107,8 @@ gatk HaplotypeCaller \
 -R ${REF}/Paralithodes_platypus_genome.fasta \
 -I $sample.dedup-split-RG.bam \
 -O $sample.variants.g.vcf \
+-L intervals.bed \
+--native-pair-hmm-threads 20 \
 -ERC GVCF
 done >> "${OUTPUT}/06-HaplotypeCaller_stout.txt" 2>&1
 
@@ -110,10 +121,6 @@ sample="$(basename -a $file | cut -d "." -f 1)"
 echo -e "$sample\t$file" >> sample_map.txt
 done
 
-# create interval list (just a list of all contigs in genome)
-echo "Creating intervals list"
-awk 'BEGIN {FS="\t"}; {print $1 FS "0" FS $2}' ${REF}/Paralithodes_platypus_genome.fasta.fai > intervals.bed
-
 # Aggregate single-sample GVCFs into GenomicsDB
 # Note: the intervals file requires a specific name - e.g. for .bed format, it MUST be "intervals.bed"
 echo "Aggregating single-sample GVCFs into GenomicsDB"
@@ -122,7 +129,7 @@ gatk GenomicsDBImport \
 --genomicsdb-workspace-path GenomicsDB/ \
 -L intervals.bed \
 --sample-name-map sample_map.txt \
---reader-threads 40 >> "${OUTPUT}/07-GenomicsDBImport_stout.txt" 2>&1
+--reader-threads 20 >> "${OUTPUT}/07-GenomicsDBImport_stout.txt" 2>&1
 
 # Joint genotype
 echo "Joint genotyping"

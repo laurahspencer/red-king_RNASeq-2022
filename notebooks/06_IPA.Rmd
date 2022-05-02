@@ -14,6 +14,7 @@ ipa.in <- read.csv("../results/IPA/ipa_upload.w_ipa_mapping_gene.csv", na.string
 ipa.in %>% distinct() %>% nrow()
 ipa.in %>% nrow()
 
+View(ipa.in)
 # Filter to retain only unique, mapped genes
 ipa.filt <- ipa.in %>% distinct() %>%  #Remove identical rows
   filter(!is.na(Mapping)) %>%  #Remove genes that didn't map to a gene in IPA

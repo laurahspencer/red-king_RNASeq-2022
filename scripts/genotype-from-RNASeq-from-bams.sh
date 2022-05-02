@@ -5,17 +5,17 @@
 #SBATCH --mail-user=laura.spencer@noaa.gov
 #SBATCH --mail-type=ALL
 #SBATCH -c 20
-#SBATCH -t 14-0:0:0
+#SBATCH -t 21-0:0:0
 
 module load bio/gatk/4.2.0.0
 module load bio/samtools/1.11
 source /home/lspencer/venv/bin/activate
 
 REF=/home/lspencer/references/bluekingcrab
-#INPUT=/scratch/lspencer/2022-redking-OA/aligned/star #to use star aligned
-INPUT=/home/lspencer/2022-redking-OA/aligned/bowtie2-sorted/ #to use bowtie2 aligned
+INPUT=/home/lspencer/2022-redking-OA/aligned/star #to use star aligned
+#INPUT=/home/lspencer/2022-redking-OA/aligned/bowtie2-sorted/ #to use bowtie2 aligned
 #INPUT=/scratch/lspencer/2022-redking-OA/testing
-OUTPUT=/scratch/lspencer/2022-redking-OA/genotypes
+OUTPUT=/scratch/lspencer/2022-redking-OA/genotypes-star
 
 # Starting this pipeline with pre-processed bam files from upstream of the pipeline
 
@@ -28,11 +28,12 @@ for file in *dedup-split-RG.bam
 do
 sample="$(basename -a $file | cut -d "." -f 1)"
 
-gatk --java-options "-Xmx20g -XX:ParallelGCThreads=1" --spark-master local[2] \
-HaplotypeCaller \
+gatk HaplotypeCaller \
 -R ${REF}/Paralithodes_platypus_genome.fasta \
 -I $sample.dedup-split-RG.bam \
 -O $sample.variants.g.vcf \
+-L intervals.bed \
+--native-pair-hmm-threads 20 \
 -ERC GVCF
 done >> "${OUTPUT}/06-HaplotypeCaller_stout.txt" 2>&1
 
@@ -44,10 +45,6 @@ do
 sample="$(basename -a $file | cut -d "." -f 1)"
 echo -e "$sample\t$file" >> sample_map.txt
 done
-
-# create interval list (just a list of all contigs in genome)
-echo "Creating intervals list"
-awk 'BEGIN {FS="\t"}; {print $1 FS "0" FS $2}' ${REF}/Paralithodes_platypus_genome.fasta.fai > intervals.bed
 
 # Aggregate single-sample GVCFs into GenomicsDB
 # Note: the intervals file requires a specific name - e.g. for .bed format, it MUST be "intervals.bed"
