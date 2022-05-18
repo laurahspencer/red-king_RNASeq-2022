@@ -117,10 +117,10 @@ counts <- file_list %>% purrr::reduce(full_join, by = "gene") %>% column_to_rown
 ### Summarize counts and visualize (remove last column - that's undetermined counts)
 
 ```{r}
-print(paste("Number of samples:", ncol(counts %>% select(contains("Tank"))), sep=" "))
+print(paste("Number of samples:", ncol(counts %>% dplyr::select(contains("Tank"))), sep=" "))
 print(paste("Total number of genes in dataframe:", prettyNum(nrow(counts), big.mark = ","), sep=" "))
-print(paste("Average number of genes per sample:", prettyNum(mean(colSums(counts %>% select(contains("Tank")) != 0)), big.mark = ","), sep=" "))
-print(paste("Total counts, all samples:", prettyNum(sum(colSums(counts %>% select(contains("Tank")))), big.mark = ","), sep=" "))
+print(paste("Average number of genes per sample:", prettyNum(mean(colSums(counts %>% dplyr::select(contains("Tank")) != 0)), big.mark = ","), sep=" "))
+print(paste("Total counts, all samples:", prettyNum(sum(colSums(counts %>% dplyr::select(contains("Tank")))), big.mark = ","), sep=" "))
 #print(paste("Counts for", colnames(counts %>% select(contains("Tank"))), ":",  prettyNum(colSums(counts %>% select(contains("Tank"))), big.mark = ","), sep=" "))
 
 
