@@ -14,20 +14,20 @@
 module load aligners/bowtie2/2.4.2
 
 REF=/home/lspencer/references/redkingcrab
-IN=/home/lspencer/2022-redking-OA/trimmed
-OUT=/scratch/lspencer/2022-redking-OA/bowtie-rkc
+IN=/home/lspencer/2022-redking-OA/trimmed/v2
+OUT=/scratch/lspencer/2022-redking-OA/aligned/bowtie-rkc
 VER=2
 
 # Move to the directory containing red king crab genome.
 # Bowtie2 looks for index in current directory - easier just to be in it.
 cd ${REF}
 
-### Create bowtie2 index for blue king crab genome
-bowtie2-build \
---large-index \
---threads 20 \
--f Paralithodes.camtschaticus.genome.fasta \
-Paralithodes.camtschaticus.genome
+#### Create bowtie2 index for blue king crab genome
+#bowtie2-build \
+#--large-index \
+#--threads 20 \
+#-f Paralithodes.camtschaticus.genome.fasta \
+#Paralithodes.camtschaticus.genome
 
 # Run Bowtie2 over each RNASeq paired sample
 for file in ${IN}/*.trimmed.R1.v2.fastq.gz

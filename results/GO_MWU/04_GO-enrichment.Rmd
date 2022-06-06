@@ -25,6 +25,10 @@ setwd("~/red-king_RNASeq-2022/results/GO_MWU")
 ```
 
 ```{r}
+getwd()
+```
+
+```{r}
 goDatabase="go.obo" # download from http://www.geneontology.org/GO.downloads.ontology.shtml
 source("gomwu.functions.R")
 ```

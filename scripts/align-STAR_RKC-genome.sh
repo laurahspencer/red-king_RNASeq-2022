@@ -1,18 +1,18 @@
 #!/bin/bash
 
-#SBATCH --job-name=redking_align-STAR
-#SBATCH --output=/home/lspencer/2022-redking-OA/sbatch_logs/redking_STAR.txt
+#SBATCH --job-name=STAR
+#SBATCH --output=/home/lspencer/2022-redking-OA/sbatch_logs/align-STAR-rkc-genome.txt
 #SBATCH --mail-user=laura.spencer@noaa.gov
 #SBATCH --mail-type=ALL
-#SBATCH -c 20
+#SBATCH -p himem
+#SBATCH --mem=610GB
 #SBATCH -t 10-0:0:0
 
 module load aligners/star/2.7.10a
 
-BASE=/scratch/lspencer/2022-redking-OA
-REF=/home/lspencer/references/bluekingcrab
-IN=${BASE}/trimmed
-OUT=${BASE}/aligned/star
+REF=/home/lspencer/references/redkingcrab
+IN=/home/lspencer/2022-redking-OA/trimmed/v2
+OUT=/scratch/lspencer/2022-redking-OA/aligned/star-rkc
 
 # ========= Build STAR genome index
 # Use 20 threads, -runThreadN 20
@@ -27,9 +27,10 @@ OUT=${BASE}/aligned/star
 STAR \
 --runThreadN 20 \
 --runMode genomeGenerate \
---genomeDir ${REF}/STAR/ \
---genomeFastaFiles ${REF}/Paralithodes_platypus_genome.fasta \
---sjdbGTFfile ${REF}/EVM.out_new.gtf \
+--limitGenomeGenerateRAM 601057045429 \
+--genomeDir ${REF}/STAR \
+--genomeFastaFiles ${REF}/Paralithodes.camtschaticus.genome.fasta \
+--sjdbGTFfile ${REF}/Paralithodes.camtschaticus.genome.gtf \
 --sjdbOverhang 99 \
 done
 
@@ -48,12 +49,12 @@ do
 echo "Started mapping ${sample}"
 STAR \
 --runThreadN 20 \
---genomeDir ${REF}/STAR/ \
+--genomeDir ${REF}/STAR \
 --readFilesIn ${IN}/${sample}.trimmed.R1.v2.fastq.gz ${IN}/${sample}.trimmed.R2.v2.fastq.gz \
 --readFilesCommand gunzip -c \
 --outFilterMultimapNmax 50 \
 --outFileNamePrefix ${OUT}/${sample}. \
 --outSAMtype BAM SortedByCoordinate \
 --quantMode GeneCounts \
-&> ${OUT}/star.${sample}.log
+&> ${OUT}/star-rkc.${sample}.log
 done
