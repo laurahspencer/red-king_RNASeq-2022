@@ -127,10 +127,6 @@ for (i in 1:8) {
 LOO.stats[[i]] <- p  
 }
 LOO.stats
-
-#LOO.res[c(colnames(LOO.res[i]))]
-
-LOO.res %>% write_clip()
 ```
 
 
@@ -442,7 +438,8 @@ read_delim(file="../results/DAVID-Enriched-BP_Amb-Low_no-outlier-T7C4_consensus.
   mutate(GO = str_extract(Term, "GO(.*?)~")) %>% 
   mutate(GO = gsub("~", "", GO)) %>% dplyr::select(Term) %>% na.omit() %>% write_clip()
 ```
-# 
+
+# RANDOM CODE THAT WAS IMPORTANT TO MY DECISION MAKING (?)
 
 # Question - would any of the genes that I filter out due to low counts end up being DEGs?
 
@@ -460,6 +457,14 @@ setdiff(DEGs, keep) %>% length()
 DEGs[!(DEGs %in% keep)] %>% length()
 
 # ANSWER = NO. THE FILTERING STEP I USE DOES NOT THROW OUT ANY POTENTIAL DEGS. 
+```
+## Save DEG lists identified using Bowtie2 aligned data 
+
+```{r}
+res.pco2.Bowtie <- res.pco2.AM # save list of all genes in DESeq2 analysis regardless of p-value
+res.pco2.AM.Bowtie <- subset(res.pco2.AM, padj < 0.05)
+res.pco2.AL.Bowtie <- subset(res.pco2.AL, padj < 0.05)
+res.pco2.ML.Bowtie <- subset(res.pco2.ML, padj < 0.05)
 ```
 
 

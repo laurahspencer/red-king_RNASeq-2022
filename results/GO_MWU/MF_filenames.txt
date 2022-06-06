@@ -1,0 +1,9 @@
+MWU_MF_DEGs_amb-low.csv	amb-low
+MWU_MF_DEGs_amb-mod.csv	amb-mod
+MWU_MF_DEGs_mod-low.csv	mod-low
+MWU_MF_WGCNA-module_brown.csv	brown
+MWU_MF_WGCNA-module_cyan.csv	cyan
+MWU_MF_WGCNA-module_darkgreen.csv	darkgreen
+MWU_MF_WGCNA-module_green.csv	green
+MWU_MF_WGCNA-module_lightcyan1.csv	lightcyan1
+MWU_MF_WGCNA-module_pink.csv	pink

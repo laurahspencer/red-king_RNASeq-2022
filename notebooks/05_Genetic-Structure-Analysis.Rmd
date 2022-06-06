@@ -86,7 +86,7 @@ snpgdsSummary("../results/genotype/genotypes.gds")
 - Remove those that are missing from 20% or more of samples  
 
 ```{r}
-snpset <- snpgdsLDpruning(genofile, maf=.05, missing.rate=0.20, autosome.only=FALSE)
+snpset <- snpgdsLDpruning(genofile, maf=.05, missing.rate=0.15, autosome.only=FALSE)
 #snpset.id <- unlist(unname(snpset))
 snpset.id <- unlist(snpset)
 ```
@@ -363,12 +363,6 @@ plot(rv2$dendrogram, leaflab="none", main="HapMap Phase II")
 legend("bottom", legend=levels(group), col=1:nlevels(group), pch=19, ncol=3, cex=0.6, pt.cex=1)
 ```
 
-Genetic relationship matrix 
-
-```{r}
-
-```
-
 ## Allele frequencies 
 
 ```{r}
@@ -503,11 +497,11 @@ genofile.snpset.annot %>% filter(snp.id.snp %in% snps.fst)
 ibs <- snpgdsIBS(genofile, snp.id=snpset.id, num.thread=2, autosome.only=FALSE)
 pop.idx <- order(tab.annot.gen$Treatment)
 
-#par(xpd=TRUE)
-#heatmap(ibs$ibs, col=terrain.colors(16), labCol=TRUE, 
-#        RowSideColors=c("black","red","green","blue")[tab.annot.gen$pop_code])
-#legend(0,-.05, legend=levels(tab.annot.gen$pop_code), pch="o", col=1:nlevels(tab.annot.gen$pop_code), 
-#       text.col=1:nlevels(tab.annot.gen$pop_code), cex=.75, ncol=4)
+# par(xpd=TRUE)
+# heatmap(ibs$ibs, col=terrain.colors(16), labCol=TRUE,
+#        RowSideColors=c("black","red","green")[tab.annot.gen$Treatment])
+# legend(0.22,-.15, legend=levels(tab.annot.gen$Treatment), pch="o", col=1:nlevels(tab.annot.gen$Treatment),
+#       text.col=1:nlevels(tab.annot.gen$Treatment), cex=.75, ncol=4)
 
 #Perform multidimensional scaling analysis on the matrix of genome-wide IBS pairwise distances:
 loc <- cmdscale(1 - ibs$ibs, k = 2)
@@ -515,17 +509,19 @@ x <- loc[, 1]; y <- loc[, 2]
 
 plot(x, y, col=group, xlab = "", ylab = "",
     main = "Multidimensional Scaling Analysis (IBS)", cex=1.2, pch=16)
-#text(x, y+.01, labels=tab.annot.gen$sample.id, cex=0.4, font=2, col=as.integer(group))
-legend("topleft", legend=levels(group), pch="o", text.col=1:nlevels(group))
+#text(x, y+.01, labels=tab.annot.gen$sample.id, cex=0.6, font=2, col=as.integer(group))
+legend("topright", legend=levels(group), pch="o", text.col=1:nlevels(group))
 
-# # Identify crab in each cluster and add to annotation file 
-# tab.annot.gen <- tab.annot.gen %>% left_join(
-#   data.frame(x, y, sample=tab.annot.gen$sample.id) %>% 
-#   mutate(ibs.cluster=case_when(x < -0.1 ~ "left",
-#                    x > 0.1 ~"right",
-#                    x < 0.05 & x > -0.1 & y > -0.1 ~ "middle",
-#                    y < -0.1 ~ "bottom")) %>% select(sample, ibs.cluster),
-#   by=c("sample.id"="sample"))
+# Identify crab in each cluster and add to annotation file
+tab.annot.gen <- tab.annot.gen %>% left_join(
+  data.frame(x, y, sample=tab.annot.gen$sample.id) %>%
+  mutate(ibs.cluster=case_when(
+    x < -0.1 ~ "left",
+    x > 0.1 ~"right",
+    x < 0.05 & x > -0.1 & y < 0.1 ~ "middle",
+    y > 0.1 ~ "top")) %>% select(sample, ibs.cluster),
+  by=c("sample.id"="sample"))
+table(tab.annot.gen$ibs.cluster)
 ```
 
 ## Distribution of genetic covariance matrix 
@@ -810,7 +806,7 @@ I used [this tutorial](http://www.ddocent.com/filtering/) as an example.
 
 ```{r}
 # Load the data
-vcf <- read.vcfR("../results/genotype/rkc_rnaseq_genotypes-final_miss20.recode.vcf", verbose = FALSE )
+vcf <- read.vcfR("../results/genotype/rkc_rnaseq_genotypes-final_miss25.recode.vcf", verbose = FALSE )
 # It results in 1,429 SNPs, which does not match SNPRelate's number (1,355). Why? 
 
 # Quantify missing data for each sample 
@@ -840,7 +836,7 @@ myDiff <- genetic_diff(vcf, pops = sample.info.vcf$Treatment, method = 'nei')
 paste("No. SNPs included in this vcfR analysis ", nrow(myDiff), sep="")
 
 # Summarize diversity indices (mean)
-knitr::kable(round(colMeans(myDiff[,-1:-2], na.rm = TRUE), digits = 3))
+round(colMeans(myDiff[,-1:-2], na.rm = TRUE), digits = 3)
 ```
 
 # Heterozygosity by pH Treatment
@@ -888,22 +884,23 @@ snps.map <- genetic_diff(vcf, pops = as.factor(sample.info.vcf$Treatment), metho
 snps.map %>% head()
 ```
 
-### Annotate SNPs by looking for intersection among SNPs and genes - there are 286 (20% miss) 736 (25% miss) SNPSs located within gene coding regions
+### Annotate SNPs by looking for intersection among SNPs and genes - 736 (25% miss) SNPSs located within gene coding regions
 
 ```{r}
-(snps.annot <- bed_intersect(x=genes, y=snps.map %>% select(chrom, start, end), suffix = c(".gene", ".snp")) %>% 
+(snps.annot <- bed_intersect(x=genes, y=snps.map %>% select(chrom, POS, start, end), suffix = c(".gene", ".snp")) %>% 
+   mutate(snp.id=paste(chrom, POS.snp, sep="_")) %>% 
   left_join(P.plat.bestblast, by = c("geneID.gene"="id_gtf"))) #annotate genes containing SNPs 
 ```
 
-### 35 SNPs are located within genes that are differentially expressed among pH treatments 
+### 94 SNPs are located within genes that are differentially expressed among pH treatments 
 
 ```{r}
-snps.annot %>% 
+(snps.degs <- snps.annot %>% 
   filter(geneID.gene %in% 
-           unique(c(rownames(diffex.AM), rownames(diffex.AL), rownames(diffex.ML)))) # 94 SNPs located in DEGs
+           unique(c(rownames(diffex.AM), rownames(diffex.AL), rownames(diffex.ML)))))
 ```
 
-### 66 SNPs are located within genes associated with pH according to WGCNA
+### 192 SNPs are located within genes associated with pH according to WGCNA
 
 ```{r}
 load("../results/wgcna/geneInfo")
@@ -911,25 +908,43 @@ load(file="../results/wgcna/modules")
 load(file="../results/wgcna/modules.p")
 load(file="../results/wgcna/modules.cor")
 
-snps.annot %>% 
-  left_join(geneInfo %>% select(id, moduleColor, GS.pH, p.GS.pH, match(modules.cor,names(geneInfo)), match(modules.p,names(geneInfo))), by=c("geneID.gene"="id")) %>%
-  filter(p.GS.pH < 0.05) 
+(snps.wgcna.pH <- snps.annot %>% 
+  left_join(geneInfo %>% 
+              select(id, moduleColor, 
+                     #GS.pH, p.GS.pH, 
+                     GS.H_exp, p.GS.H_exp, 
+                     match(modules.cor,names(geneInfo)), 
+                     match(modules.p,names(geneInfo))), by=c("geneID.gene"="id")) %>%
+  #filter(p.GS.pH < 0.05)) 
+  filter(p.GS.H_exp < 0.05)) 
 ```
 
-### 133 SNPS are located within genes assigned to pH-associated modules from WGCNA
+### 369 SNPS are located within genes assigned to pH-associated modules from WGCNA
 
 ```{r}
-snps.annot %>% 
-  left_join(geneInfo %>% select(id, moduleColor, GS.pH, p.GS.pH, match(modules.cor,names(geneInfo)), match(modules.p,names(geneInfo))), by=c("geneID.gene"="id")) %>%
-  filter(moduleColor %in% modules)
+(snps.wgcna.module <- snps.annot %>% 
+  left_join(geneInfo %>% 
+              select(id, moduleColor, 
+                     #GS.pH, p.GS.pH, 
+                     GS.H_exp, p.GS.H_exp, 
+                     match(modules.cor,names(geneInfo)), 
+                     match(modules.p,names(geneInfo))), by=c("geneID.gene"="id")) %>%
+  filter(moduleColor %in% modules))
 ```
 
-### 50 SNPS are located within genes assigned to pH-associated modules from WGCNA _and_ are correlated with pH 
+### 140 SNPS are located within genes assigned to pH-associated modules from WGCNA _and_ are correlated with pH 
 
 ```{r}
-snps.annot %>% 
-  left_join(geneInfo %>% select(id, moduleColor, GS.pH, p.GS.pH, match(modules.cor,names(geneInfo)), match(modules.p,names(geneInfo))), by=c("geneID.gene"="id")) %>%
-  filter(moduleColor %in% modules) %>% filter(p.GS.pH < 0.05)
+(snps.wgcna.ph.module <- snps.annot %>% 
+  left_join(geneInfo %>% 
+              select(id, moduleColor, 
+                     #GS.pH, p.GS.pH, 
+                     GS.H_exp, p.GS.H_exp, 
+                     match(modules.cor,names(geneInfo)), 
+                     match(modules.p,names(geneInfo))), by=c("geneID.gene"="id")) %>%
+  filter(moduleColor %in% modules) %>% 
+   #filter(p.GS.pH < 0.05))
+   filter(p.GS.H_exp < 0.05))
 ```
 
 # Identify siblings using Colony 
@@ -1151,13 +1166,20 @@ colony.clusters %>% filter(offspring_id %in% nosibs) %>% group_by(Treatment) %>%
 ```
 
 
+# ----- OUTLIER SNP ANALYSIS ----------# 
+
 # Using PCAdapt to detect outlier loci 
+
+NOTE: Because PCAdapt uses PC eigenvalues to identify outliers, they are not likely different among pH treatments, but rather they differ among the PCA clusters. 
 
 ## Read in data 
 
 ```{r}
-path_to_file <- "../results/genotype/rkc_rnaseq_genotypes-final_miss20.recode.vcf"
+path_to_file <- "../results/genotype/rkc_rnaseq_genotypes-final_miss25.recode.vcf"
 filename <- read.pcadapt(path_to_file, type = "vcf")
+```
+```{bash}
+head "C:\Users\LAURA~1.SPE\AppData\Local\Temp\RtmpSInxz9\file23bd42af761a0.pcadapt"
 ```
 
 ### Create annotation vector
@@ -1244,8 +1266,9 @@ plot(x, option = "stat.distribution") + theme_minimal()
 ## Choosing a cutoff for outlier detection
 
 ### q-values
+
 ```{r}
-qval <- qvalue(x$pvalues)$qvalues
+qval <- qvalue::qvalue(x$pvalues)$qvalues
 alpha <- 0.1
 outliers <- which(qval < alpha)
 length(outliers)
@@ -1309,217 +1332,140 @@ snps.outlier %>%
   filter(moduleColor %in% modules)
 ```
 
-### Try to make a pretty Manhattan plot - CURRENTLY STUCK 
+# Identify outliers using Bayescan
+
+# IMPORTANT - LOOK AT FST VALUES TYPICAL TO SNPS GENERATED FROM RNASEQ DATA 
+
+Bayescan uses its own format for input files. Luckily there's a program that will convert a file in VCF format to Bayescan format, called [PGDspider](). Both Bayescan and PGDSpider are on Sedna, so I ran both programs via the slum script on Sedna, [bayescan.sh](../scripts/bayescan.sh). The input files include: 
+- VCF, filtered to a max missingness rate of 30%: [rkc_rnaseq_genotypes-final_miss20.recode.vcf](../results/genotype/rkc_rnaseq_genotypes-final_miss20.recode.vcf).  
+- .spid files with PGDSpider settings with 1) pH treatment as the "population" variable [pops-pH.spid](../results/genotype/pops-pH.spid), and 2) IBD cluster id as the "population" variable [pops-cluster.spid](../results/genotype/pops-cluster.spid). 
+- Sample ~ Population files, for each Bayescan run. I generate those here: 
 
 ```{r}
-snps.all <- data.frame(locus=extract.gt(vcf) %>% rownames()) %>% 
-  separate(locus, sep = "_", into = c("x", "y,", "chrom", "pos"), remove = FALSE) %>% 
-  select(locus, chrom, pos) %>% mutate(chrom=as.numeric(chrom), pos=as.numeric(pos))
+# define "population" as pH treatment groups 
+tab.annot.gen %>% select(sample.id, Treatment) %>% 
+  write_delim(file = "../results/genotype/pops.pH.txt", delim = "\t", col_names = F, quote = NULL)
 
-#manhattan_plot(x, chr.info = snps.all$chrom, snp.info = snps.all$locus) + theme_minimal()
-
-# install.packages("qqman")
-# require(qqman)
-# 
-# snps.all %>% cbind(x$pvalues)
-# nrow(snps.all)
-# length(x$pvalues)
-
+# define "population" using multidimensional scaling analysis clustering 
+tab.annot.gen %>% select(sample.id, ibs.cluster) %>% 
+  write_delim(file = "../results/genotype/pops.clust.txt", delim = "\t", col_names = F, quote = NULL)
 ```
 
-# Identifying outlier loci using R package OutFLANK 
+## Outlier SNPs identified by Bayescan, using pH as grouping/population variable 
 
-OutFLANK's code to use a VCF as input didn't work for me (resulted in all NA values instead of genotypes), so here I will manually generate the genotype matrix 
-
-## Generate genotype matrix from SNPRelate object 
-
-- **SNPRelate codes alleles this way:** "There are four possible values stored in the variable genotype: 0, 1, 2 and 3. For bi-allelic SNP sites, “0” indicates two B alleles, “1” indicates one A allele and one B allele, “2” indicates two A alleles, and “3” is a missing genotype. (When you) take out genotype data with sample and SNP IDs, and four possible values are returned 0, 1, 2 and NA (3 is replaced by NA).  
-
-- **OutFLANK codes alleles this way:** "SNPmat (the input matrix) is an array with a row for each individual in the data set and a column for each locus. This function assumes biallelic (i.e. SNP) data, and the value in each column is either 0, 1 or 2, showing the number of the focal alleles that the individual carries at that locus. (i.e., 2 means that the individual is a homozygote for the focal allele, 0, means that the individual has no copies of that focal allele, and 1 indicates a heterozygote.) For any locus that is unknown for an individual, SNPmat should have a 9 for that locus on that row." 
-
-# ```{r}
-# # Extract genotype matrix 
-# geno.matrix4outflank <- snpgdsGetGeno(gdsobj="../results/genotype/genotypes.gds", snp.id = snpset.id, with.id=TRUE)
-# 
-# paste("No. of SNPs for OutFlank analysis: ", ncol(geno.matrix4outflank$genotype), sep="") 
-# paste("No. of samples for OutFlank analysis: ", nrow(geno.matrix4outflank$genotype), sep="") 
-# 
-# # Replace SNPRelate numeric allele coding with character allele coding 
-# 
-# #SNPRelate: 
-# ### 0 =  Homozygous for B
-# ### 1 =  Heterozygous
-# ### 2 =  Homozygous for A
-# ### 3 =  Missing data 
-# 
-# #OutFLANK:
-# ### 0 =  No copies of focal allele
-# ### 1 =  Heterozygous
-# ### 2 =  Homozygous
-# ### 9 =  Missing data 
-# 
-# geno.matrix4outflank.recode <- geno.matrix4outflank$genotype %>% as_data_frame() %>% 
-#   mutate_all(function(x) {
-#     case_when(
-#       x == 0 ~ 2, 
-#       x == 1 ~ 1,
-#       x == 2 ~ 2,
-#       is.na(x) ~ 9)}) %>% 
-#   as.matrix() %>% unname()
-# 
-# # Spot check that recode worked 
-# data.frame(geno.matrix4outflank$genotype %>% as_data_frame() %>% select(V1) %>% as.vector(),
-# geno.matrix4outflank.recode %>% as_data_frame() %>% select(V1) %>% as.vector) %>% 
-#   rename("V1"="snprelate", "V1.1"="outflank")
-# # looks good 
-# 
-# rownames(geno.matrix4outflank.recode) <- rownames(geno.matrix4outflank)
-# ```
-
-## Generate genotype matrix using vcfR 
-
-The VCF specification allows for genotypes to be delimited with a '|' when they are phased and a '/' when unphased. Phased data has identified which one of the pair of chromosomes holds each allele, whereas unphased doesn't identify the chromosomes. 
-
-Since OutFLANK doesn't use phasing information, I will treat the genotype info with "|" and "\" delimiter as the same. 
-
-2 = homozygote for the focal allele (i.e. reference allele) 
-0 = no copies of that focal allele
-1 = heterozygote
-9 = locus is unknown for an individual
+RESULTS: no outlier loci identified between pH treatments using FDR<10%, two outlier with FDR=15%
 
 ```{r}
-# Load the data
-vcf <- read.vcfR("../results/genotype/rkc_rnaseq_genotypes-final_miss20.recode.vcf", verbose = FALSE )
+source("../scripts/Bayescan_plot_R.r")
+# Read in vcf to extract locus id/order 
+vcf.bay <- read.vcfR("../results/genotype/rkc_rnaseq_genotypes-final_miss25.recode.vcf", verbose = FALSE )
 
-# Extract genotype matrix 
-geno.matrix4outflank <- extract.gt(vcf) %>% as.data.frame()
-
-paste("No. of SNPs for OutFlank analysis: ", nrow(geno.matrix4outflank), sep="") 
-paste("No. of samples for OutFlank analysis: ", ncol(geno.matrix4outflank), sep="") 
+# Any outlier SNPs between pH treatment
+out.pH <- plot_bayescan("../results/genotype/bayescan/rkc_miss25_bayescan_outliers_pH_fst.txt",0, FDR=0.1, size = 1)
+out.pH.names <- rownames(extract.gt(vcf.bay))[out.pH$outliers] #chromosome 47 and 73
+snps.annot %>%filter(snp.id %in% rownames(extract.gt(vcf.bay))[out.pH$outliers])
 ```
+## Outlier SNPs identified by Bayescan, using IBD cluster as grouping/population variable 
 
-Here are all the genotype codes in my SNP set
+RESULTS: 23 outlier loci identified between clusters using FDR<10% (30 using FDR<15%), 7 of which reside in gene coding regions. 
 
 ```{r}
-as.matrix(geno.matrix4outflank) %>% table()
+source("../scripts/Bayescan_plot_R.r")
+out.clust <- plot_bayescan("../results/genotype/bayescan/rkc_miss25_bayescan_outliers_cluster_fst.txt",0, FDR=0.1, size = 1)
+out.clust.names <- rownames(extract.gt(vcf.bay))[out.clust$outliers]
+snps.annot %>%filter(snp.id %in% rownames(extract.gt(vcf.bay))[out.clust$outliers])
+
+### Cluster-ID'd outliers that are found withing a DEG - there are two, both in the same gene
+snps.annot %>%filter(snp.id %in% rownames(extract.gt(vcf.bay))[out.clust$outliers]) %>% 
+  filter(geneID.gene %in% snps.degs$geneID.gene) %>%
+  dplyr::select(chrom, POS.snp, geneID.gene, hit_desc, e_value)
+
+### Cluster-ID'd outliers that are located within genes associated with pH according to WGCNA - there is one
+snps.annot %>%filter(snp.id %in% rownames(extract.gt(vcf.bay))[out.clust$outliers]) %>% 
+  filter(geneID.gene %in% snps.wgcna.pH$geneID.gene) %>%
+  dplyr::select(chrom, POS.snp, geneID.gene, hit_desc, e_value)
+
+### Cluster-ID'd outliers that are located within genes assigned to pH-associated modules from WGCNA, there are two 
+snps.annot %>%filter(snp.id %in% rownames(extract.gt(vcf.bay))[out.clust$outliers]) %>% 
+  filter(geneID.gene %in% snps.wgcna.module$geneID.gene) %>%
+  dplyr::select(chrom, POS.snp, geneID.gene, hit_desc, e_value)
 ```
 
 ```{r}
-# Replace allele coding with:
+bayescan.clust <- data.frame(locus=rownames(extract.gt(vcf.bay))) %>% cbind(
+  read.table("../results/genotype/bayescan/rkc_miss25_bayescan_outliers_cluster_fst.txt", sep = "" , header = T,
+                     na.strings ="", stringsAsFactors= F)) %>% 
+  separate(locus, sep="_", into=c("na1", "na2", "chrom", "pos"), remove = FALSE) %>% select(-na1, -na2) %>%
+  mutate(chrom=as.numeric(chrom), pos=as.numeric(pos)) %>% arrange(chrom, locus) %>% mutate(X=seq(1:nrow(.))) %>%
+  mutate(interest=case_when(
+      locus %in% snps.degs$snp.id ~ "DEG",
+      locus %in% snps.wgcna.module$snp.id ~ "WGCNA",
+      TRUE ~ "not pH-associated")) %>%
+  left_join(snps.annot %>% dplyr::select(snp.id, hit_acc, hit_desc), by = c("locus"="snp.id")) %>%
+  mutate(protein=sub("\\[.*", "", hit_desc))
 
-#OutFLANK:
-### 0 =  No copies of focal allele
-### 1 =  Heterozygous
-### 2 =  Homozygous
-### 9 =  Missing data 
-
-geno.matrix4outflank.recode <- geno.matrix4outflank %>% 
-  mutate_all(function(x) {
-    case_when(
-      x == "0/0" ~ 2, # homozygous
-      x == "0/1" ~ 1, # heterozygous 
-      x == "0/2" ~ 1, # heterozygous
-      x == "0|0" ~ 2, # homozygous 
-      x == "0|1" ~ 1, # heterozygous
-      x == "0|2" ~ 1, # heterozygous       
-      x == "1/1" ~ 0, # no copies
-      x == "1/2" ~ 0, # no copies       
-      x == "1|1" ~ 0, # no copies 
-      x == "1|2" ~ 0, # no copies
-      x == "2/2" ~ 0, # no copies       
-      x == "2|2" ~ 0, # no copies
-      x == "3|3" ~ 0, # no copies        
-      is.na(x) ~ 9)}) %>% t() %>% as.data.frame() %>% 
-  mutate_if(is.numeric,as.integer)
-
-# And I now only have 0, 1, 2, and 9 in the new matrix 
-table(as.matrix(geno.matrix4outflank.recode))
-
-# I reviewed the new dataframe visually, and still saw some NA's! 
-
-geno.matrix4outflank.recode[is.na(geno.matrix4outflank.recode)]
+bayescan.pH <- data.frame(locus=rownames(extract.gt(vcf.bay))) %>% cbind(
+  read.table("../results/genotype/bayescan/rkc_miss25_bayescan_outliers_pH_fst.txt", sep = "" , header = T,
+                     na.strings ="", stringsAsFactors= F)) %>% 
+  separate(locus, sep="_", into=c("na1", "na2", "chrom", "pos"), remove = FALSE) %>% select(-na1, -na2) %>%
+  mutate(chrom=as.numeric(chrom), pos=as.numeric(pos)) %>% arrange(chrom, locus) %>% mutate(X=seq(1:nrow(.))) %>%
+  mutate(interest=case_when(
+      locus %in% snps.wgcna.module$snp.id ~ "WGCNA",
+      locus %in% snps.degs$snp.id ~ "DEG",
+      TRUE ~ "not pH-associated"))
 ```
-### Locus names 
+
+# Manhattan plot
 
 ```{r}
-colnames(geno.matrix4outflank.recode) %>% head()
-```
+#devtools::install_github("norment/normentR")
+library(normentR)
+library(janitor)
+#devtools::install_github("eliocamp/ggnewscale")
+library(ggnewscale)
+library(ggrepel)
 
-### Sample ids 
+axis_set <- bayescan.clust %>% 
+ group_by(chrom) %>% 
+ summarize(center = mean(X))
 
-#### Again, double check that my sample order is the same in the tab.annot.gen file as in the genofile (which I used to pull the genotype matrix from)
+axis_set3 <- bayescan.clust %>% 
+ group_by(chrom) %>% 
+ summarize(center = mean(X))
 
-```{r}
-# check to make sure samples are in the same order in my genotype matrix and the annotation object 
-all(rownames(geno.matrix4outflank.recode) == tab.annot.gen$sample.id) #yes, all=TRUE
+(manhplot1 <- ggplot(bayescan.clust, aes(x = X, y = fst, 
+                                  color = as_factor(chrom)),size=.05)  + 
+ ggtitle("Outliers identified among multivariate clusters")+
+ geom_point(alpha = 0.5,size=1.2) + theme(legend.position = "none") +
+ scale_x_continuous(label = axis_set$chrom, breaks = axis_set$center) +
+ #scale_y_continuous(expand = c(0,0), limits = c(0.0, 0.1)) +
+ scale_color_manual(values = rep(c("gray72", "grey30"), unique(length(axis_set$chrom))), guide="none") +
+ new_scale_color()+
+ geom_point(data=bayescan.clust %>% filter(locus %in% out.clust.names),
+            aes(x=X,y=fst,color = as_factor(interest)),size=2, alpha=0.5)+
+    geom_label_repel(data=bayescan.clust %>% filter(locus %in% out.clust.names),
+              aes(label=protein, x=X,y=fst,color = as_factor(interest)), 
+              box.padding = 0.8, size=2.5, show.legend = F)+
+ #scale_color_manual(values = rep(c("red", "darkred"), unique(length(axis_set3$chrom)))) +
+ scale_color_manual(values = c("DEG"="firebrick3", "WGCNA"="springgreen4", "not pH-associated"="royalblue3"), 
+                    name="Outlier loci within pH-associated genes:") +
+ #scale_size_continuous(range = c(0,3)) +
+ ylab(expression(paste("Average ", italic(F)[ST])))+
+ labs(x = "Chromosome",size=12) + 
+ theme_minimal() +
+ theme(
+  legend.position = "bottom",
+  panel.border = element_blank(),
+  panel.grid.major.x = element_blank(),
+  panel.grid.minor.x = element_blank(),
+  axis.text.x = element_text(angle = 0, size = 4, vjust = 9)
+ ) + 
+    guides(chrom="none", colour = guide_legend(override.aes = list(size=5))))
 
-# this will be my popNames vector 
-as.vector(tab.annot.gen$Treatment)
-```
-### Calculate variables required for OutFLANK() function
 
-```{r}
-outflank.loci <- colnames(geno.matrix4outflank.recode)
-outflank.pops <- as.vector(tab.annot.gen$Treatment)
-ncol(geno.matrix4outflank.recode) == length(outflank.loci)
-nrow(geno.matrix4outflank.recode) == length(outflank.pops)
-
-FstDataFrame <- MakeDiploidFSTMat(SNPmat = geno.matrix4outflank.recode, 
-                                  locusNames = outflank.loci, 
-                                  popNames = outflank.pops)
-
-
-```
-Check for loci with low sample sizes or unusual values of uncorrected FST
-
-I'm unsure what to do here - I have lots of missing data, indicated by higher uncorrected Fst relative to corrected Fst 
-
-```{r}
-plot(FstDataFrame$FST, FstDataFrame$FSTNoCorr, 
-     xlim=c(-0.01,0.3), ylim=c(-0.01,0.3),
-     pch=20)
-abline(0,1)
-```
-
-Check if FST distribution looks chi-squared distributed
-
-```{r}
-plot(FstDataFrame$He, FstDataFrame$FSTNoCorr, pch=20, col="grey")
-```
-Note how, when all loci are included, this doesn't look chi-square distributed 
-
-```{r}
-hist(FstDataFrame$FSTNoCorr, breaks=200)
-```
-
-Removing low Heterozygosity variants results in a more chi-square looking FST distribution
-
-Not for my data! 
-
-```{r}
-hist(FstDataFrame$FSTNoCorr[FstDataFrame$He>0.1], breaks=200)
-summary(FstDataFrame$He) #He is very high 
-```
-```{r}
-hist(FstDataFrame$FST, breaks=200)
-summary(FstDataFrame$FST)
 ```
 
 
-```{r}
-# Run outflank
-out1 <- OutFLANK(FstDataFrame, NumberOfSamples=43)
-
-# Visualize results
- OutFLANKResultsPlotter(out1, withOutliers = TRUE,
-NoCorr = TRUE, Hmin = 0.1, binwidth = 0.001, Zoom =
-FALSE, RightZoomFraction = 0.05, titletext = NULL)
- 
-hist(out1$results$pvaluesRightTail)
-
-sum(out1$results$qvalues<0.1, na.rm=TRUE) # how many outliers? 
-summary(out1$results$qvalues) #none! 
-```
 
 # Additional PCAs 
 
@@ -1703,4 +1649,266 @@ ggplot(tab.annot.gen.fst, aes(x=PC1.gen, y=PC2.gen)) +
   guides(colour = guide_legend(override.aes = list(size=3.5)))
 
 save(tab.annot.gen.fst, file="../results/genotype/tab.annot.gen.fst")
+```
+
+# Perform IBS clustering on each treatment separately to identify order for DEG heatmaps 
+
+```{r}
+# Ambient pH group
+ibs.amb <- snpgdsHCluster(snpgdsIBS(genofile, snp.id=snpset.id, num.thread=2, autosome.only=FALSE, 
+                                    sample.id = (sample.info %>% filter(Sample!="Tank_7_Crab_4") %>% 
+                                                   filter(Treatment=="Ambient"))$Sample))
+rv.amb <- snpgdsCutTree(ibs.amb)
+plot(rv.amb$dendrogram, leaflab="perpendicular", main="Ambient Treatment\nHapMap Phase II")
+gen.order.amb <- ibs.amb$sample.id[rv.amb$samp.order]
+
+# Moderate pH group
+ibs.mod <- snpgdsHCluster(snpgdsIBS(genofile, snp.id=snpset.id, num.thread=2, autosome.only=FALSE, 
+                                    sample.id = (sample.info %>% filter(Treatment=="Moderate"))$Sample))
+rv.mod <- snpgdsCutTree(ibs.mod)
+plot(rv.mod$dendrogram, leaflab="perpendicular", main="Ambient Treatment\nHapMap Phase II")
+gen.order.mod <- ibs.mod$sample.id[rv.mod$samp.order]
+
+# Low pH group 
+ibs.low <- snpgdsHCluster(snpgdsIBS(genofile, snp.id=snpset.id, num.thread=2, autosome.only=FALSE, 
+                                    sample.id = (sample.info %>% filter(Treatment=="Low"))$Sample))
+rv.low <- snpgdsCutTree(ibs.low)
+plot(rv.low$dendrogram, leaflab="perpendicular", main="Ambient Treatment\nHapMap Phase II")
+gen.order.low <- ibs.low$sample.id[rv.low$samp.order]
+```
+
+# Re-draw gene expression heatmaps, but order samples (columns) to match the order in each of the dendograms generated in previous chunk
+
+```{r}
+
+load(file = "../results/deseq2/diffex.AM.counts")
+load(file = "../results/deseq2/diffex.AL.counts")
+load(file = "../results/deseq2/diffex.ML.counts")
+
+
+pheatmap(diffex.AM.counts[,c(gen.order.amb, gen.order.mod)], cluster_cols = FALSE, cluster_rows=TRUE, 
+         show_rownames=FALSE, na.rm=TRUE, scale="row", 
+         main = "DEGs among pH 8.0 (ambient) & pH 7.8 (moderate)\nGenes (rows) sorted by p-value\nSamples (columns) sorted by genetic clustering",
+         fontsize = 8, cutree_rows = 2, 
+         annotation_colors = list(Treatment=c(Ambient="#2c7bb6", Moderate="#fdae61")),
+         annotation_col=dds.pH.df[colnames(diffex.AM.counts),"Treatment", drop=FALSE])
+
+pheatmap(diffex.AL.counts[,c(gen.order.amb, gen.order.low)], cluster_cols = FALSE, cluster_rows=TRUE, 
+         show_rownames=FALSE, na.rm=TRUE, scale="row", 
+         main = "DEGs among pH 8.0 (ambient) & pH 7.5 (low)\nGenes (rows) sorted by p-value\nSamples (columns) sorted by genetic clustering",
+         fontsize = 8, cutree_rows = 2,
+         annotation_colors = list(Treatment=c(Ambient="#2c7bb6", Low="#d7191c")),
+         annotation_col=dds.pH.df[colnames(diffex.AL.counts),"Treatment", drop=FALSE])
+
+pheatmap(diffex.ML.counts[,c(gen.order.mod, gen.order.low)], cluster_cols = FALSE, cluster_rows=TRUE, 
+         show_rownames=TRUE, na.rm=TRUE, scale="row", 
+         main = "DEGs among pH 7.8 (moderate) & pH 7.5 (low)\nGenes (rows) sorted by p-value\nSamples (columns) sorted by genetic clustering",
+         fontsize = 8, cutree_rows = 2, 
+         annotation_colors = list(Treatment=c(Moderate="#fdae61", Low="#d7191c")),
+         annotation_col=dds.pH.df[colnames(diffex.ML.counts),"Treatment", drop=FALSE])
+```
+
+
+# ----------------------------------------------------
+# Identifying outlier loci using R package OutFLANK 
+
+OutFLANK's code to use a VCF as input didn't work for me (resulted in all NA values instead of genotypes), so here I will manually generate the genotype matrix 
+
+## Generate genotype matrix from SNPRelate object 
+
+- **SNPRelate codes alleles this way:** "There are four possible values stored in the variable genotype: 0, 1, 2 and 3. For bi-allelic SNP sites, “0” indicates two B alleles, “1” indicates one A allele and one B allele, “2” indicates two A alleles, and “3” is a missing genotype. (When you) take out genotype data with sample and SNP IDs, and four possible values are returned 0, 1, 2 and NA (3 is replaced by NA).  
+
+- **OutFLANK codes alleles this way:** "SNPmat (the input matrix) is an array with a row for each individual in the data set and a column for each locus. This function assumes biallelic (i.e. SNP) data, and the value in each column is either 0, 1 or 2, showing the number of the focal alleles that the individual carries at that locus. (i.e., 2 means that the individual is a homozygote for the focal allele, 0, means that the individual has no copies of that focal allele, and 1 indicates a heterozygote.) For any locus that is unknown for an individual, SNPmat should have a 9 for that locus on that row." 
+
+# ```{r}
+# # Extract genotype matrix 
+# geno.matrix4outflank <- snpgdsGetGeno(gdsobj="../results/genotype/genotypes.gds", snp.id = snpset.id, with.id=TRUE)
+# 
+# paste("No. of SNPs for OutFlank analysis: ", ncol(geno.matrix4outflank$genotype), sep="") 
+# paste("No. of samples for OutFlank analysis: ", nrow(geno.matrix4outflank$genotype), sep="") 
+# 
+# # Replace SNPRelate numeric allele coding with character allele coding 
+# 
+# #SNPRelate: 
+# ### 0 =  Homozygous for B
+# ### 1 =  Heterozygous
+# ### 2 =  Homozygous for A
+# ### 3 =  Missing data 
+# 
+# #OutFLANK:
+# ### 0 =  No copies of focal allele
+# ### 1 =  Heterozygous
+# ### 2 =  Homozygous
+# ### 9 =  Missing data 
+# 
+# geno.matrix4outflank.recode <- geno.matrix4outflank$genotype %>% as_data_frame() %>% 
+#   mutate_all(function(x) {
+#     case_when(
+#       x == 0 ~ 2, 
+#       x == 1 ~ 1,
+#       x == 2 ~ 2,
+#       is.na(x) ~ 9)}) %>% 
+#   as.matrix() %>% unname()
+# 
+# # Spot check that recode worked 
+# data.frame(geno.matrix4outflank$genotype %>% as_data_frame() %>% select(V1) %>% as.vector(),
+# geno.matrix4outflank.recode %>% as_data_frame() %>% select(V1) %>% as.vector) %>% 
+#   rename("V1"="snprelate", "V1.1"="outflank")
+# # looks good 
+# 
+# rownames(geno.matrix4outflank.recode) <- rownames(geno.matrix4outflank)
+# ```
+
+## Generate genotype matrix using vcfR 
+
+The VCF specification allows for genotypes to be delimited with a '|' when they are phased and a '/' when unphased. Phased data has identified which one of the pair of chromosomes holds each allele, whereas unphased doesn't identify the chromosomes. 
+
+Since OutFLANK doesn't use phasing information, I will treat the genotype info with "|" and "\" delimiter as the same. 
+
+2 = homozygote for the focal allele (i.e. reference allele) 
+0 = no copies of that focal allele
+1 = heterozygote
+9 = locus is unknown for an individual
+
+```{r}
+# Load the data
+vcf <- read.vcfR("../results/genotype/rkc_rnaseq_genotypes-final_miss25.recode.vcf", verbose = FALSE )
+
+# Extract genotype matrix 
+geno.matrix4outflank <- extract.gt(vcf) %>% as.data.frame()
+
+paste("No. of SNPs for OutFlank analysis: ", nrow(geno.matrix4outflank), sep="") 
+paste("No. of samples for OutFlank analysis: ", ncol(geno.matrix4outflank), sep="") 
+```
+
+Here are all the genotype codes in my SNP set
+
+```{r}
+as.matrix(geno.matrix4outflank) %>% table()
+```
+
+```{r}
+# Replace allele coding with:
+
+#OutFLANK:
+### 0 =  No copies of focal allele
+### 1 =  Heterozygous
+### 2 =  Homozygous
+### 9 =  Missing data 
+
+geno.matrix4outflank.recode <- geno.matrix4outflank %>% 
+  mutate_all(function(x) {
+    case_when(
+      x == "0/0" ~ 2, # homozygous
+      x == "0/1" ~ 1, # heterozygous 
+      x == "0/2" ~ 1, # heterozygous
+      x == "0|0" ~ 2, # homozygous 
+      x == "0|1" ~ 1, # heterozygous
+      x == "0|2" ~ 1, # heterozygous       
+      x == "1/1" ~ 0, # no copies
+      x == "1/2" ~ 0, # no copies       
+      x == "1|1" ~ 0, # no copies 
+      x == "1|2" ~ 0, # no copies
+      x == "2/2" ~ 0, # no copies       
+      x == "2|2" ~ 0, # no copies
+      x == "3|3" ~ 0, # no copies        
+      is.na(x) ~ 9)}) %>% t() %>% as.data.frame() %>% 
+  mutate_if(is.numeric,as.integer)
+
+# And I now only have 0, 1, 2, and 9 in the new matrix 
+table(as.matrix(geno.matrix4outflank.recode))
+
+# I reviewed the new dataframe visually, and still saw some NA's! 
+
+geno.matrix4outflank.recode[is.na(geno.matrix4outflank.recode)]
+```
+
+### Locus names 
+
+```{r}
+colnames(geno.matrix4outflank.recode) %>% head()
+```
+
+### Sample ids 
+
+#### Again, double check that my sample order is the same in the tab.annot.gen file as in the genofile (which I used to pull the genotype matrix from)
+
+```{r}
+# check to make sure samples are in the same order in my genotype matrix and the annotation object 
+all(rownames(geno.matrix4outflank.recode) == tab.annot.gen$sample.id) #yes, all=TRUE
+
+# this will be my popNames vector 
+as.vector(tab.annot.gen$Treatment)
+```
+
+### Calculate variables required for OutFLANK() function
+
+```{r}
+# Using pH as grouping variable 
+FstDataFrame.pH <- MakeDiploidFSTMat(SNPmat = geno.matrix4outflank.recode, 
+                                  locusNames = colnames(geno.matrix4outflank.recode), 
+                                  popNames = as.vector(tab.annot.gen$Treatment))
+# Using cluster as grouping variable 
+FstDataFrame.clust <- MakeDiploidFSTMat(SNPmat = geno.matrix4outflank.recode, 
+                                  locusNames = colnames(geno.matrix4outflank.recode), 
+                                  popNames = as.vector(tab.annot.gen$ibs.cluster))
+```
+
+## OutFLANK QC 
+
+```{r}
+# Check for loci with low sample sizes or unusual values of uncorrected FST
+# I'm unsure what to do here - I have lots of missing data, indicated by higher uncorrected Fst relative to corrected Fst 
+
+# Using pH as grouping variable 
+plot(FstDataFrame.pH$FST, FstDataFrame.pH$FSTNoCorr, 
+     xlim=c(-0.01,0.3), ylim=c(-0.01,0.3),
+     pch=20)
+abline(0,1)
+
+# Check if FST distribution looks chi-squared distributed
+plot(FstDataFrame.pH$He, FstDataFrame.pH$FSTNoCorr, pch=20, col="grey")
+hist(FstDataFrame.pH$FSTNoCorr, breaks=200)
+hist(FstDataFrame.pH$FSTNoCorr[FstDataFrame.pH$He>0.1], breaks=200)
+summary(FstDataFrame.pH$He) #He is very high 
+hist(FstDataFrame.pH$FST, breaks=200)
+summary(FstDataFrame.pH$FST)
+
+# Run outflank
+out1.pH <- OutFLANK(FstDataFrame.pH, NumberOfSamples=43)
+
+# Visualize results
+OutFLANKResultsPlotter(out1.pH, withOutliers = TRUE,
+NoCorr = TRUE, Hmin = 0.1, binwidth = 0.001, Zoom =
+FALSE, RightZoomFraction = 0.05, titletext = NULL)
+ 
+hist(out1.pH$results$pvaluesRightTail)
+sum(out1.pH$results$qvalues<0.1, na.rm=TRUE) # how many outliers? 
+summary(out1.pH$results$qvalues) #none! 
+
+
+# Using cluster as grouping variable 
+plot(FstDataFrame.clust$FST, FstDataFrame.clust$FSTNoCorr, 
+     xlim=c(-0.01,0.3), ylim=c(-0.01,0.3),
+     pch=20)
+abline(0,1)
+
+plot(FstDataFrame.clust$He, FstDataFrame.clust$FSTNoCorr, pch=20, col="grey")
+hist(FstDataFrame.clust$FSTNoCorr, breaks=200)
+hist(FstDataFrame.clust$FSTNoCorr[FstDataFrame.clust$He>0.1], breaks=200)
+summary(FstDataFrame.clust$He) #He is very high 
+hist(FstDataFrame.clust$FST, breaks=200)
+summary(FstDataFrame.clust$FST)
+
+# Run outflank
+out1.clust <- OutFLANK(FstDataFrame.clust, NumberOfSamples=43)
+
+# Visualize results
+OutFLANKResultsPlotter(out1.clust, withOutliers = TRUE,
+NoCorr = TRUE, Hmin = 0.1, binwidth = 0.001, Zoom =
+FALSE, RightZoomFraction = 0.05, titletext = NULL)
+ 
+hist(out1.clust$results$pvaluesRightTail)
+sum(out1.clust$results$qvalues<0.1, na.rm=TRUE) # how many outliers? 
+summary(out1.clust$results$qvalues) #none! 
 ```

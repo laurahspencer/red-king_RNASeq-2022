@@ -1,0 +1,232 @@
+---
+title: "QuantSeq-2020-Importing-Salmon-Counts"
+author: "Laura H Spencer"
+date: "5/13/2020"
+output: html_document
+---
+
+
+Found [this helpful tutorial](https://www.hadriengourle.com/tutorials/rna/) that provides R script to load in and aggregate multiple Salmon output files. 
+
+"Salmon did the quantifiation of the transcript level. We want to see which genes are differentially expressed, so we need to link the transcript names to the gene names. We will use the blast GFF file for that, and the GenomicFeatures package:"
+
+
+### Load libraries
+
+```{r message=FALSE, warning=FALSE, results=FALSE}
+list.of.packages <- c("tidyverse", "reshape2", "here", "plotly", "tximport", "GenomicFeatures",  "readr") #add new libraries here 
+
+new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+if(length(new.packages)) install.packages(new.packages)
+
+# Load all libraries 
+lapply(list.of.packages, FUN = function(X) {
+  do.call("require", list(X)) 
+})
+
+# Load tximport via bioconductor 
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+BiocManager::install("tximport")
+library(tximport)
+```
+
+### Obtain session information
+
+```{r}
+sessionInfo()
+getwd()
+```
+
+```{bash}
+rm ../results/salmon/filenames.txt
+for file in ../results/salmon/*
+do
+filename="$(echo $file)"
+sample="$(basename -a $filename | cut -d "/" -f 3  | cut -d "." -f 1)"
+printf "%s\t%s\n" "$filename/quant.sf" "$sample" >> ../results/salmon/filenames.txt
+done
+```
+
+
+```{r}
+filenames <- read_delim(file="../results/salmon/filenames.txt", col_names = c("filename", "Sample"))
+files <- file.path(filenames$filename) #extract vector of filenames 
+all(file.exists(files)) #easy code to check that all files exist! 
+
+sample.info <- read.csv("../data/RCK-exp-design.csv", header=T, na.strings = NA) %>%
+          mutate_at(vars(Tank, Treatment, Treatment_Tank), as.factor) %>%
+  left_join(filenames)
+```
+
+## Read in Salmon Count data 
+
+_The tximport package has a single function for importing transcript-level estimates. The type argument is used to specify what software was used for estimation (“kallisto”, “salmon”, “sailfish”, and “rsem” are implemented). A simple list with matrices, “abundance”, “counts”, and “length”, is returned, where the transcript level information is summarized to the gene-level. The “length” matrix can be used to generate an offset matrix for downstream gene-level differential analysis of count matrices, as shown below._
+
+### Generate transcript-level abundance count matrix 
+
+We can avoid gene-level summarization by setting txOut=TRUE, giving the original transcript level estimates as a list of matrices.
+
+```{r}
+txi.gen <- tximport(files, type = "salmon", txIn=FALSE, txOut = FALSE, geneIdCol = "Name")
+colnames(txi.gen$counts) <- filenames$Sample
+colnames(txi.gen$abundance) <- filenames$Sample
+```
+
+## Generate gene-level abundance count matrix 
+
+```{r}
+paste("No. genes identified by Salmon across all samples: ", nrow(txi.gen$counts), sep="")
+```
+## Check out gene count matrix 
+
+```{r}
+save(txi.gen, file = "../results/salmon/txi.gen")
+```
+
+```{r}
+counts <- txi.gen$counts %>% as.data.frame()
+```
+
+
+### Summarize counts and visualize (remove last column - that's undetermined counts)
+
+```{r}
+print(paste("Number of samples:", ncol(counts %>% dplyr::select(contains("Tank"))), sep=" "))
+print(paste("Total number of genes in dataframe:", prettyNum(nrow(counts), big.mark = ","), sep=" "))
+print(paste("Average number of genes per sample:", prettyNum(mean(colSums(counts %>% dplyr::select(contains("Tank")) != 0)), big.mark = ","), sep=" "))
+print(paste("Total counts, all samples:", prettyNum(sum(colSums(counts %>% dplyr::select(contains("Tank")))), big.mark = ","), sep=" "))
+#print(paste("Counts for", colnames(counts %>% select(contains("Tank"))), ":",  prettyNum(colSums(counts %>% select(contains("Tank"))), big.mark = ","), sep=" "))
+
+#inspect total counts by sample
+ ggplotly(
+   ggplot(data.frame(colSums(counts %>% select(contains("Tank")))) %>% 
+            dplyr::rename(count.total = 1) %>% rownames_to_column(var="sample")) + 
+     geom_bar(aes(x=sample, y=count.total), stat = "identity") + ggtitle("Total count by sample") + 
+              theme(axis.text.x = element_blank(), axis.ticks.x = element_blank())) 
+```
+
+## OPTIONAL: FILTER WHOLE SAMPLES. 
+
+## DECISION FEBRUARY 9TH, 2022: Removing sample "Tank_7_Crab_4", which is an outlier in the PCAs and heat maps 
+Remove whole samples from the data set and sample info here if needed
+
+```{r}
+remove.list <- c("Tank_7_Crab_4")
+counts <- counts[ , -which(names(counts) %in% remove.list)]
+sample.info <- sample.info[ -which(sample.info$Sample %in% remove.list), ]
+
+# resave sample info object
+save(sample.info, file="../data/sample.info")
+
+nrow(sample.info) == ncol(counts) #should = TRUE
+```
+
+## OPTIONAL: FILTER WHOLE SCAFFOLDS 
+
+This code provides the option to remove data that mapped to scaffolds 105+. This is possibly beneficial because I don't know whether or not those scaffolds are also included within scaffolds 1-104 (i.e. the chromosomes). 
+
+NOTE:  For exploration purposes I will NOT remove them, and will see if expressed data mapping to scaffolds 105+ have the exact same genes/counts as on chromosomes. 
+
+After preliminary examination of blast results (by looking at genes, lengths, and counts) it's difficult to tell whether the scaffolds 105+ are subsets of the chromosomes 1-104. For now I will retain scaffolds 105+. 
+
+
+```{r}
+# counts <- counts %>% separate(Chr, into = c("X", "Y", "scaffold"), sep = "_", remove = F) %>%
+#   mutate(scaffold=as.integer(scaffold)) %>% filter(scaffold<=104) %>% dplyr::select(-X, -Y, -scaffold)
+```
+
+## Optional: FILTER GENES THAT ARE OUTLIERS IN OUTLIER SAMPLE (TANK_7_CRAB_4)  
+
+## DECISION FEBRUARY 9TH, 2022: DO NOT REMOVE INDIVIDUAL GENES, INSTEAD REMOVE OUTLIER SAMPLE (ABOVE)
+
+The sample Tank 7 Crab 4 is weird, and has outlier counts in many genes. I identified them in my Outlier notebook, so here I will remove them from the count matrix. 
+
+NOTE: you cannot simply replace counts for some samples with NA. DESeq2 doesn't accept those. 
+
+```{r}
+# counts <- counts[-which(rownames(counts) %in% outliers),]
+```
+
+### Remove extraneous gene info, then transpose dataframe so each row = a sample (aka "objects"), and each column = genes (aka "variables") 
+```{r}
+#str(counts) #columns #1-#5 contain extraneous gene info (chr, start, end, strand, length). 
+counts.t <- as.data.frame(t(counts)) #remove extraneous columns, transform data to have each sample a row, each column a gene 
+```
+
+## Optional 
+
+### Pre-filtering - remove low-frequency genes 
+
+NOTE: Should i do this? DESeq2 throws out low-frequency genes anyway, BUT other folks do pre-filter. For example in https://doi.org/10.1186/s12864-017-4392-0 "Genes with mean count less than ten across all samples were removed."
+
+```{r}
+keep1 <- colMeans(counts.t, na.rm=TRUE) >= 10 #identify genes with mean count >= 10 across all samples (excluding NAs = 10)
+keep2 <- rowSums( counts >= 10 ) >= 0.1*43 #identify genes with counts>=10 across at minimum 10% of the samples
+keep <- unique(c(names(which(keep1 == T)), names(which(keep2 == T)))) # list of genes meeting one of the two above criteria
+counts.ts <- counts.t[,keep]
+
+print(paste("# genes before filtering:", ncol(counts.t)))
+print(paste("# genes remaining after pre-filtering:", ncol(counts.ts)))
+print(paste("# of genes dropped:", ncol(counts.t) - ncol(counts.ts), sep=" "))
+print(paste("% of fragments remaining after pre-filtering: ", signif(100*sum(counts.ts)/sum(counts.t), digits = 5), "%", sep=""))
+print(paste("Number of fragments dropped: ", signif(sum(counts.t)-sum(counts.ts), digits = 5)))
+print(paste("% of fragments dropped: ", signif(100*(sum(counts.t)-sum(counts.ts))/sum(counts.t), digits = 5), "%", sep=""))
+print(paste("Number of fragments remaining: ", signif(sum(counts.ts), digits = 5)))
+```
+
+### Save counts file, and transformed counts file 
+```{r}
+save(counts, file = "../results/gene-counts")
+save(counts.t, file = "../results/gene-counts-trans")
+save(counts.ts, file = "../results/gene-counts-trans-filtered")
+```
+
+```{r}
+P.plat.bestblast <- read_delim(file = "../references/bestblast.bkc_ref.tab", delim = "\t") %>% clean_names() %>% 
+  mutate(id_gtf=gsub("model", "TU", id)) %>%
+  separate(percent_ident, sep=" ", into=c("ratio", "percent_ident.num"), remove = F) %>% 
+  mutate(percent_ident.num=gsub("\\(", "", percent_ident.num)) %>% mutate(percent_ident.num=gsub("\\%)", "", percent_ident.num)) %>% 
+  mutate(percent_ident.num=as.numeric(percent_ident.num)/100) %>%
+  mutate_at(vars(blast_type), as.factor) %>%
+  select(-ratio)
+
+# How many genes have hits with various e-values? 
+paste("Total number of genes = ", P.plat.bestblast %>% nrow())
+paste("Proportion of annotated genes with e-value < 1e-20 = ", (P.plat.bestblast %>% filter(e_value<1e-20) %>% nrow())/(P.plat.bestblast %>% nrow()))
+paste("Proportion of annotated genes with e-value < 1e-10 = ", (P.plat.bestblast %>% filter(e_value<1e-10) %>% nrow())/(P.plat.bestblast %>% nrow()))
+paste("Proportion of annotated genes with e-value < 1e-5 = ", (P.plat.bestblast %>% filter(e_value<1e-5) %>% nrow())/(P.plat.bestblast %>% nrow()))
+
+save(P.plat.bestblast, file = "../references/P.plat.bestblast")
+```
+
+## Annotate gene counts dataframe 
+
+```{r}
+counts.annot <- right_join(
+  P.plat.bestblast %>% select(id, id_gtf, blast_type, hit_acc, hit_desc, e_value, percent_ident.num),counts %>% 
+    rownames_to_column(var = "id_gtf"), "id_gtf")
+write.csv(counts.annot, file = "../results/counts.annotated.csv", row.names = F, quote = F)
+```
+
+
+## Annotate some genes with Uniprot IDs and Gene Ontology info 
+
+```{r}
+P.plat.blast <- read_delim(file = "../references/P.platypus.gene_blastx_1e5.tab", delim = "\t", col_names = c("qaccver", "saccver", "pident", "length", "mismatch", "gapopen", "qstart", "qend", "sstart", "send", "evalue", "bitscore")) %>%
+  separate(qaccver, sep = ":", into = c("geneID","na","Chr", "range")) %>%
+  separate(range, sep="-", into=c("Start", "End")) %>% select(-na) %>%
+  mutate_at(vars(Start, End), as.numeric) %>%
+  separate(saccver, sep="\\|", into=c("na", "SPID", "gene.Uni"), remove = F) %>%
+  select(-na) %>% separate(gene.Uni, sep="_", into=c("gene.Uni", "species"), remove=T) %>%
+  group_by(geneID, Chr, Start, End) %>% dplyr::slice(which.min(evalue))   # where multiple blast hits for same gene, select one with minimum e-value
+
+# P.plat.blast %>% ungroup() %>% dplyr::select(SPID) %>%  
+#   na.omit() %>% unlist() %>% as.vector() %>% write_clip()
+  
+P.plat.blast.GO <- left_join(P.plat.blast, read_delim(file = "../references/P.platypus_genes_GO.tab", delim = "\t"),
+                             by = c("SPID"="Entry")) %>% ungroup() %>% clean_names()
+
+save(P.plat.blast, file = "../references/P.plat.blast")
+save(P.plat.blast.GO, file = "../references/P.plat.blast.GO")
+```
