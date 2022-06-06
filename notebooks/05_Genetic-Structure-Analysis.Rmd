@@ -1078,16 +1078,25 @@ mother.order <- as.character(c(20,21,23,25,26,27,30,4,6,24,29,2,3,5,17,19,22,1,1
 
 ggplot(colony.clusters, aes(x = father_id %>% as.character, fill = Treatment)) +
   geom_dotplot(stackgroups = TRUE, binwidth = 1, binpositions = "all") +
-  theme_minimal() + scale_x_discrete(limits=father.order) +
+  theme_minimal() + #scale_x_discrete(limits=father.order) +
   scale_fill_manual(values = c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c")) +
   xlab("Father ID") +
   theme(axis.text.y = element_blank(), axis.title.y = element_blank())
 
 ggplot(colony.clusters, aes(x = mother_id %>% as.character, fill = Treatment)) +
   geom_dotplot(stackgroups = TRUE, binwidth = 1, binpositions = "all") +
-  theme_minimal() + scale_x_discrete(limits=mother.order) +
+  theme_minimal() + #scale_x_discrete(limits=mother.order) +
   scale_fill_manual(values = c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c")) +
   xlab("Mother ID") +
+  theme(axis.text.y = element_blank(), axis.title.y = element_blank())
+
+# When we assume that females only mate with one male, there are no half siblings. So this represents the number of unique families 
+ggplot(colony.clusters, aes(x = father_id, fill = Treatment)) +
+  geom_dotplot(stackgroups = TRUE, binwidth = 1, binpositions = "all") +
+  theme_minimal() + scale_x_continuous(breaks=seq(from=1, to=30, by=1)) +
+  #scale_x_discrete(limits=father.order) +
+  scale_fill_manual(values = c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c")) +
+  xlab("Family ID") +
   theme(axis.text.y = element_blank(), axis.title.y = element_blank())
 
 

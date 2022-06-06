@@ -7,7 +7,7 @@
 2          ! 2/1=Dioecious/Monoecious species
 0          ! 0/1=No inbreeding/inbreeding
 0          ! 0/1=Diploid species/HaploDiploid species
-0  0       ! 0/1=Polygamy/Monogamy for males & females
+1  1       ! 0/1=Polygamy/Monogamy for males & females
 0          ! 0/1=Clone inference =No/Yes
 0          ! 0/1=Full sibship size scaling =No/Yes
 0          ! 0,1,2,3=No,weak,medium,strong sibship size prior; mean paternal & meteral sibship size
