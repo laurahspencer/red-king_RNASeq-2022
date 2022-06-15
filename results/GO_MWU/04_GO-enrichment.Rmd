@@ -6,14 +6,15 @@ output: html_document
 ---
 
 ```{r}
-if (!require("BiocManager", quietly = TRUE))
-    install.packages("BiocManager")
-
-BiocManager::install("GSEABase")
+# if (!require("BiocManager", quietly = TRUE))
+#     install.packages("BiocManager")
+# 
+# BiocManager::install("GSEABase")
 
 require(ggpubr)
 require(tidyverse)
 require(GSEABase)
+require(ape)
 ```
 
 In this notebook I use GO_MWU to perform a gene ontology enrichment analysis for gene sets of interest, which include 1) Differentially expressed genes (DEGs) derived from DESeq2, and 2) Modules of genes associated with pH, derived from WGCNA. The input files for each of the gene sets were generated in the DESeq2 and WGCNA notebooks. 
@@ -46,6 +47,11 @@ goDivisions <- c("BP", "MF", "CC")
 ## Create a GO_MWU function for enrichment analysis of DEGs 
 
 ```{r}
+log(0.05, base = 10)
+```
+
+
+```{r}
 go.mwu.degs <- function(contrast) {
   
   input = paste("DEGs_", contrast, ".csv", sep="")
@@ -58,7 +64,7 @@ for (j in 1:length(goDivisions)) {
 # It might take a few minutes for MF and BP. Do not rerun it if you just want to replot the data with different cutoffs, go straight to gomwuPlot. If you change any of the numeric values below, delete the files that were generated in previos runs first.
 
 gomwuStats(input, goDatabase, goAnnotations, goDivisions[j],
-	perlPath="perl", # replace with full path to perl executable if it is not in your system's PATH already
+	perlPath="C:/Strawberry/perl/bin/perl.exe", # replace with full path to perl executable if it is not in your system's PATH already
 	largest=0.1,  # a GO category will not be considered if it contains more than this fraction of the total number of genes
 	smallest=5,   # a GO category should contain at least this many genes to be considered
 	clusterCutHeight=0.25, # threshold for merging similar (gene-sharing) terms. See README for details.
@@ -74,7 +80,7 @@ gomwuStats(input, goDatabase, goAnnotations, goDivisions[j],
 #quartz()
 results=gomwuPlot(input,goAnnotations,goDivisions[j],
  	#absValue=-log(0.05,10),   # genes with the measure value exceeding this will be counted as "good genes". This setting is for signed log-pvalues. Specify absValue=0.001 if you are doing Fisher's exact test for standard GO enrichment or analyzing a WGCNA module (all non-zero genes = "good genes").
- absValue=1, # un-remark this if you are using log2-fold changes
+ absValue=.5, # un-remark this if you are using log2-fold changes
  level1=0.05,level2=0.01,level3=0.001,	#stricter settings for many GO terms 
  #level1=0.1, # FDR threshold for plotting. Specify level1=1 to plot all GO categories containing genes exceeding the absValue.
  	#level2=0.05, # FDR cutoff to print in regular (not italic) font.
@@ -100,12 +106,13 @@ pcut=1e-2 # adjusted pvalue cutoff for representative GO
 hcut=0.9 # height at which cut the GO terms tree to get "independent groups". 
 
 # plotting the GO tree with the cut level (un-remark the next two lines to plot)
-# plot(results[[2]],cex=0.6)
-# abline(h=hcut,col="red")
+plot(results[[2]],cex=0.6)
+abline(h=hcut,col="red")
 
 # cutting
 ct=cutree(results[[2]],h=hcut)
 annots=c();ci=1
+best.go <- c() #added
 for (ci in unique(ct)) {
   message(ci)
 	rn=names(ct)[ct==ci]
@@ -122,7 +129,9 @@ for (ci in unique(ct)) {
 		best=which(fr==max(fr))
 	}
 	if (bestrr$pval[best]<=pcut) { annots=c(annots,sub("\\d+\\/\\d+ ","",row.names(bestrr)[best]))}
+	best.go[i] <- best #added
 }
+print(best.go) #added
 
 mwus=read.table(paste("MWU",goDivisions[j],input,sep="_"),header=T)
 bestGOs=mwus[mwus$name %in% annots,]
@@ -349,6 +358,10 @@ Higher in moderate OA
 ```{r}
 read_delim(file="MWU_BP_WGCNA-module_cyan.csv",delim = " ") %>% mutate(module="cyan") %>% filter(p.adj<0.05)
 ```
+```{r}
+getwd()
+```
+
 
 ```{bash}
 ## Remove files which list GO_MWU results filenames if they already exist  
@@ -680,10 +693,18 @@ ggplot(gene_sets.CC %>% filter(gene_set %in% modules) %>% droplevels(), aes(y=st
 # Create function that is the oppositve of %in% 
 `%!in%` = Negate(`%in%`)
 
+gene_sets.BP %>% filter(gene_set %!in% modules) %>% droplevels() %>% 
+         mutate(name=as.factor(name)) %>% mutate(name=fct_reorder(name, delta.rank)) %>% 
+  arrange(delta.rank)
+
+
 # Biological Processes
-pdf(file="Enriched_BP_DEGs.pdf", height = 4.15, width = 5.5)
-ggplot(gene_sets.BP %>% filter(gene_set %!in% modules) %>% droplevels(), 
-       aes(y=str_wrap(name),x=gene_set, col=gene_set_up)) + 
+pdf(file="Enriched_BP_DEGs.pdf", height = 13.5, width = 7.5)
+ggplot(gene_sets.BP %>% filter(gene_set %!in% modules) %>% droplevels() %>% 
+         filter(p.adj<0.01) %>% 
+         mutate(name=as.factor(name)) %>% mutate(name=fct_reorder(name, delta.rank, .desc = TRUE)), 
+       #aes(y=str_wrap(name),x=gene_set, col=gene_set_up)) + 
+       aes(y=name,x=gene_set, col=gene_set_up)) + 
   geom_point(aes(alpha=p.adj, size=nseqs)) + #size=6,  
  facet_wrap(~category,scales="free", nrow = 2) +
   scale_color_manual(name="Upregulated", values=c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c"),
@@ -707,13 +728,17 @@ ggplot(gene_sets.BP %>% filter(gene_set %!in% modules) %>% droplevels(),
   annotate("text", x = 1, y = -.25, label = "Ambient\nvs. Moderate", size=2, col="gray15") +  
   annotate("text", x = 2, y = -.25, label = "Ambient\nvs. Low", size=2, col="gray15") +  
   annotate("text", x = 3, y = -.25, label = "Moderate\nvs. Low", size=2, col="gray15") +  
-  coord_cartesian(clip = "off", ylim = c(-0.5, 16.25))
+  #coord_cartesian(clip = "off", ylim = c(-0.6, 90))
+  coord_cartesian(clip = "off", ylim = c(-0.6, 42))
 dev.off()
 
 # Molecular Functions 
-pdf(file="Enriched_MF_DEGs.pdf", height = 13.5, width = 6.5)
-ggplot(gene_sets.MF %>% filter(gene_set %!in% modules) %>% droplevels(), 
-       aes(y=str_wrap(name),x=gene_set_up, col=gene_set_up)) + 
+pdf(file="Enriched_MF_DEGs.pdf", height = 25, width = 7.5)
+ggplot(gene_sets.MF %>% filter(gene_set %!in% modules) %>% droplevels() %>% 
+          filter(p.adj<0.01) %>%
+         mutate(name=as.factor(name)) %>% mutate(name=fct_reorder(name, delta.rank, .desc = TRUE)),  
+#       aes(y=str_wrap(name),x=gene_set, col=gene_set_up)) + 
+        aes(y=name,x=gene_set, col=gene_set_up)) + 
   geom_point(aes(alpha=p.adj, size=nseqs)) + #size=6,  
  facet_wrap(~category,scales="free", nrow = 2) +
   scale_color_manual(name="Upregulated", values=c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c"),
@@ -736,14 +761,17 @@ ggplot(gene_sets.MF %>% filter(gene_set %!in% modules) %>% droplevels(),
   ggtitle(NULL) + 
   annotate("text", x = 1, y = -.5, label = "Ambient\nvs. Moderate", size=2, col="gray15") +  
   annotate("text", x = 2, y = -.5, label = "Ambient\nvs. Low", size=2, col="gray15") +  
-  annotate("text", x = 3, y = -.5, label = "Moderate\nvs. Low", size=2, col="gray15") +  
-  coord_cartesian(clip = "off", ylim = c(-1, 72))
+  annotate("text", x = 3, y = -.5, label = "Moderate\nvs. Low", size=2, col="gray15") #+  
+  coord_cartesian(clip = "off", ylim = c(-1.5, 300))
 dev.off()
 
 # Cellular components
-pdf(file="Enriched_CC_DEGs.pdf", height = 3.25, width = 5)
-ggplot(gene_sets.CC %>% filter(gene_set %!in% modules) %>% droplevels(), 
-       aes(y=str_wrap(name),x=gene_set, col=gene_set_up)) + 
+pdf(file="Enriched_CC_DEGs.pdf", height = 5.5, width = 6)
+ggplot(gene_sets.CC %>% filter(gene_set %!in% modules) %>% droplevels() %>% 
+          filter(p.adj<0.01) %>%
+         mutate(name=as.factor(name)) %>% mutate(name=fct_reorder(name, delta.rank, .desc = TRUE)),  
+#       aes(y=str_wrap(name),x=gene_set, col=gene_set_up)) + 
+        aes(y=name,x=gene_set, col=gene_set_up)) + 
   geom_point(aes(alpha=p.adj, size=nseqs)) + #size=6,  
  facet_wrap(~category,scales="free", nrow = 2) +
   scale_color_manual(name="Upregulated", values=c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c"),
@@ -766,10 +794,16 @@ ggplot(gene_sets.CC %>% filter(gene_set %!in% modules) %>% droplevels(),
   ggtitle(NULL) +
   annotate("text", x = 1, y = -.05, label = "Ambient\nvs. Moderate", size=2, col="gray15") +  
   annotate("text", x = 2, y = -.05, label = "Ambient\nvs. Low", size=2, col="gray15") +  
-  annotate("text", x = 3, y = -.05, label = "Moderate\nvs. Low", size=2, col="gray15") +  
-  coord_cartesian(clip = "off", ylim = c(-0.2, 9))
+  annotate("text", x = 3, y = -.05, label = "Moderate\nvs. Low", size=2, col="gray15") #+  
+  #coord_cartesian(clip = "off", ylim = c(-0.2, 9))
 dev.off()
 ```
+
+```{r}
+gene_sets.MF %>% filter(gene_set %!in% modules) %>% arrange(name)
+```
+
+
 
 ```{r}
 module.lineplots[[1]]
@@ -781,6 +815,8 @@ module.lineplots[[1]]
 
 # Biological Processes
 myIds <- (gene_sets.BP %>% separate_rows(term, sep = ";") %>% filter(!is.na(term)))$term %>% unique()
+
+
 myCollection <- GOCollection(myIds)
 fl <- system.file("extdata", "goslim_plant.obo", package="GSEABase")
 slim <- getOBOCollection(fl)

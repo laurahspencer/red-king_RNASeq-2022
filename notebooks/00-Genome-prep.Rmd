@@ -85,3 +85,20 @@ read.delim(file = "../references/EVM.out_new.gff3", sep = "", header = F) %>%
               col.names = F, row.names = F, quote = F)
 ```
 
+
+Now do the same with the P. camtschaticus genome feature file 
+
+Create bed file for just genes, which I will use with getfasta to extract gene sequences, which I will use with blast to identify gene function
+
+NOTE: GFF format use a 1-based coordinate system, while BED format uses a 0-based coordinate system. I therefore need to convert my coordinates. Check out this helpful coordinate system summary. 
+```{r}
+read.delim(file = "../references/Paralithodes.camtschaticus.genome.gff", sep = "", header = F) %>% 
+  mutate(V3=as.factor(V3)) %>% filter(V3=="gene") %>% 
+  select(V1, V4, V5, V9) %>%
+  mutate(V4=V4-1) %>% #convert from 1-based to 0-based by subtracting 1 from the start position 
+  mutate(V9=str_remove(V9, "ID=")) %>%
+  select(V1,V4,V5,V9) %>%
+  write.table(., "../references/Paralithodes.camtschaticus_genes.bed", sep = "\t",
+              col.names = F, row.names = F, quote = F)
+```
+

@@ -1,23 +1,27 @@
 #!/bin/bash
 
-#SBATCH --job-name=RNAseq-genotyping-STAR
-#SBATCH --output=/home/lspencer/2022-redking-OA/sbatch_logs/RNAseq-genotyping-STAR.txt
+#SBATCH --job-name=genotype-rkc
+#SBATCH --output=/home/lspencer/2022-redking-OA/sbatch_logs/RNAseq-genotyping-Bowtie2-RKC-genome.txt
 #SBATCH --mail-user=laura.spencer@noaa.gov
 #SBATCH --mail-type=ALL
-#SBATCH -c 20
+#SBATCH -c 24
+#SBATCH -p himem
 #SBATCH -t 30-0:0:0
 
 module load bio/gatk/4.2.0.0
 module load bio/samtools/1.11
 source /home/lspencer/venv/bin/activate
+module load bio/vcftools/0.1.16
 
-REF=/home/lspencer/references/bluekingcrab
-INPUT=/scratch/lspencer/2022-redking-OA/aligned/star #to use star aligned
-#INPUT=/home/lspencer/2022-redking-OA/aligned/bowtie2-sorted/ #to use bowtie2 aligned
-#INPUT=/scratch/lspencer/2022-redking-OA/testing
-OUTPUT=/scratch/lspencer/2022-redking-OA/genotypes-star
+#REF=/home/lspencer/references/bluekingcrab
+REF=/home/lspencer/references/redkingcrab
+#INPUT=/home/lspencer/2022-redking-OA/aligned/star #to use star aligned
+#INPUT=/home/lspencer/2022-redking-OA/aligned/bowtie2-sorted/ #to use bowtie2 aligned to BKC genome
+INPUT=/home/lspencer/2022-redking-OA/aligned/bowtie-rkc #to use bowtie2 aligned to RKG genome
+#OUTPUT=/scratch/lspencer/2022-redking-OA/genotypes-star
+OUTPUT=/scratch/lspencer/2022-redking-OA/genotypes-bowtie-rkc
 
-# Starting this pipeline with aligned and coordinate-sorted .bam files (STAR-aligned)
+# Starting this pipeline with aligned and coordinate-sorted .bam files
 
 # Move to output directory
 cd ${OUTPUT}
@@ -25,11 +29,11 @@ cd ${OUTPUT}
 # Deduplicate using picard (within gatk), output will have duplicates removed
 echo "Deduplicating bams"
 
-# Using STAR aligned
-for file in ${INPUT}/*.Aligned.sortedByCoord.out.bam
+## Using STAR aligned
+#for file in ${INPUT}/*.Aligned.sortedByCoord.out.bam
 
 # Using Bowtie2 aligned
-#for file in ${INPUT}/*.sorted.bam
+for file in ${INPUT}/*.sorted.bam
 do
 sample="$(basename -a $file | cut -d "." -f 1)"
 
@@ -40,12 +44,12 @@ M="${OUTPUT}/$sample.dup_metrics.txt" \
 REMOVE_DUPLICATES=true
 done >> "${OUTPUT}/01_dedup_stout.txt" 2>&1
 
-## Create a FASTA sequence dictionary file for genome (needed by gatk)
-#echo "Creating sequence dictionary (.dict)"
-#gatk CreateSequenceDictionary \
-#-R ${REF}/Paralithodes_platypus_genome.fasta \
-#-O ${REF}/Paralithodes_platypus_genome.dict \
-# >> "${OUTPUT}/02-CreateSequenceDictionary.txt" 2>&1
+# Create a FASTA sequence dictionary file for genome (needed by gatk)
+echo "Creating sequence dictionary (.dict)"
+gatk CreateSequenceDictionary \
+-R ${REF}/Paralithodes.camtschaticus.genome.fasta \
+-O ${REF}/Paralithodes.camtschaticus.genome.dict \
+ >> "${OUTPUT}/02-CreateSequenceDictionary.txt" 2>&1
 
 # Split reads spanning splicing events
 echo "Splitting reads spanning splice junctions (SplitNCigarReads)"
@@ -55,7 +59,7 @@ sample="$(basename -a $file | cut -d "." -f 1)"
 
 # split CigarN reads
 gatk SplitNCigarReads \
--R ${REF}/Paralithodes_platypus_genome.fasta \
+-R ${REF}/Paralithodes.camtschaticus.genome.fasta \
 -I $file \
 -O $sample.dedup-split.bam
 done >> "${OUTPUT}/03-CigarNSplit_stout.txt" 2>&1
@@ -95,7 +99,7 @@ done >> "${OUTPUT}/05-index-bams.txt" 2>&1
 # This will be used in HaplotypeCaller and GenomicsDBImport to increase speed
 # Note: the intervals file requires a specific name - e.g. for .bed format, it MUST be "intervals.bed"
 echo "Creating intervals list"
-awk 'BEGIN {FS="\t"}; {print $1 FS "0" FS $2}' ${REF}/Paralithodes_platypus_genome.fasta.fai > intervals.bed
+awk 'BEGIN {FS="\t"}; {print $1 FS "0" FS $2}' ${REF}/Paralithodes.camtschaticus.genome.fasta.fai > intervals.bed
 
 # Call variants
 echo "Calling variants using HaplotypeCaller"
@@ -104,7 +108,7 @@ do
 sample="$(basename -a $file | cut -d "." -f 1)"
 
 gatk HaplotypeCaller \
--R ${REF}/Paralithodes_platypus_genome.fasta \
+-R ${REF}/Paralithodes.camtschaticus.genome.fasta \
 -I $sample.dedup-split-RG.bam \
 -O $sample.variants.g.vcf \
 -L intervals.bed \
@@ -134,7 +138,7 @@ gatk GenomicsDBImport \
 # Joint genotype
 echo "Joint genotyping"
 gatk GenotypeGVCFs \
--R ${REF}/Paralithodes_platypus_genome.fasta \
+-R ${REF}/Paralithodes.camtschaticus.genome.fasta \
 -V gendb://GenomicsDB \
 -O rkc_rnaseq_genotypes.vcf.gz \
 >> "${OUTPUT}/08-GenotypeGVCFs_stout.txt" 2>&1
@@ -142,7 +146,7 @@ gatk GenotypeGVCFs \
 # Hard filter variants
 echo "Hard filtering variants"
 gatk VariantFiltration \
--R ${REF}/Paralithodes_platypus_genome.fasta \
+-R ${REF}/Paralithodes.camtschaticus.genome.fasta \
 -V rkc_rnaseq_genotypes.vcf.gz \
 -O rkc_rnaseq_genotypes-filtered.vcf.gz \
 --filter-name "FS" \
@@ -163,11 +167,28 @@ gatk VariantFiltration \
 # Select only SNPs that pass filtering
 echo "Selecting SNPs that pass fitering"
 gatk SelectVariants \
--R ${REF}/Paralithodes_platypus_genome.fasta \
+-R ${REF}/Paralithodes.camtschaticus.genome.fasta \
 -V rkc_rnaseq_genotypes-filtered.vcf.gz \
 --exclude-filtered TRUE \
 --select-type-to-include SNP \
 -O rkc_rnaseq_genotypes-filtered-true.vcf.gz \
  >> "${OUTPUT}/10-SelectVariants_stout.txt" 2>&1
+
+ # Create another vcf of SNPs filtered for loci with max 10%, 15%, and 20% missing rate, and remove loci with <5% minor allele frequency
+
+ vcftools --gzvcf \
+ "${OUTPUT}/rkc_rnaseq_genotypes-filtered-true.vcf.gz" \
+ --max-missing 0.75 --maf 0.05 --recode --recode-INFO-all --out \
+ "${OUTPUT}/rkc_rnaseq_genotypes-final_miss25"
+
+ vcftools --gzvcf \
+ "${OUTPUT}/rkc_rnaseq_genotypes-filtered-true.vcf.gz" \
+ --max-missing 0.80 --maf 0.05 --recode --recode-INFO-all --out \
+ "${OUTPUT}/rkc_rnaseq_genotypes-final_miss20"
+
+ vcftools --gzvcf \
+ "${OUTPUT}/rkc_rnaseq_genotypes-filtered-true.vcf.gz" \
+ --max-missing 0.85 --maf 0.05 --recode --recode-INFO-all --out \
+ "${OUTPUT}/rkc_rnaseq_genotypes-final_miss15"
 
 echo "complete!"

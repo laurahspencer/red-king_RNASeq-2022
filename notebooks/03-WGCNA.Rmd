@@ -5,14 +5,6 @@ date: "2/28/2022"
 output: html_document
 ---
 
-```{r}
- # Check memory limit
-memory.limit()
- # Change memory limit
-memory.limit(size = 50000)
-```
-
-
 ```{r, message=FALSE, warning=FALSE, results=FALSE}
 # Add all required libraries that are installed with install.packages() here
 list.of.packages <- c("tidyverse", "RColorBrewer", "ggpmisc", "ggpubr", "ape", "pheatmap", "plotly", "clipr")
@@ -55,9 +47,10 @@ load(file="../data/sample.info") #sample.info
 
 ```{r}
 # Load annotation objects 
-load(file = "../references/P.plat.blast")
-load(file = "../references/P.plat.blast.GO")
-load(file = "../references/P.plat.bestblast")
+load(file = "../references/P.camt.blast")
+load(file = "../references/P.camt.blast.GO")
+#load(file = "../references/P.plat.bestblast")
+load(file = "../results/bowtie/counts.annot.Pcamt")
 
 # load in DEG lists 
 load(file = "../results/deseq2/diffex.AM")
@@ -75,7 +68,9 @@ load(file = "../results/IPA/IPA.degs")
 
 ```{r}
 # Use WGCNA's `goodSamplesGenes` to remove any genes with very low variability or missing data  
-datExpr0 <- counts.trans[,-1:-3]
+#datExpr0 <- counts.trans[,-1:-3]
+datExpr0 <- counts.trans[,4:5000] #for testing purposes use subset of data
+
 gsg = goodSamplesGenes(datExpr0, verbose = 3);
 sum(gsg$goodGenes==FALSE)  #were any removed?  Nope. 
 ncol(gsg$allOK)
@@ -97,13 +92,16 @@ sampleTree = hclust(dist(datExpr0), method = "average");
 # Plot the sample tree: Open a graphic output window of size 12 by 9 inches
 # The user should change the dimensions if the window is too large or too small.
 sizeGrWindow(12,9)
-#pdf(file = "Plots/sampleClustering.pdf", width = 12, height = 9);
+
+#pdf(file = "/home/lspencer/2022-redking-OA/wgcna/sampleClustering.pdf", width = 12, height = 9);
+pdf(file = "C:/Users/laura.spencer/Desktop/sampleClustering.pdf", width = 12, height = 9);
 par(cex = 0.6);
 par(mar = c(0,4,2,0))
 plot(sampleTree, main = "Sample clustering to detect outliers", sub="", xlab="", cex.lab = 1.5, 
      cex.axis = 1.5, cex.main = 2)
 # Plot a line to show the cut
 abline(h = 110, col = "red");
+dev.off()
 
 # Determine cluster under the line
 clust = cutreeStatic(sampleTree, cutHeight = 110, minSize = 10)  #for bowtie2 aligned
@@ -111,6 +109,7 @@ clust = cutreeStatic(sampleTree, cutHeight = 110, minSize = 10)  #for bowtie2 al
 table(clust)
 # clust 1 contains the samples we want to keep.
 keepSamples = (clust==1)
+#keepSamples = (clust==0)
 datExpr = datExpr0[keepSamples, ]
 nGenes = ncol(datExpr)
 nSamples = nrow(datExpr)
@@ -161,9 +160,11 @@ sampleTree2 = hclust(dist(datExpr), method = "average")
 traitColors = numbers2colors(sapply(datTraits,as.numeric), signed = F, colors = colorRampPalette(brewer.pal(8, "Set2"))(14));
 
 # Plot the sample dendrogram and the colors underneath.
+pdf(file = "C:/Users/laura.spencer/Desktop/sampleTree.pdf", width = 12, height = 9);
 plotDendroAndColors(sampleTree2, traitColors,
                     groupLabels = names(datTraits), 
                     main = "Sample dendrogram with treatment and tank ids")
+dev.off()
 ```
 
 ```{r}
@@ -183,6 +184,7 @@ powers = c(c(1:25))
 sft = pickSoftThreshold(datExpr, powerVector = powers, verbose = 5, networkType = "signed")
 # Plot the results:
 sizeGrWindow(9, 5)
+pdf(file = "C:/Users/laura.spencer/Desktop/soft-thresholding power.pdf", width = 12, height = 9);
 par(mfrow = c(1,2));
 cex1 = 0.9;
 # Scale-free topology fit index as a function of the soft-thresholding power
@@ -193,19 +195,22 @@ text(sft$fitIndices[,1], -sign(sft$fitIndices[,3])*sft$fitIndices[,2],
      labels=powers,cex=cex1,col="red");
 # this line corresponds to using an R^2 cut-off of h
 abline(h=0.90,col="red")
+
 # Mean connectivity as a function of the soft-thresholding power
 plot(sft$fitIndices[,1], sft$fitIndices[,5],
      xlab="Soft Threshold (power)",ylab="Mean Connectivity", type="n",
      main = paste("Mean connectivity"))
 text(sft$fitIndices[,1], sft$fitIndices[,5], labels=powers, cex=cex1,col="red")
+dev.off()
 ```
 
 I now calculate the adjacencies, using the soft thresholding power 14:
 
 ```{r}
-softPower = 14; # for bowtie2 aligned 
+#softPower = 14; # for bowtie2 aligned to BKC genome 
 #softPower = 20; #for star aligned
 #softPower = 10; #for star + RSEM
+softPower = 15; # for bowtie2 aligned to RKC genome 
 adjacency = adjacency(datExpr, power = softPower, type="signed", corFnc="bicor");
 
 # for testing purposes, subset expression dataframe 
@@ -215,12 +220,15 @@ adjacency = adjacency(datExpr, power = softPower, type="signed", corFnc="bicor")
 To minimize effects of noise and spurious associations, we transform the adjacency into Topological Overlap Matrix, and calculate the corresponding dissimilarity:
 
 ```{r}
-# TOM = TOMsimilarity(adjacency); #this takes a very long time
-# dissTOM = 1-TOM
+TOM = TOMsimilarity(adjacency); #this takes a very long time
+dissTOM = 1-TOM
 
+save(dissTOM, file = "../results/wgcna/dissTom-bowtie-rkc")
+load(file = "../results/wgcna/dissTom-bowtie-rkc") #load if needed
+
+## dissTom object generated from BKC-aligned via bowtie
 #save(dissTOM, file = "../results/wgcna/dissTom-bowtie")
-load(file = "../results/wgcna/dissTom-bowtie") #load if needed
-
+#load(file = "../results/wgcna/dissTom-bowtie")
 
 ## dissTOM objects generated fro various STAR-aligned pipelines
 #save(dissTOM, file = "../results/wgcna/dissTom-star-rsem")
@@ -229,7 +237,7 @@ load(file = "../results/wgcna/dissTom-bowtie") #load if needed
 
 #load(file = "../results/wgcna/dissTom-star-rsem")
 #load(file = "../results/wgcna/dissTom-star-multimap") #load if needed 
-#load(file = "../results/wgcna/dissTom-star") #load if needed 
+#load(file = "../results/wgcna/dissTom-star") #load if needed
 ```
 
 We now use hierarchical clustering to produce a hierarchical clustering tree (dendrogram) of genes. Note that we use the function hclust that provides a much faster hierarchical clustering routine than the standard hclust function.
@@ -239,8 +247,10 @@ We now use hierarchical clustering to produce a hierarchical clustering tree (de
 geneTree = hclust(as.dist(dissTOM), method = "average");
 # Plot the resulting clustering tree (dendrogram)
 sizeGrWindow(12,9)
+pdf(file = "C:/Users/laura.spencer/Desktop/gene-clustering.pdf", width = 12, height = 9);
 plot(geneTree, xlab="", sub="", main = "Gene clustering on TOM-based dissimilarity",
      labels = FALSE, hang = 0.04);
+dev.off()
 ```
 
 ```{r}
@@ -259,10 +269,12 @@ dynamicColors = labels2colors(dynamicMods)
 table(dynamicColors)
 # Plot the dendrogram and colors underneath
 sizeGrWindow(8,6)
+pdf(file = "C:/Users/laura.spencer/Desktop/gene-clustering-modules.pdf", width = 12, height = 9);
 plotDendroAndColors(geneTree, dynamicColors, "Dynamic Tree Cut",
                     dendroLabels = FALSE, hang = 0.03,
                     addGuide = TRUE, guideHang = 0.05,
                     main = "Gene clustering on TOM-based dissimilarity\nDendrogram and module colors")
+dev.off()
 ```
 
 The Dynamic Tree Cut may identify modules whose expression profiles are very similar. It may be prudent to merge
@@ -280,14 +292,17 @@ MEs = MEList$eigengenes
 MEDiss = 1-cor(MEs);
 # Cluster module eigengenes
 METree = hclust(as.dist(MEDiss), method = "average");
+
 # Plot the result
 sizeGrWindow(7, 6)
+pdf(file = "C:/Users/laura.spencer/Desktop/module-tree.pdf", width = 12, height = 9);
 plot(METree, main = "Clustering of module eigengenes",
      xlab = "", sub = "")
-
 MEDissThres = 0.25
 # Plot the cut line into the dendrogram
 abline(h=MEDissThres, col = "red")
+dev.off()
+
 # Call an automatic merging function
 merge = mergeCloseModules(datExpr, dynamicColors, cutHeight = MEDissThres, verbose = 3)
 # The merged module colors
@@ -299,19 +314,20 @@ mergedMEs = merge$newMEs;
 
 ```{r}
 #sizeGrWindow(12, 9)
-#pdf(file = "Plots/geneDendro-3.pdf", wi = 9, he = 6)
+pdf(file = "C:/Users/laura.spencer/Desktop/gene-clustering-modules-merged.pdf", width = 12, height = 9);
 plotDendroAndColors(geneTree, cbind(dynamicColors, mergedColors),
                     c("Dynamic Tree Cut", "Merged dynamic"),
                     dendroLabels = FALSE, hang = 0.03,
                     addGuide = TRUE, guideHang = 0.05,
                     main = "Gene clustering on TOM-based dissimilarity\nDendrogram and module colors")
-# #dev.off()
-sizeGrWindow(12, 9)
-plotDendroAndColors(geneTree, mergedColors,
-                    c("Dynamic Tree Cut", "Merged dynamic"),
-                    dendroLabels = FALSE, hang = 0.03,
-                    addGuide = TRUE, guideHang = 0.05,
-                    main = "Gene clustering on TOM-based dissimilarity\nFinalized modules")
+dev.off()
+
+# sizeGrWindow(12, 9)
+# plotDendroAndColors(geneTree, mergedColors,
+#                     c("Dynamic Tree Cut", "Merged dynamic"),
+#                     dendroLabels = FALSE, hang = 0.03,
+#                     addGuide = TRUE, guideHang = 0.05,
+#                     main = "Gene clustering on TOM-based dissimilarity\nFinalized modules")
 ```
 
 
@@ -356,6 +372,8 @@ sizeGrWindow(10,6)
 textMatrix =  paste(signif(moduleTraitCor, 2), " (",
                            signif(moduleTraitPvalue, 2), ")", sep = "");
 dim(textMatrix) = dim(moduleTraitCor)
+
+pdf(file = "C:/Users/laura.spencer/Desktop/module-pCO2-corr.pdf", width = 4.5, height = 6);
 par(mar = c(6, 8.5, 3, 3));
 # Display the correlation values within a heatmap plot
 labeledHeatmap(Matrix = moduleTraitCor,
@@ -372,8 +390,11 @@ labeledHeatmap(Matrix = moduleTraitCor,
                cex.lab.y = 0.75,
                cex.lab.x= 0.85,
                zlim = c(-1,1),
-               main = paste("Module-trait relationships"))
+               main = paste("Module-pCO2 relationships"))
+dev.off()
 ```
+
+
 ```{r}
 # Define variable containing the pH column
 # pH = as.data.frame(datTraits$pH);
@@ -404,12 +425,12 @@ names(GSPvalue) = paste("p.GS.", names(pco2), sep="");
 
 ```{r}
 # Need to have every gene represented in the annotation file - here I merge the best blast (has all genes) & uniprot blast (some genes) results to have all genes, and to also be able to use either blast result. 
-annot = left_join(P.plat.bestblast, P.plat.blast, by=c("id_gtf"="geneID")) %>% 
-  filter(id_gtf %in% names(datExpr))
+annot = counts.annot.Pcamt %>% 
+  filter(geneID %in% names(datExpr))
 dim(annot)
 names(annot)
 probes = names(datExpr)
-probes2annot = match(probes, annot$id_gtf)
+probes2annot = match(probes, annot$geneID)
 # The following is the number or probes without annotation:
 sum(is.na(probes2annot))
 # Should return 0.
@@ -418,8 +439,8 @@ sum(is.na(probes2annot))
 ```{r}
 # Create the starting data frame
 geneInfo0 = data.frame(id = probes,
-                      hit_acc = annot$hit_acc[probes2annot],
-                      hit_desc = annot$hit_desc[probes2annot],
+                      SPID = annot$SPID[probes2annot],
+                      protein_names = annot$protein_names[probes2annot],
                       moduleColor = moduleColors,
                       geneTraitSignificance,
                       GSPvalue)
@@ -485,6 +506,11 @@ Visualizing the network of eigengenes
 # departure from WGCNA tutorials 
 
 ## Generate line plots of genes for each module of interest
+```{r}
+P.camt.blast
+counts.annot.Pcamt
+```
+
 
 ```{r}
 # Generate per-gene summary stats 
@@ -507,8 +533,8 @@ genes.stats <- gene.counts.norm %>% group_by(Treatment, gene) %>%
   mutate(DEG=factor(DEG, levels=c("Non-DEG", "DEG"))) %>% 
   mutate(change=factor(change, levels=c("Non-DEG", "Down-regulated", "Up-regulated"))) %>%
   ungroup() %>% 
-  left_join(P.plat.bestblast %>% dplyr::select(id, id_gtf, hit_acc, hit_desc, e_value), by=c("gene"="id_gtf")) %>%
-  left_join(P.plat.blast.GO %>% dplyr::select(gene_id, spid, protein_names, evalue), by=c("gene"="gene_id"))
+  left_join(counts.annot.Pcamt %>% dplyr::select(geneID, SPID, protein_names, evalue), by=c("gene"="geneID"))
+  #left_join(P.camt.blast.GO %>% dplyr::select(gene_id, spid, protein_names, evalue), by=c("gene"="gene_id"))
 
 # Generate line plots of significant modules showing only genes significantly correlated to module 
 # List of modules (their color IDs) that are significantly associated with pH 
@@ -572,18 +598,20 @@ module.lineplots[[i]] <-
 
 module.stats[[i]] <- a %>% dplyr::select(-Treatment, -mean, -sd, -cv, -pH) %>% distinct()
 }
-print(module.lineplots)
+#print(module.lineplots)
 save(module.lineplots, file = "../results/wgcna/module.lineplots")
 
-#Save some figures to pdf
-# fig <- ggarrange(plotlist=module.lineplots,
-#                        ncol=2, nrow=2,
-#                        common.legend = TRUE, legend="top")
-# pdf("../results/wgcna/pH-associated-modules-genes.pdf", onefile = TRUE)
-# fig
-# dev.off()
+#Save module lineplots pdf
+fig <- ggarrange(plotlist=module.lineplots,
+                       ncol=2, nrow=3,
+                       common.legend = TRUE, legend="top")
+pdf(file = "C:/Users/laura.spencer/Desktop/module-lineplots.pdf", width = 8.5, height = 11, onefile = TRUE);
+
+fig
+dev.off()
 
 ```
+
 Summary of modules significantly associated with pCO2 
 ```{r}
 moduleTraitCor %>% nrow()
@@ -617,49 +645,49 @@ verboseScatterplot(abs(geneModuleMembership[moduleGenes, column]),
 # Which metric to use for IPA? 
 
 ```{r}
-# ggplotly(geneInfo %>% dplyr::select(id, hit_acc, hit_desc, moduleColor, GS.pH, p.GS.pH, MM.brown, p.MM.brown) %>%
+# ggplotly(geneInfo %>% dplyr::select(id, SPID, protein_names, moduleColor, GS.pH, p.GS.pH, MM.brown, p.MM.brown) %>%
 #   filter(moduleColor %in% modules) %>% 
 #   filter(p.MM.brown<0.05) %>%
 #   ggplot(aes(x=MM.brown, group=moduleColor, fill=moduleColor)) + geom_density(alpha=0.5) + 
 #   scale_fill_manual(values=sort(modules)) + 
 #   ggtitle("Brown"))
 # 
-# ggplotly(geneInfo %>% dplyr::select(id, hit_acc, hit_desc, moduleColor, GS.pH, p.GS.pH, MM.cyan, p.MM.cyan) %>%
+# ggplotly(geneInfo %>% dplyr::select(id, SPID, protein_names, moduleColor, GS.pH, p.GS.pH, MM.cyan, p.MM.cyan) %>%
 #   filter(moduleColor %in% modules) %>%
 #   filter(p.MM.cyan<0.05) %>%
 #   ggplot(aes(x=MM.cyan, group=moduleColor, fill=moduleColor)) + geom_density(alpha=0.5) + 
 #   scale_fill_manual(values=sort(modules)) + 
 #   ggtitle("Cyan"))
 # 
-# ggplotly(geneInfo %>% dplyr::select(id, hit_acc, hit_desc, moduleColor, GS.pH, p.GS.pH, MM.darkgreen, p.MM.darkgreen) %>%
+# ggplotly(geneInfo %>% dplyr::select(id, SPID, protein_names, moduleColor, GS.pH, p.GS.pH, MM.darkgreen, p.MM.darkgreen) %>%
 #   filter(moduleColor %in% modules) %>%
 # #  filter(p.MM.darkgreen<0.05) %>%
 #   ggplot(aes(x=MM.darkgreen, group=moduleColor, fill=moduleColor)) + geom_density(alpha=0.5) + 
 #   scale_fill_manual(values=sort(modules)) + 
 #   ggtitle("Darkgreen"))
 # 
-# ggplotly(geneInfo %>% dplyr::select(id, hit_acc, hit_desc, moduleColor, GS.pH, p.GS.pH, MM.green, p.MM.green) %>%
+# ggplotly(geneInfo %>% dplyr::select(id, SPID, protein_names, moduleColor, GS.pH, p.GS.pH, MM.green, p.MM.green) %>%
 #   filter(moduleColor %in% modules) %>%
 # #  filter(p.MM.green<0.05) %>%
 #   ggplot(aes(x=MM.green, group=moduleColor, fill=moduleColor)) + geom_density(alpha=0.5) + 
 #   scale_fill_manual(values=sort(modules)) + 
 #   ggtitle("Green"))
 # 
-# ggplotly(geneInfo %>% dplyr::select(id, hit_acc, hit_desc, moduleColor, GS.pH, p.GS.pH, MM.lightcyan1, p.MM.lightcyan1) %>%
+# ggplotly(geneInfo %>% dplyr::select(id, SPID, protein_names, moduleColor, GS.pH, p.GS.pH, MM.lightcyan1, p.MM.lightcyan1) %>%
 #   filter(moduleColor %in% modules) %>%
 # #  filter(p.MM.lightcyan1<0.05) %>%
 #   ggplot(aes(x=MM.lightcyan1, group=moduleColor, fill=moduleColor)) + geom_density(alpha=0.5) + 
 #   scale_fill_manual(values=sort(modules)) + 
 #   ggtitle("Lightcyan1"))
 # 
-# ggplotly(geneInfo %>% dplyr::select(id, hit_acc, hit_desc, moduleColor, GS.pH, p.GS.pH, MM.pink, p.MM.pink) %>%
+# ggplotly(geneInfo %>% dplyr::select(id, SPID, protein_names, moduleColor, GS.pH, p.GS.pH, MM.pink, p.MM.pink) %>%
 #   filter(moduleColor %in% modules) %>%
 # #  filter(p.MM.pink<0.05) %>%
 #   ggplot(aes(x=MM.pink, group=moduleColor, fill=moduleColor)) + geom_density(alpha=0.5) + 
 #   scale_fill_manual(values=sort(modules)) + 
 #   ggtitle("Pink"))
 # 
-# ggplotly(geneInfo %>% dplyr::select(id, hit_acc, hit_desc, moduleColor, GS.pH, p.GS.pH, MM.red, p.MM.red) %>%
+# ggplotly(geneInfo %>% dplyr::select(id, SPID, protein_names, moduleColor, GS.pH, p.GS.pH, MM.red, p.MM.red) %>%
 #   filter(moduleColor %in% modules) %>%
 #   filter(p.MM.red<0.05) %>%
 #   ggplot(aes(x=MM.red, group=moduleColor, fill=moduleColor)) + geom_density(alpha=0.5) + 
@@ -912,19 +940,21 @@ counts.modules.matrix<- bind_rows(counts.modules[modules.sorted]) %>%
   dplyr::select(module, rownames(s)) %>%
   mutate(module=factor(module, levels=modules.sorted))
 
+pdf(file = "C:/Users/laura.spencer/Desktop/wgcna-modules-heatmap.pdf", width = 10, height = 7.5);
 pheatmap(counts.modules.matrix[,colnames(counts.modules.matrix) !="module"], 
          cluster_cols = FALSE, cluster_rows=F, annotation_names_col = FALSE, 
          show_rownames=FALSE, na.rm=TRUE, scale="row", 
          main = "Expression by pH-associated module\n(significant genes only)", fontsize = 8, 
-         annotation_colors = list(Treatment=c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c"),
-                                  module=c(cyan="cyan", pink="pink", brown="brown", 
-                                           lightcyan1="lightcyan1", green="green", darkgreen="darkgreen")),
+         # annotation_colors = list(Treatment=c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c"),
+         #                          module=c(cyan="cyan", pink="pink", brown="brown", 
+         #                                   lightcyan1="lightcyan1", green="green", darkgreen="darkgreen")),
          # annotation_colors = list(Treatment=c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c"),
          #                           module=c(magenta="magenta", orangered4="orangered4", darkgreen="darkgreen",
          #                                    plum1="plum1", salmon="salmon",
          #                                    darkgrey="darkgrey")),
          annotation_col=s[,"Treatment", drop=F],
          annotation_row = counts.modules.matrix[,"module", drop=FALSE])
+dev.off()
 ```
 
 ## Prep for GO_MWU analysis 
@@ -935,7 +965,7 @@ pheatmap(counts.modules.matrix[,colnames(counts.modules.matrix) !="module"],
 ```{r files for GO_MWU}
 # Generate a gene annotation file 
 geneInfo.mwu <- geneInfo %>% left_join(
-  (P.plat.blast.GO)[,c("gene_id","gene_ontology_i_ds")], by = c("id"="gene_id")) %>%  # could also opt to  %>% filter(evalue < 1e-10)
+  (P.camt.blast.GO)[,c("gene_id","gene_ontology_i_ds")], by = c("id"="gene_id")) %>%  # could also opt to  %>% filter(evalue < 1e-10)
   filter(!is.na(gene_ontology_i_ds)) #filter for genes that are annotated with GO information 
 write_delim(geneInfo.mwu[,c("id", "gene_ontology_i_ds")], "../results/GO_MWU/WGCNA-genes_for-GOMWU.tab",delim = "\t")
 
@@ -952,6 +982,11 @@ for (i in 1:length(modules)) {
 
 ```
 
+
+# BONEYARD
+-------------------------
+
+
 ## Prep for IPA
 
 ```{r}
@@ -959,6 +994,7 @@ modules
 modules.p
 modules.cor
 ```
+
 NOTE: For WGCNA results I export the MM or GS and associated p-values. The p.MM is directly derived from MM, therefore p.MM is a sufficient metric for all IPA decisions (sign. genes, AND how to handle multi-hit). EXCEPT when I want to visualize the directionality of the changes (up/down regulated / correlated). That's when the GS and MM (which can be -1<x<1) come in handy. 
 
 ```{r}
@@ -1083,15 +1119,13 @@ for (i in 1:length(modules.interest)) {
 }
 ```
 
-# BONEYARD
--------------------------
 
 
 ```{r}
 # Here I try to make lineplots with delta counts (from ambient) - very ugly and not informative, but this code might be useful
 genes.stats %>% ungroup() %>%
   filter(gene %in% names(datExpr)[moduleColors==module]) %>% 
-  dplyr::select(gene, Treatment, mean, hit_acc, hit_desc, SPID) %>%
+  dplyr::select(gene, Treatment, mean, SPID, protein_names, SPID) %>%
   pivot_wider(names_from = "Treatment", values_from = "mean") %>% 
   mutate(amb=0, mod=Moderate-Ambient, low=Low-Ambient) %>%
   dplyr::select(-Ambient, -Moderate, -Low) %>%
