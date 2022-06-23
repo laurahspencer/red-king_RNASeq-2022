@@ -11,11 +11,13 @@ module load bio/gatk/4.2.0.0
 module load bio/samtools/1.11
 source /home/lspencer/venv/bin/activate
 
-REF=/home/lspencer/references/bluekingcrab
-INPUT=/home/lspencer/2022-redking-OA/aligned/star #to use star aligned
-#INPUT=/home/lspencer/2022-redking-OA/aligned/bowtie2-sorted/ #to use bowtie2 aligned
-#INPUT=/scratch/lspencer/2022-redking-OA/testing
-OUTPUT=/scratch/lspencer/2022-redking-OA/genotypes-star
+#REF=/home/lspencer/references/bluekingcrab
+REF=/home/lspencer/references/redkingcrab
+#INPUT=/home/lspencer/2022-redking-OA/aligned/star #to use star aligned
+#INPUT=/home/lspencer/2022-redking-OA/aligned/bowtie2-sorted/ #to use bowtie2 aligned to BKC genome
+INPUT=/home/lspencer/2022-redking-OA/aligned/bowtie-rkc #to use bowtie2 aligned to RKG genome
+#OUTPUT=/scratch/lspencer/2022-redking-OA/genotypes-star
+OUTPUT=/scratch/lspencer/2022-redking-OA/genotypes-bowtie-rkc
 
 # Starting this pipeline with pre-processed bam files from upstream of the pipeline
 

@@ -49,7 +49,11 @@ goDivisions <- c("BP", "MF", "CC")
 ```{r}
 log(0.05, base = 10)
 ```
+Create an empty list in which to save the best GO terms from each enrichment analysis. This list consitutes GO terms that best represent *independent* groups of significant GO terms
 
+```{r}
+best_GO <- list()
+```
 
 ```{r}
 go.mwu.degs <- function(contrast) {
@@ -67,7 +71,7 @@ gomwuStats(input, goDatabase, goAnnotations, goDivisions[j],
 	perlPath="C:/Strawberry/perl/bin/perl.exe", # replace with full path to perl executable if it is not in your system's PATH already
 	largest=0.1,  # a GO category will not be considered if it contains more than this fraction of the total number of genes
 	smallest=5,   # a GO category should contain at least this many genes to be considered
-	clusterCutHeight=0.25, # threshold for merging similar (gene-sharing) terms. See README for details.
+	clusterCutHeight=0.30, # threshold for merging similar (gene-sharing) terms. See README for details.
 #	Alternative="g" # by default the MWU test is two-tailed; specify "g" or "l" of you want to test for "greater" or "less" instead. 
 	#Module=TRUE,Alternative="g" # un-remark this if you are analyzing a SIGNED WGCNA module (values: 0 for not in module genes, kME for in-module genes). In the call to gomwuPlot below, specify absValue=0.001 (count number of "good genes" that fall into the module)
 #	Module=TRUE # un-remark this if you are analyzing an UNSIGNED WGCNA module 
@@ -78,6 +82,7 @@ gomwuStats(input, goDatabase, goAnnotations, goDivisions[j],
 # ----------- Plotting results
 
 #quartz()
+pdf(file = paste("GO-tree_", contrast, "_", goDivisions[j], ".pdf", sep=""), height = length(results[[2]]$labels)/3)
 results=gomwuPlot(input,goAnnotations,goDivisions[j],
  	#absValue=-log(0.05,10),   # genes with the measure value exceeding this will be counted as "good genes". This setting is for signed log-pvalues. Specify absValue=0.001 if you are doing Fisher's exact test for standard GO enrichment or analyzing a WGCNA module (all non-zero genes = "good genes").
  absValue=.5, # un-remark this if you are using log2-fold changes
@@ -91,6 +96,7 @@ results=gomwuPlot(input,goAnnotations,goDivisions[j],
  colors=c("dodgerblue2","firebrick1","skyblue2","lightcoral") # these are default colors, un-remar and change if needed
  )
 mtext(paste(contrast, " - ", goDivisions[j], sep=""), side = 3, line = 3, adj = -.05, col="black")
+dev.off()
  # manually rescale the plot so the tree matches the text 
  # if there are too many categories displayed, try make it more stringent with level1=0.05,level2=0.01,level3=0.001.  
  
@@ -106,13 +112,12 @@ pcut=1e-2 # adjusted pvalue cutoff for representative GO
 hcut=0.9 # height at which cut the GO terms tree to get "independent groups". 
 
 # plotting the GO tree with the cut level (un-remark the next two lines to plot)
-plot(results[[2]],cex=0.6)
-abline(h=hcut,col="red")
+# plot(results[[2]],cex=0.6)
+# abline(h=hcut,col="red")
 
 # cutting
 ct=cutree(results[[2]],h=hcut)
 annots=c();ci=1
-best.go <- c() #added
 for (ci in unique(ct)) {
   message(ci)
 	rn=names(ct)[ct==ci]
@@ -129,18 +134,20 @@ for (ci in unique(ct)) {
 		best=which(fr==max(fr))
 	}
 	if (bestrr$pval[best]<=pcut) { annots=c(annots,sub("\\d+\\/\\d+ ","",row.names(bestrr)[best]))}
-	best.go[i] <- best #added
 }
-print(best.go) #added
 
 mwus=read.table(paste("MWU",goDivisions[j],input,sep="_"),header=T)
 bestGOs=mwus[mwus$name %in% annots,]
 print(bestGOs)
+
+# Save best go terms to list for use outside of function
+best_GO[[paste(contrast, goDivisions[j], sep="_")]] <<- bestGOs 
 },
 error=function(e){cat("ERROR:", conditionMessage(e), "\n")})
 }
 }
 ```
+
 
 # NOTE: in dendrograms, RED=upregulated, BLUE=downregulated 
 
@@ -149,6 +156,11 @@ error=function(e){cat("ERROR:", conditionMessage(e), "\n")})
 ```{r}
 go.mwu.degs(contrast="amb-mod")
 ```
+
+```{r}
+best_GO$`amb-mod_BP`
+```
+
 
 ## DEGs between ambient conditions (pH ~8.0) and severe OA (pH ~7.5)
 
@@ -687,21 +699,26 @@ ggplot(gene_sets.CC %>% filter(gene_set %in% modules) %>% droplevels(), aes(y=st
 ```
 
 
+```{r}
+gene_sets.BP %>% filter(gene_set %!in% modules) %>% droplevels() %>% 
+         filter(name %in% unique(c(best_GO$`amb-mod_BP`$name, best_GO$`amb-low_BP`$name, best_GO$`mod-low_BP`$name))) %>% 
+         mutate(name=as.factor(name)) %>% mutate(name=fct_reorder(name, delta.rank, .desc = TRUE))
+
+
+```
+
+
 ## ONLY DEG bubble plots 
 
 ```{r}
 # Create function that is the oppositve of %in% 
 `%!in%` = Negate(`%in%`)
 
-gene_sets.BP %>% filter(gene_set %!in% modules) %>% droplevels() %>% 
-         mutate(name=as.factor(name)) %>% mutate(name=fct_reorder(name, delta.rank)) %>% 
-  arrange(delta.rank)
-
-
 # Biological Processes
-pdf(file="Enriched_BP_DEGs.pdf", height = 13.5, width = 7.5)
+#pdf(file="Enriched_BP_DEGs.pdf", height = 13.5, width = 7.5)
 ggplot(gene_sets.BP %>% filter(gene_set %!in% modules) %>% droplevels() %>% 
-         filter(p.adj<0.01) %>% 
+         #filter(p.adj<0.01) %>%
+         filter(name %in% unique(c(best_GO$`amb-mod_BP`$name, best_GO$`amb-low_BP`$name, best_GO$`mod-low_BP`$name))) %>%  # use only the best GO terms (determined within GO_MWU ananlysis)
          mutate(name=as.factor(name)) %>% mutate(name=fct_reorder(name, delta.rank, .desc = TRUE)), 
        #aes(y=str_wrap(name),x=gene_set, col=gene_set_up)) + 
        aes(y=name,x=gene_set, col=gene_set_up)) + 
@@ -725,17 +742,18 @@ ggplot(gene_sets.BP %>% filter(gene_set %!in% modules) %>% droplevels() %>%
         legend.title = element_text(size=6)) +
   ylab("Enriched Gene Ontology (GO) Term") + 
   ggtitle(NULL) +
-  annotate("text", x = 1, y = -.25, label = "Ambient\nvs. Moderate", size=2, col="gray15") +  
-  annotate("text", x = 2, y = -.25, label = "Ambient\nvs. Low", size=2, col="gray15") +  
-  annotate("text", x = 3, y = -.25, label = "Moderate\nvs. Low", size=2, col="gray15") +  
-  #coord_cartesian(clip = "off", ylim = c(-0.6, 90))
-  coord_cartesian(clip = "off", ylim = c(-0.6, 42))
-dev.off()
+  annotate("text", x = 1, y = -.25, label = "Ambient\nvs. Moderate", size=2.25, col="gray15") +  
+  annotate("text", x = 2, y = -.25, label = "Ambient\nvs. Low", size=2.25, col="gray15") +  
+  annotate("text", x = 3, y = -.25, label = "Moderate\nvs. Low", size=2.25, col="gray15") +  
+  #coord_cartesian(clip = "off", ylim = c(-0.6, 80))
+  coord_cartesian(clip = "off", ylim = c(-0.6, 20))
+#dev.off()
 
 # Molecular Functions 
-pdf(file="Enriched_MF_DEGs.pdf", height = 25, width = 7.5)
+#pdf(file="Enriched_MF_DEGs.pdf", height = 25, width = 7.5)
 ggplot(gene_sets.MF %>% filter(gene_set %!in% modules) %>% droplevels() %>% 
-          filter(p.adj<0.01) %>%
+          #filter(p.adj<0.01) %>%
+           filter(name %in% unique(c(best_GO$`amb-mod_MF`$name, best_GO$`amb-low_MF`$name, best_GO$`mod-low_MF`$name))) %>%  # use only the best GO terms 
          mutate(name=as.factor(name)) %>% mutate(name=fct_reorder(name, delta.rank, .desc = TRUE)),  
 #       aes(y=str_wrap(name),x=gene_set, col=gene_set_up)) + 
         aes(y=name,x=gene_set, col=gene_set_up)) + 
@@ -759,16 +777,17 @@ ggplot(gene_sets.MF %>% filter(gene_set %!in% modules) %>% droplevels() %>%
         legend.title = element_text(size=6)) +
   ylab("Enriched Gene Ontology (GO) Term") + 
   ggtitle(NULL) + 
-  annotate("text", x = 1, y = -.5, label = "Ambient\nvs. Moderate", size=2, col="gray15") +  
-  annotate("text", x = 2, y = -.5, label = "Ambient\nvs. Low", size=2, col="gray15") +  
-  annotate("text", x = 3, y = -.5, label = "Moderate\nvs. Low", size=2, col="gray15") #+  
-  coord_cartesian(clip = "off", ylim = c(-1.5, 300))
-dev.off()
+  annotate("text", x = 1, y = -.25, label = "Ambient\nvs. Moderate", size=2.25, col="gray15") +  
+  annotate("text", x = 2, y = -.25, label = "Ambient\nvs. Low", size=2.25, col="gray15") +  
+  annotate("text", x = 3, y = -.25, label = "Moderate\nvs. Low", size=2.25, col="gray15") +  
+  coord_cartesian(clip = "off", ylim = c(-.6, 27.25))
+#dev.off()
 
 # Cellular components
-pdf(file="Enriched_CC_DEGs.pdf", height = 5.5, width = 6)
+#pdf(file="Enriched_CC_DEGs.pdf", height = 5.5, width = 6)
 ggplot(gene_sets.CC %>% filter(gene_set %!in% modules) %>% droplevels() %>% 
-          filter(p.adj<0.01) %>%
+          filter(name %in% unique(c(best_GO$`amb-mod_CC`$name, best_GO$`amb-low_CC`$name, best_GO$`mod-low_CC`$name))) %>%  # use only the best GO terms 
+          #filter(p.adj<0.01) %>%
          mutate(name=as.factor(name)) %>% mutate(name=fct_reorder(name, delta.rank, .desc = TRUE)),  
 #       aes(y=str_wrap(name),x=gene_set, col=gene_set_up)) + 
         aes(y=name,x=gene_set, col=gene_set_up)) + 
@@ -792,11 +811,11 @@ ggplot(gene_sets.CC %>% filter(gene_set %!in% modules) %>% droplevels() %>%
         legend.title = element_text(size=6)) +
   ylab("Enriched Gene Ontology (GO) Term") + 
   ggtitle(NULL) +
-  annotate("text", x = 1, y = -.05, label = "Ambient\nvs. Moderate", size=2, col="gray15") +  
-  annotate("text", x = 2, y = -.05, label = "Ambient\nvs. Low", size=2, col="gray15") +  
-  annotate("text", x = 3, y = -.05, label = "Moderate\nvs. Low", size=2, col="gray15") #+  
-  #coord_cartesian(clip = "off", ylim = c(-0.2, 9))
-dev.off()
+  annotate("text", x = 1, y = -.05, label = "Ambient\nvs. Moderate", size=2.25, col="gray15") +  
+  annotate("text", x = 2, y = -.05, label = "Ambient\nvs. Low", size=2.25, col="gray15") +  
+  annotate("text", x = 3, y = -.05, label = "Moderate\nvs. Low", size=2.25, col="gray15") +  
+  coord_cartesian(clip = "off", ylim = c(-0.1, 4))
+#dev.off()
 ```
 
 ```{r}
@@ -808,14 +827,28 @@ gene_sets.MF %>% filter(gene_set %!in% modules) %>% arrange(name)
 ```{r}
 module.lineplots[[1]]
 ```
+### Identify GO ID that was selected to represent each group of GO terms. 
 
-## Try to map GO terms to GO Slims 
+From the GO_MWU README file: "highly similar categories are merged according to complete linkage clustering based on the fraction of shared genes. The distance measure for clustering, introduced in Kosiol et al 2008, is the number of genes shared among the two GO categories within the analyzed dataset divided by the size of the smaller of the two categories. The resulting hierarchical tree is then “cut” at the adjustable “height” ('cutTreeHeight' parameter in the call to gomwuStats) to merge clustered categories. The default for cutTreeHeight is 0.25, implying that a group of categories will be merged if the most dissimilar two of them share >75% of genes included in the smaller of the two. **The merged categories inherit the name of the largest one.**" 
+
+So, the GO_MWU results use terms that "represent" similar terms (and not GO_SLIMs). GO_MWU doesn't specify which GO ID was used (it just uses the name), so first I need to match the IDs to the names. 
 
 ```{r}
+#Here I import the go.obo object and convert to dataframe. 
+install.packages("ontologyIndex")
+require(ontologyIndex)
+ontology <- get_ontology("go.obo") %>% as.data.frame()
+goslims <- get_ontology("goslim_plant.obo") %>% as.data.frame()
 
+# Identify the representative GO ID selected for each group of merged IDs, column "id"
+gene_sets.BP %>% left_join(ontology, by="name")
+```
+## Map GO terms to GO Slims 
+
+```{r}
 # Biological Processes
-myIds <- (gene_sets.BP %>% separate_rows(term, sep = ";") %>% filter(!is.na(term)))$term %>% unique()
-
+myIds <- (gene_sets.BP %>% left_join(ontology, by="name") %>% 
+            filter(!is.na(term)))$term %>% unique()
 
 myCollection <- GOCollection(myIds)
 fl <- system.file("extdata", "goslim_plant.obo", package="GSEABase")
@@ -838,7 +871,8 @@ mappedIds <-
   }
 
 slimdf <- mappedIds(slimdf, myCollection, GOBPOFFSPRING)
-#slimdf %>% filter(Count>0) %>% View()
+slimdf %>% filter(Count>0) %>% View()
+
 write.csv(slimdf %>% filter(Count>0), file = "slim_bp.csv", quote = FALSE)
 ```
 
@@ -882,7 +916,506 @@ left_join(
 
 #slimdf %>% filter(Count>0) %>% View()
 #write.csv(slimdf.AM, file = "slim_bp.csv", quote = FALSE)
+```
+
+```{r}
+sessionInfo()
+require(metacoder)
+```
 
 
+```{r}
+mc <- "https://cran.r-project.org/src/contrib/Archive/metacoder/metacoder_0.1.3.tar.gz"
+install.packages(mc, repos=NULL, type="source") ## version 1.3 is the only version compatible with the code below
+
+install.packages("traits")
+detach(package:metacoder, unload = TRUE)
+devtools::install_github("https://github.com/grunwaldlab/metacoder/releases/tag/v0.3.1")
+
+
+install.packages("metacoder")
+install.packages("org.Hs.eg.db")
+install.packages("airway")
+install.packages("AnnotationDbi")
+
+library(GO.db)
+require(metacoder)
+library(org.Hs.eg.db)
+library(airway)
+library(AnnotationDbi)
+
+package.version("metacoder")
+
+# set module of interest
+module <- "orange" # lightsteelblue1  orange  paleturquoise
+
+##### READ IN ALL MODULE GENE:GO INFORMATION #####
+## get list of all GO IDs and corresponding terms
+terms <- Term(GOTERM)
+terms <- as.data.frame(terms)
+terms <- cbind(rownames(terms), terms)
+rownames(terms) <- c()
+colnames(terms) <- c("go.id","term")
+```
+```{r}
+gene_sets.BP %>% left_join(ontology, by="name") %>% filter(gene_set=="amb-low") %>% filter(gene_set_up == "Low") %>% dplyr::rename("ID"="id")
+
+bpdata <- as.data.frame(final.go$ID)
+```
+
+
+```{r}
+# ## get list of gene:GO term relationships
+# ##
+# ## gene.name       go.id
+# ##
+# rep.mods <- read.csv("/Users/Avril/Documents/rna_seq/seq_data_processing_notes_and_analyses/wgcna/go_for_janna/rep4_module_gene_go_info.csv")
+# ## keep info for module of interest
+# rep.mods <- rep.mods[which(rep.mods$module==module),]
+# rep.mods$go.id <- as.character(rep.mods$go.id)
+# rep.mods <- rep.mods[,c(2,4)]
+
+
+##### GET GO TERMS UNIQUE TO MODULE OF INTEREST #####
+##
+## ID       term       count
+##
+#uni.terms <- read.csv(paste0(module,"_unique_GO_terms.csv"))
+uni.terms <- gene_sets.BP %>% left_join(ontology, by="name") %>% filter(gene_set=="amb-low") %>% filter(gene_set_up == "Low") %>% dplyr::rename("ID"="id")
+
+##### GET LIST OF INTERESTING GO TERMS (filt.go) THAT ARE ALSO UNIQUE TO MODULE #####
+n <- 30 ## can limit the # of GO terms you want to include, just to see how it runs
+n <- nrow(uni.terms)
+final.go <- head(uni.terms, n=n)
+# final.go <- uni.terms[which(uni.terms$ID %in% filt.go),]
+# rm(list=ls()[! ls() %in% c("final.go","module")])
+
+##### PASS FINAL GO LIST TO METACODER TO PLOT TREES #####
+#setwd("~/Desktop/")
+
+bpdata <- as.data.frame(final.go$ID)
+colnames(bpdata) = c("GO.ID")
+bpdata$GO.ID <- as.character(bpdata$GO.ID)
+
+x <- bpdata$GO.ID
+
+?type()
+
+#function needed to parse GO IDs
+term_class = function(x, current=x, all_paths = FALSE, type = GOBPPARENTS, verbose = TRUE, valid_relationships = c("is_a")) {
+  # Get immediate children of current taxon
+  parents = tryCatch({
+    possible_parents <- as.list(type[x[1]])[[1]] #this line doesn't function?
+    if (! is.null(valid_relationships)) {
+      possible_parents <- possible_parents[names(possible_parents) %in% valid_relationships]
+    }
+    names(AnnotationDbi::Term(possible_parents))
+  }, error = function(e) {
+    c()
+  })
+  
+  # only go down one path if desired
+  if (! all_paths) {
+    parents <- parents[1]
+  }
+  parents <- parents[parents != "all"]
+  
+  if (is.null(parents)) {
+    return(c())
+  } else if (length(parents) == 0) {
+    cat(length(x))
+    return(paste0(collapse = "|", AnnotationDbi::Term(x)))
+  } else {
+    next_x <- lapply(parents, function(y) c(y, x))
+    
+    # Run this function on them to get their output
+    child_output <- lapply(next_x, term_class, all_paths = all_paths, type = type)
+    output <- unlist(child_output, recursive = FALSE)
+    
+    return(output)
+  }
+}
+
+#modify, pull go term relationships
+bpterms = lapply(bpdata$GO.ID, term_class, all_paths = FALSE, type = GOBPPARENTS) #this line can take forever
+bpres   = data.frame(class=unlist(bpterms))
+
+#write/write data (annoyingly the only way I can get it to work, but at least it works)
+write.table(bpres, "temp.csv", sep=",", col.names=TRUE, row.names=FALSE)
+bpres=read.table("temp.csv", header=TRUE, sep=",")
+
+## bpdata contains the GO IDs for the terminal nodes
+## bpres and bpdata contain the same information, different formats = path information for each terminal node (GO Terms)
+
+#parse GO data
+data = parse_taxonomy_table("temp.csv",
+                            taxon_col = c("class" = -1),
+                            other_col_type = "obs_info",
+                            sep=",",
+                            class_sep = "\\|")
+
+# parse GO data (parse_taxonomy_table replaced by taxa::parse_tax_data)
+# data <- parse_tax_data(bpres,
+#                        class_sep = "\\|")
+
+
+#create figure
+tempdata = filter_taxa(data, n_supertaxa <= 500) #filters terms that are WAAAAY out from the middle
+## n_supertaxa sets # of nodes that can be in a single path from center to terminal nodes (cuts from terminal end, not internal nodes)
+
+# pdf(paste("output/",module,"meta_labels.pdf", sep=""), width=5, height=5, useDingbats=FALSE, onefile=FALSE)
+#grey70      grey40      dodgerblue2 tomato2  chartreuse3  darkorchid2 yellow3 orange2 magenta1
+par(bg=NA)
+set.seed(100) ## seeds: orange = 35       lightsteelblue1 = 75       paleturquoise = 100
+heat_tree(tempdata, node_label = tempdata$taxon_data$name,
+          # node_size = colsandsize$ngenes,
+          # node_size_trans = "log10",
+          node_size_range = c(0.01, 0.01),
+          # node_label_size_trans = "log10",
+          node_label_size_range = c(0.01, 0.01),
+          # edge_size_trans = "log10",
+          edge_size_range = c(0.004, 0.004),
+          node_color = module,
+          # node_color_trans = "linear",
+          # node_color_range = diverging_palette(),
+          # node_color_interval = c(-4, 4),
+          # edge_color_trans = "linear",
+          # edge_color_range = diverging_palette(),
+          # edge_color_interval =  c(-4, 4),
+          node_label_max = 500,
+          # node_color_axis_label = "Factor change",
+          # node_size_axis_label = "Number of genes",
+          layout = "da", initial_layout = "re"
+)
+# dev.off()
+
+
+
+## run this version to find best seed #s for each module's tree - have to highlight and run manually :/
+# par(bg=NA)
+# sede <- sample(1:100,1)
+# pdf(paste0("/Users/Avril/Desktop/",module,"/",sede,".pdf"), width=5, height=5, useDingbats=FALSE, onefile=F)
+# set.seed(sede) #grey70      grey40      dodgerblue2 tomato2  chartreuse3  darkorchid2 yellow3 orange2 magenta1
+# heat_tree(tempdata, #node_label = tempdata$taxon_data$name,
+#           # node_size = colsandsize$ngenes,
+#           # node_size_trans = "log10",
+#           node_size_range = c(0.01, 0.01),
+#           # node_label_size_trans = "log10",
+#           node_label_size_range = c(0.01, 0.01),
+#           # edge_size_trans = "log10",
+#           edge_size_range = c(0.004, 0.004),
+#           node_color = module,
+#           # node_color_trans = "linear",
+#           # node_color_range = diverging_palette(),
+#           # node_color_interval = c(-4, 4),
+#           # edge_color_trans = "linear",
+#           # edge_color_range = diverging_palette(),
+#           # edge_color_interval =  c(-4, 4),
+#           node_label_max = 500,
+#           # node_color_axis_label = "Factor change",
+#           # node_size_axis_label = "Number of genes",
+#           layout = "da", initial_layout = "re"
+# )
+# dev.off()
+
+```
+
+
+```{r}
+bioconductor.packages <- c("Go.db", "org.Hs.eg.db", "airway", "rnaseqGene")
+
+# Get names of all required packages that aren't installed
+new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[, "Package"])]
+new.bioc.packages <- bioconductor.packages[!(bioconductor.packages %in% installed.packages()[, "Package"])]
+# Install all new packages
+if(length(new.packages)) install.packages(new.packages)
+if(length(new.bioc.packages)) BiocManager::install(new.bioc.packages)
+```
+
+```{r}
+term_class <- function(x, current = x, all_paths = TRUE, type = GOCCPARENTS, verbose = TRUE, 
+                       valid_relationships = c("is_a")) {
+  # Get immediate children of current taxon
+  parents = tryCatch({
+    possible_parents <- as.list(type[x[1]])[[1]]
+    if (! is.null(valid_relationships)) {
+      possible_parents <- possible_parents[names(possible_parents) %in% valid_relationships]
+    }
+    names(AnnotationDbi::Term(possible_parents))
+  }, error = function(e) {
+    c()
+  })
+  
+  # only go down one path if desired
+  if (! all_paths) {
+    parents <- parents[1]
+  }
+  parents <- parents[parents != "all"]
+  
+  if (is.null(parents)) {
+    return(c())
+  } else if (length(parents) == 0) {
+    return(paste0(collapse = "|", AnnotationDbi::Term(x)))
+  } else {
+    next_x <- lapply(parents, function(y) c(y, x))
+    
+    # Run this function on them to get their output
+    child_output <- lapply(next_x, term_class, all_paths = all_paths, type = type)
+    output <- unlist(child_output, recursive = FALSE)
+    
+    return(output)
+  }
+}
+```
+
+
+## Try to use metacor 
+
+```{r}
+devtools::install_github("grunwaldlab/metacoder")
+
+# eXAMPLE DATA 
+library(rnaseqGene)
+library(airway)
+library(GO.db)
+library(org.Hs.eg.db)
+library(DESeq2)
+library(metacoder)
+
+min_p_value <- 0.05
+data("airway")
+se <- airway
+se$dex <- relevel(se$dex, "untrt")
+se$dex
+
+dds <- DESeqDataSet(se, design = ~ cell + dex)
+dds <- dds[ rowSums(counts(dds)) > 1, ]
+rld <- rlog(dds, blind=FALSE)
+dds <- estimateSizeFactors(dds)
+dds <- DESeq(dds)
+res <- results(dds)
+res$go_id <- mapIds(org.Hs.eg.db,
+                    keys=rownames(res),
+                    column="GO",
+                    keytype="ENSEMBL",
+                    multiVals="first")
+res <- res[!is.na(res$go_id), ]
+res <- res[res$go_id %in% keys(org.Hs.eg.db, keytype = "GO"), ]
+res <- res[(! is.na(res$padj)) & res$padj <= 0.05, ]
+res <-  res[abs(res$log2FoldChange) >= 0.5, ]
+
+head(res)
+
+
+cc_class <- lapply(res$go_id, term_class, all_paths = FALSE, type = GOCCPARENTS)
+mf_class <- lapply(res$go_id, term_class, all_paths = FALSE, type = GOMFPARENTS)
+bp_class <- lapply(res$go_id, term_class, all_paths = FALSE, type = GOBPPARENTS)
+
+cc_class <- lapply(res$go_id, term_class, all_paths = FALSE, type = GOCCPARENTS)
+(cc_res <- res[rep(1:nrow(res), sapply(cc_class, length)), ])
+cc_res$class <- unlist(cc_class)
+
+bp_res <- res[rep(1:nrow(res), sapply(bp_class, length)), ]
+bp_res$class <- unlist(bp_class)
+
+mf_res <- res[rep(1:nrow(res), sapply(mf_class, length)), ]
+mf_res$class <- unlist(mf_class)
+
+# 
+obj <- metacoder::parse_tax_data(as.data.frame(cc_res), class_cols = "class", class_sep = "|")
+obj$funcs <- c(obj$funcs,
+               change = function(x, subset = NULL) {
+                 vapply(obs(x, "tax_data"),
+                        function(i) {
+                          obs_change <- obj$data$tax_data[i, ]$log2FoldChange[obj$data$tax_data[i, ]$padj <= min_p_value]
+                          mean(obs_change, na.rm = TRUE)
+                        },
+                        numeric(1))
+               },
+               num_changed = function(x, subset = NULL) {
+                 vapply(obs(x, "tax_data"),
+                        function(i) {
+                          sum(obj$data$tax_data[i, ]$padj <= min_p_value, na.rm = TRUE)
+                        },
+                        numeric(1))
+               })
+
+set.seed(3)
+obj %>%
+  filter_taxa(num_changed > 0) %>%
+  filter_taxa(n_supertaxa <= 4) %>%
+  # filter_taxa(n_supertaxa >= 1) %>% 
+  # filter_taxa(nchar(taxon_names) <= 40) %>%
+  heat_tree(node_label = ifelse(nchar(taxon_names) <= 50, taxon_names, ""),
+            node_size = num_changed,
+            # node_size_trans = "log10",
+            node_size_range = c(0.01, 0.03),
+            # node_label_size_trans = "log10",
+            node_label_size_range = c(0.01, 0.02),
+            # edge_size_trans = "log10",
+            edge_size_range = c(0.008, 0.03) / 2,
+            node_color = 2^abs(change) * sign(change),
+            node_color_trans = "linear",
+            node_color_range = diverging_palette(),
+            node_color_interval = c(-4, 4),
+            # edge_color_trans = "linear",
+            # edge_color_range = diverging_palette(),
+            # edge_color_interval =  c(-4, 4),
+            # node_label_max = 500,
+            node_color_axis_label = "Factor change",
+            node_size_axis_label = "Number of genes",
+            layout = "da", initial_layout = "re",
+            output_file = "test")
+```
+
+
+```{r}
+cc_class <- lapply(uni.terms$ID, term_class, all_paths = FALSE, type = GOCCPARENTS)
+mf_class <- lapply(uni.terms$ID, term_class, all_paths = FALSE, type = GOMFPARENTS)
+bp_class <- lapply(uni.terms$ID, term_class, all_paths = FALSE, type = GOBPPARENTS)  
+```
+
+```{r}
+term_class()
+x <- res$go_id
+# Get immediate children of current taxon
+  parents = tryCatch({
+    possible_parents <- as.list(type[x[1]])[[1]]
+    if (! is.null(valid_relationships)) {
+      possible_parents <- possible_parents[names(possible_parents) %in% valid_relationships]
+    }
+    names(AnnotationDbi::Term(possible_parents))
+  }, error = function(e) {
+    c()
+  })
+  
+  # only go down one path if desired
+  if (! all_paths) {
+    parents <- parents[1]
+  }
+  parents <- parents[parents != "all"]
+  
+  if (is.null(parents)) {
+    return(c())
+  } else if (length(parents) == 0) {
+    return(paste0(collapse = "|", AnnotationDbi::Term(x)))
+  } else {
+    next_x <- lapply(parents, function(y) c(y, x))
+    
+    # Run this function on them to get their output
+    child_output <- lapply(next_x, term_class, all_paths = all_paths, type = type)
+    output <- unlist(child_output, recursive = FALSE)
+    
+    return(output)
+  }
+```
+
+
+# Standard GO_MWU analysis (Fischer Exact Test) to look at enrichment of low Coeff. Variation upregulated DEGs, perhaps critical to function in OA?
+
+This function performs standard GO enrichment analysis based on Fisher's exact test, using binary measure (1 or 0, i.e., either sgnificant or not). 
+
+
+```{r}
+go.mwu.standard <- function(file) {
+  
+  input = file
+  goAnnotations = "DESeq-genes_for-GOMWU.tab"
+
+for (j in 1:length(goDivisions)) {
+  tryCatch({
+  
+# ------------- Calculating stats
+# It might take a few minutes for MF and BP. Do not rerun it if you just want to replot the data with different cutoffs, go straight to gomwuPlot. If you change any of the numeric values below, delete the files that were generated in previos runs first.
+
+gomwuStats(input, goDatabase, goAnnotations, goDivisions[j],
+	perlPath="C:/Strawberry/perl/bin/perl.exe", # replace with full path to perl executable if it is not in your system's PATH already
+	#largest=0.1,  # a GO category will not be considered if it contains more than this fraction of the total number of genes
+	#smallest=5,   # a GO category should contain at least this many genes to be considered
+	clusterCutHeight=0.30, # threshold for merging similar (gene-sharing) terms. See README for details.
+#	Alternative="g" # by default the MWU test is two-tailed; specify "g" or "l" of you want to test for "greater" or "less" instead. 
+	#Module=TRUE,Alternative="g" # un-remark this if you are analyzing a SIGNED WGCNA module (values: 0 for not in module genes, kME for in-module genes). In the call to gomwuPlot below, specify absValue=0.001 (count number of "good genes" that fall into the module)
+#	Module=TRUE # un-remark this if you are analyzing an UNSIGNED WGCNA module 
+)
+# do not continue if the printout shows that no GO terms pass 10% FDR.
+
+
+# ----------- Plotting results
+
+#quartz()
+results=gomwuPlot(input,goAnnotations,goDivisions[j],
+ 	#absValue=-log(0.05,10),   # genes with the measure value exceeding this will be counted as "good genes". This setting is for signed log-pvalues. Specify absValue=0.001 if you are doing Fisher's exact test for standard GO enrichment or analyzing a WGCNA module (all non-zero genes = "good genes").
+ absValue=0.001,
+ 	#absValue=.5, # un-remark this if you are using log2-fold changes
+ #level1=0.05,level2=0.01,level3=0.001,	#stricter settings for many GO terms 
+ #level1=0.1, # FDR threshold for plotting. 
+ 	#level2=.05, # FDR cutoff to print in regular (not italic) font.
+ 	#level3=.01, # FDR cutoff to print in large bold font.
+  level1=1, level2=0.2, level3=0.05, # Specify level1=1 to plot all GO categories containing genes exceeding the absValue.
+
+ 	txtsize=1,    # decrease to fit more on one page, or increase (after rescaling the plot so the tree fits the text) for better "word cloud" effect
+ 	treeHeight=0.5, # height of the hierarchical clustering tree
+ 	#colors=c(color, color, color, color, color)
+ colors=c("dodgerblue2","firebrick1","skyblue2","lightcoral") # these are default colors, un-remar and change if needed
+ )
+mtext(paste(contrast, " - ", goDivisions[j], sep=""), side = 3, line = 3, adj = -.05, col="black")
+ # manually rescale the plot so the tree matches the text 
+ # if there are too many categories displayed, try make it more stringent with level1=0.05,level2=0.01,level3=0.001.  
+ 
+ # text representation of results, with actual adjusted p-values
+ print(results[[1]])
+
+
+# ------- extracting representative GOs
+
+# this module chooses GO terms that best represent *independent* groups of significant GO terms
+
+pcut=1e-2 # adjusted pvalue cutoff for representative GO
+hcut=0.9 # height at which cut the GO terms tree to get "independent groups". 
+
+# plotting the GO tree with the cut level (un-remark the next two lines to plot)
+# plot(results[[2]],cex=0.6)
+# abline(h=hcut,col="red")
+
+# cutting
+ct=cutree(results[[2]],h=hcut)
+annots=c();ci=1
+for (ci in unique(ct)) {
+  message(ci)
+	rn=names(ct)[ct==ci]
+	obs=grep("obsolete",rn)
+	if(length(obs)>0) { rn=rn[-obs] }
+	if (length(rn)==0) {next}
+	rr=results[[1]][rn,]
+	bestrr=rr[which(rr$pval==min(rr$pval)),]
+	best=1
+	if(nrow(bestrr)>1) {
+		nns=sub(" .+","",row.names(bestrr))
+		fr=c()
+		for (i in 1:length(nns)) { fr=c(fr,eval(parse(text=nns[i]))) }
+		best=which(fr==max(fr))
+	}
+	if (bestrr$pval[best]<=pcut) { annots=c(annots,sub("\\d+\\/\\d+ ","",row.names(bestrr)[best]))}
+}
+
+mwus=read.table(paste("MWU",goDivisions[j],input,sep="_"),header=T)
+bestGOs=mwus[mwus$name %in% annots,]
+print(bestGOs)
+},
+error=function(e){cat("ERROR:", conditionMessage(e), "\n")})
+}
+}
+```
+
+```{r}
+go.mwu.standard(file = "DEGs-upreg-lowCV_amb-mod.csv")
+```
+
+```{r}
+go.mwu.standard(file = "DEGs-upreg-lowCV_amb-low.csv")
+```
+
+```{r}
+go.mwu.standard(file = "DEGs-upreg-lowCV_amb.csv")
 ```
 

@@ -38,7 +38,7 @@ Format of expression data should be:
 ```{r}
 # load data
 load(file = "../results/bowtie/counts.trans") #counts.trans
-load(file = "../results/bowtie/per-gene-summary-stats") #genes.stats
+#load(file = "../results/bowtie/per-gene-summary-stats") #genes.stats is object, but i create it here, so don't load (?!)
 load(file = "../results/deseq2/vsd.pH") #vsd.pH
 
 # Read in sample metadata
@@ -67,9 +67,14 @@ load(file = "../results/IPA/IPA.degs")
 ```
 
 ```{r}
+#allowWGCNAThreads()
+enableWGCNAThreads()
+```
+
+```{r}
 # Use WGCNA's `goodSamplesGenes` to remove any genes with very low variability or missing data  
-#datExpr0 <- counts.trans[,-1:-3]
-datExpr0 <- counts.trans[,4:5000] #for testing purposes use subset of data
+datExpr0 <- counts.trans[,-1:-3]
+#datExpr0 <- counts.trans[,4:5000] #for testing purposes use subset of data
 
 gsg = goodSamplesGenes(datExpr0, verbose = 3);
 sum(gsg$goodGenes==FALSE)  #were any removed?  Nope. 
@@ -94,17 +99,17 @@ sampleTree = hclust(dist(datExpr0), method = "average");
 sizeGrWindow(12,9)
 
 #pdf(file = "/home/lspencer/2022-redking-OA/wgcna/sampleClustering.pdf", width = 12, height = 9);
-pdf(file = "C:/Users/laura.spencer/Desktop/sampleClustering.pdf", width = 12, height = 9);
+#pdf(file = "C:/Users/laura.spencer/Desktop/sampleClustering.pdf", width = 12, height = 9);
 par(cex = 0.6);
 par(mar = c(0,4,2,0))
 plot(sampleTree, main = "Sample clustering to detect outliers", sub="", xlab="", cex.lab = 1.5, 
      cex.axis = 1.5, cex.main = 2)
 # Plot a line to show the cut
 abline(h = 110, col = "red");
-dev.off()
+#dev.off()
 
 # Determine cluster under the line
-clust = cutreeStatic(sampleTree, cutHeight = 110, minSize = 10)  #for bowtie2 aligned
+clust = cutreeStatic(sampleTree, cutHeight = 250, minSize = 10)  #for bowtie2 aligned
 #clust = cutreeStatic(sampleTree, cutHeight = 125, minSize = 10)  #for star aligned
 table(clust)
 # clust 1 contains the samples we want to keep.
@@ -160,11 +165,11 @@ sampleTree2 = hclust(dist(datExpr), method = "average")
 traitColors = numbers2colors(sapply(datTraits,as.numeric), signed = F, colors = colorRampPalette(brewer.pal(8, "Set2"))(14));
 
 # Plot the sample dendrogram and the colors underneath.
-pdf(file = "C:/Users/laura.spencer/Desktop/sampleTree.pdf", width = 12, height = 9);
+#pdf(file = "C:/Users/laura.spencer/Desktop/sampleTree.pdf", width = 12, height = 9);
 plotDendroAndColors(sampleTree2, traitColors,
                     groupLabels = names(datTraits), 
                     main = "Sample dendrogram with treatment and tank ids")
-dev.off()
+#dev.off()
 ```
 
 ```{r}
@@ -184,7 +189,7 @@ powers = c(c(1:25))
 sft = pickSoftThreshold(datExpr, powerVector = powers, verbose = 5, networkType = "signed")
 # Plot the results:
 sizeGrWindow(9, 5)
-pdf(file = "C:/Users/laura.spencer/Desktop/soft-thresholding power.pdf", width = 12, height = 9);
+#pdf(file = "C:/Users/laura.spencer/Desktop/soft-thresholding power.pdf", width = 12, height = 9);
 par(mfrow = c(1,2));
 cex1 = 0.9;
 # Scale-free topology fit index as a function of the soft-thresholding power
@@ -201,16 +206,16 @@ plot(sft$fitIndices[,1], sft$fitIndices[,5],
      xlab="Soft Threshold (power)",ylab="Mean Connectivity", type="n",
      main = paste("Mean connectivity"))
 text(sft$fitIndices[,1], sft$fitIndices[,5], labels=powers, cex=cex1,col="red")
-dev.off()
+#dev.off()
 ```
 
-I now calculate the adjacencies, using the soft thresholding power 14:
+I now calculate the adjacencies, using the soft thresholding power 9:
 
 ```{r}
 #softPower = 14; # for bowtie2 aligned to BKC genome 
 #softPower = 20; #for star aligned
 #softPower = 10; #for star + RSEM
-softPower = 15; # for bowtie2 aligned to RKC genome 
+softPower = 9; # for bowtie2 aligned to RKC genome 
 adjacency = adjacency(datExpr, power = softPower, type="signed", corFnc="bicor");
 
 # for testing purposes, subset expression dataframe 
@@ -247,10 +252,10 @@ We now use hierarchical clustering to produce a hierarchical clustering tree (de
 geneTree = hclust(as.dist(dissTOM), method = "average");
 # Plot the resulting clustering tree (dendrogram)
 sizeGrWindow(12,9)
-pdf(file = "C:/Users/laura.spencer/Desktop/gene-clustering.pdf", width = 12, height = 9);
+#pdf(file = "C:/Users/laura.spencer/Desktop/gene-clustering.pdf", width = 12, height = 9);
 plot(geneTree, xlab="", sub="", main = "Gene clustering on TOM-based dissimilarity",
      labels = FALSE, hang = 0.04);
-dev.off()
+#dev.off()
 ```
 
 ```{r}
@@ -269,12 +274,12 @@ dynamicColors = labels2colors(dynamicMods)
 table(dynamicColors)
 # Plot the dendrogram and colors underneath
 sizeGrWindow(8,6)
-pdf(file = "C:/Users/laura.spencer/Desktop/gene-clustering-modules.pdf", width = 12, height = 9);
+#pdf(file = "C:/Users/laura.spencer/Desktop/gene-clustering-modules.pdf", width = 12, height = 9);
 plotDendroAndColors(geneTree, dynamicColors, "Dynamic Tree Cut",
                     dendroLabels = FALSE, hang = 0.03,
                     addGuide = TRUE, guideHang = 0.05,
                     main = "Gene clustering on TOM-based dissimilarity\nDendrogram and module colors")
-dev.off()
+#dev.off()
 ```
 
 The Dynamic Tree Cut may identify modules whose expression profiles are very similar. It may be prudent to merge
@@ -295,13 +300,13 @@ METree = hclust(as.dist(MEDiss), method = "average");
 
 # Plot the result
 sizeGrWindow(7, 6)
-pdf(file = "C:/Users/laura.spencer/Desktop/module-tree.pdf", width = 12, height = 9);
+#pdf(file = "C:/Users/laura.spencer/Desktop/module-tree.pdf", width = 12, height = 9);
 plot(METree, main = "Clustering of module eigengenes",
      xlab = "", sub = "")
 MEDissThres = 0.25
 # Plot the cut line into the dendrogram
 abline(h=MEDissThres, col = "red")
-dev.off()
+#dev.off()
 
 # Call an automatic merging function
 merge = mergeCloseModules(datExpr, dynamicColors, cutHeight = MEDissThres, verbose = 3)
@@ -314,13 +319,13 @@ mergedMEs = merge$newMEs;
 
 ```{r}
 #sizeGrWindow(12, 9)
-pdf(file = "C:/Users/laura.spencer/Desktop/gene-clustering-modules-merged.pdf", width = 12, height = 9);
+#pdf(file = "C:/Users/laura.spencer/Desktop/gene-clustering-modules-merged.pdf", width = 12, height = 9);
 plotDendroAndColors(geneTree, cbind(dynamicColors, mergedColors),
                     c("Dynamic Tree Cut", "Merged dynamic"),
                     dendroLabels = FALSE, hang = 0.03,
                     addGuide = TRUE, guideHang = 0.05,
                     main = "Gene clustering on TOM-based dissimilarity\nDendrogram and module colors")
-dev.off()
+#dev.off()
 
 # sizeGrWindow(12, 9)
 # plotDendroAndColors(geneTree, mergedColors,
@@ -373,7 +378,7 @@ textMatrix =  paste(signif(moduleTraitCor, 2), " (",
                            signif(moduleTraitPvalue, 2), ")", sep = "");
 dim(textMatrix) = dim(moduleTraitCor)
 
-pdf(file = "C:/Users/laura.spencer/Desktop/module-pCO2-corr.pdf", width = 4.5, height = 6);
+#pdf(file = "C:/Users/laura.spencer/Desktop/module-pCO2-corr.pdf", width = 4.5, height = 6);
 par(mar = c(6, 8.5, 3, 3));
 # Display the correlation values within a heatmap plot
 labeledHeatmap(Matrix = moduleTraitCor,
@@ -391,7 +396,7 @@ labeledHeatmap(Matrix = moduleTraitCor,
                cex.lab.x= 0.85,
                zlim = c(-1,1),
                main = paste("Module-pCO2 relationships"))
-dev.off()
+#dev.off()
 ```
 
 

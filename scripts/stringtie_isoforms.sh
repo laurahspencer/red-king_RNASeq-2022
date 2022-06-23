@@ -4,8 +4,10 @@
 #SBATCH --output=/home/lspencer/2022-redking-OA/sbatch_logs/stringtie.txt
 #SBATCH --mail-user=laura.spencer@noaa.gov
 #SBATCH --mail-type=ALL
-#SBATCH -c 20
+#SBATCH -c 24
 #SBATCH -t 21-0:0:0
+#SBATCH -p himem
+#SBATCH --mem=1400GB
 
 # Script produced by Sam White, https://github.com/RobertsLab/sams-notebook/blob/master/sbatch_scripts/20220225_cvir_stringtie_GCF_002022765.2_isoforms.sh
 ## Script using Stringtie with Red king crab draft genome
@@ -24,7 +26,7 @@ module load bio/stringtie/2.2.0
 cd /scratch/lspencer/2022-redking-OA/stringtie
 
 # Set number of CPUs to use
-threads=20
+threads=24
 
 ref_dir="/home/lspencer/references/redkingcrab/hisat2"
 
@@ -62,7 +64,7 @@ programs_array=(
 [stringtie]="stringtie"
 )
 
-
+echo "${programs_array[*]}"
 ###################################################################################################
 
 # Exit script if any command fails
@@ -128,10 +130,16 @@ do
     treatment="low"
   fi
 
+  echo ${sample_name}
+  echo ${treatment}
+
   # Append to associative array
   samples_associative_array+=(["${sample_name}"]="${treatment}")
 
 done
+
+echo "This is the final list of array indices:" "${!samples_associative_array[@]}"
+echo "This is the final list of array elements:" "${samples_associative_array[@]}"
 
 # Check array size to confirm it has all expected samples
 # Exit if mismatch
@@ -269,7 +277,7 @@ ${programs_array[samtools_index]} ${merged_bam}
 -o "${genome_index_name}".stringtie.gtf
 
 # # Delete unneccessary index files
-# rm "${genome_index_name}"*.ht2
+rm "${genome_index_name}"*.ht2
 
 
 # Generate checksums

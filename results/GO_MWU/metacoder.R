@@ -22,8 +22,6 @@ library(metacoder)
 # set module of interest
 module <- "orange" # lightsteelblue1  orange  paleturquoise
 
-setwd("/Users/Avril/Desktop/")
-
 ##### READ IN ALL MODULE GENE:GO INFORMATION #####
 ## get list of all GO IDs and corresponding terms
 terms <- Term(GOTERM)

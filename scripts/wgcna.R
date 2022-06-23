@@ -79,6 +79,7 @@ enableWGCNAThreads()
 datExpr0 <- counts.trans[,-1:-3]
 #datExpr0 <- counts.trans[,4:1000] #for testing purposes use subset of data
 
+
 gsg = goodSamplesGenes(datExpr0, verbose = 3);
 sum(gsg$goodGenes==FALSE)  #were any removed?  Nope. 
 ncol(gsg$allOK)
@@ -169,39 +170,38 @@ dev.off()
 options(stringsAsFactors = FALSE);
 
 
-# # Construct a weighted gene network entails the choice of the soft thresholding power β to which co-expression similarity is raised to calculate adjacency. 
-# # The authors of [1] have proposed to choose the soft thresholding power based on the criterion of approximate scale-free topology." 
-# 
-# # Choose a set of soft-thresholding powers
-# powers = c(c(1:25))
-# 
-# # Call the network topology analysis function
-# sft = pickSoftThreshold(datExpr, powerVector = powers, verbose = 5, networkType = "signed")
-# 
-# # Plot the results:
-# sizeGrWindow(9, 5)
-# pdf(file = "/home/lspencer/2022-redking-OA/wgcna/soft-thresholding-power.pdf", width = 12, height = 9);
-# par(mfrow = c(1,2));
-# cex1 = 0.9;
-# 
-# # Scale-free topology fit index as a function of the soft-thresholding power
-# plot(sft$fitIndices[,1], -sign(sft$fitIndices[,3])*sft$fitIndices[,2],
-#      xlab="Soft Threshold (power)",ylab="Scale Free Topology Model Fit,signed R^2",type="n",
-#      main = paste("Scale independence"));
-# text(sft$fitIndices[,1], -sign(sft$fitIndices[,3])*sft$fitIndices[,2],
-#      labels=powers,cex=cex1,col="red");
-# 
-# # this line corresponds to using an R^2 cut-off of h
-# abline(h=0.90,col="red")
-# 
-# # Mean connectivity as a function of the soft-thresholding power
-# plot(sft$fitIndices[,1], sft$fitIndices[,5],
-#      xlab="Soft Threshold (power)",ylab="Mean Connectivity", type="n",
-#      main = paste("Mean connectivity"))
-# text(sft$fitIndices[,1], sft$fitIndices[,5], labels=powers, cex=cex1,col="red")
-# dev.off()
+# Construct a weighted gene network entails the choice of the soft thresholding power β to which co-expression similarity is raised to calculate adjacency.
+# The authors of [1] have proposed to choose the soft thresholding power based on the criterion of approximate scale-free topology."
 
-# I will choose the power 9, which is the lowest power for which the scale-free topology fit index reaches 0.90.
+# Choose a set of soft-thresholding powers
+powers = c(c(1:25))
+
+# Call the network topology analysis function
+sft = pickSoftThreshold(datExpr, powerVector = powers, verbose = 5, networkType = "signed")
+
+# Plot the results:
+pdf(file = "/home/lspencer/2022-redking-OA/wgcna/soft-thresholding-power.pdf", width = 12, height = 9);
+par(mfrow = c(1,2));
+cex1 = 0.9;
+
+# Scale-free topology fit index as a function of the soft-thresholding power
+plot(sft$fitIndices[,1], -sign(sft$fitIndices[,3])*sft$fitIndices[,2],
+     xlab="Soft Threshold (power)",ylab="Scale Free Topology Model Fit,signed R^2",type="n",
+     main = paste("Scale independence"));
+text(sft$fitIndices[,1], -sign(sft$fitIndices[,3])*sft$fitIndices[,2],
+     labels=powers,cex=cex1,col="red");
+
+# this line corresponds to using an R^2 cut-off of h
+abline(h=0.90,col="red")
+
+# Mean connectivity as a function of the soft-thresholding power
+plot(sft$fitIndices[,1], sft$fitIndices[,5],
+     xlab="Soft Threshold (power)",ylab="Mean Connectivity", type="n",
+     main = paste("Mean connectivity"))
+text(sft$fitIndices[,1], sft$fitIndices[,5], labels=powers, cex=cex1,col="red")
+dev.off()
+
+# I will choose the power 15, which is the lowest power for which the scale-free topology fit index reaches 0.90.
 
 
 # I kept getting this error about memory
@@ -209,9 +209,10 @@ options(stringsAsFactors = FALSE);
 # Error: cannot allocate vector of size 83.4 Gb
 # So I required 180GB of memory for this job, and it worked
 
-# Calculate the adjacencies, using the soft thresholding power 9:
-softPower = 9; # for bowtie2 aligned to RKC genome 
+# Calculate the adjacencies, using the soft thresholding power 15:
+softPower = 15; # for bowtie2 aligned to RKC genome 
 adjacency = adjacency(datExpr, power = softPower, type="signed", corFnc="bicor", );
+save(adjacency, file = "/home/lspencer/2022-redking-OA/wgcna/adjacency")
 
 #To minimize effects of noise and spurious associations, we transform the adjacency into Topological Overlap Matrix, and calculate the corresponding dissimilarity:
 TOM = TOMsimilarity(adjacency); #this takes a very long time
@@ -225,7 +226,6 @@ save(dissTOM, file = "/home/lspencer/2022-redking-OA/wgcna/dissTom-bowtie-rkc")
 # Call the hierarchical clustering function
 geneTree = hclust(as.dist(dissTOM), method = "average");
 # Plot the resulting clustering tree (dendrogram)
-sizeGrWindow(12,9)
 pdf(file = "/home/lspencer/2022-redking-OA/wgcna/gene-clustering.pdf", width = 12, height = 9);
 plot(geneTree, xlab="", sub="", main = "Gene clustering on TOM-based dissimilarity",
      labels = FALSE, hang = 0.04);
@@ -244,7 +244,6 @@ dynamicColors = labels2colors(dynamicMods)
 table(dynamicColors)
 
 # Plot the dendrogram and colors underneath
-sizeGrWindow(8,6)
 pdf(file = "/home/lspencer/2022-redking-OA/wgcna/gene-clustering-modules.pdf", width = 12, height = 9);
 plotDendroAndColors(geneTree, dynamicColors, "Dynamic Tree Cut",
                     dendroLabels = FALSE, hang = 0.03,
@@ -269,7 +268,6 @@ MEDiss = 1-cor(MEs);
 METree = hclust(as.dist(MEDiss), method = "average");
 
 # Plot the result
-sizeGrWindow(7, 6)
 pdf(file = "/home/lspencer/2022-redking-OA/wgcna/module-tree.pdf", width = 12, height = 9);
 plot(METree, main = "Clustering of module eigengenes",
      xlab = "", sub = "")
@@ -760,3 +758,7 @@ for (i in 1:length(modules)) {
 }
 
 
+# # Helpful R code from Ariana: 
+# iris %>%
+#   group_by(Species) %>%
+#   summarise(across(starts_with("Sepal"), list(mean = mean, sd = sd), .names = "{.col}.{.fn}"))

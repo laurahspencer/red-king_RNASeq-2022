@@ -60,7 +60,7 @@ genes <- read_delim(file = "../references/P.platypus_genes.bed", delim = "\t", c
 ### Must close genofile if it's already open before running 
 
 ```{r}
-snpgdsClose(genofile)
+#snpgdsClose(genofile)
 ```
 
 
@@ -87,7 +87,7 @@ snpgdsSummary("../results/genotype/genotypes.gds")
 - Remove those that are missing from 20% or more of samples  
 
 ```{r}
-snpset <- snpgdsLDpruning(genofile, maf=.05, missing.rate=0.15, autosome.only=FALSE, sample.id = sample.info[sample.info$Sample!="Tank_9_Crab_4",]$Sample) #<--- here I remove one sample, it has lots of missing data
+snpset <- snpgdsLDpruning(genofile, maf=.05, missing.rate=0.10, autosome.only=FALSE, sample.id = sample.info[sample.info$Sample!="Tank_9_Crab_4",]$Sample) #<--- here I remove one sample, it has lots of missing data
 #snpset.id <- unlist(unname(snpset))
 snpset.id <- unlist(snpset)
 ```
@@ -269,6 +269,44 @@ ggplot(tab.annot.gen, aes(x=PC1.gen, y=PC2.gen, size=missingness)) +
   guides(colour = guide_legend(override.aes = list(size=3.5)))
 
 save(tab.annot.gen, file="../results/genotype/tab.annot.gen")
+
+
+# GGSCATTER with ellipses and stars -
+ggscatter(tab.annot.gen, x="PC1.gen", y="PC2.gen",
+          col="Treatment", size=2.5, alpha=0.85, ellipse = TRUE, star.plot = TRUE, 
+           palette = c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c")) +
+  theme_minimal() + ggtitle("Global gene expression, PC1xPC2") + 
+  # xlab(paste("PC1 (", round(pc.percent[1], digits = 1), "%)", sep="")) + 
+  # ylab(paste("PC2 (", round(pc.percent[4], digits = 1), "%)", sep="")) + 
+  theme(legend.position = "right") + 
+  guides(colour = guide_legend(override.aes = list(size=3.5, linetype="blank"))) 
+
+ggscatter(tab.annot.gen, x="PC3.gen", y="PC1.gen",
+          col="Treatment", size=2.5, alpha=0.85, ellipse = TRUE, star.plot = TRUE, 
+           palette = c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c")) +
+  theme_minimal() + ggtitle("Global gene expression, PC1xPC2") + 
+  # xlab(paste("PC1 (", round(pc.percent[1], digits = 1), "%)", sep="")) + 
+  # ylab(paste("PC2 (", round(pc.percent[4], digits = 1), "%)", sep="")) + 
+  theme(legend.position = "right") + 
+  guides(colour = guide_legend(override.aes = list(size=3.5, linetype="blank"))) 
+
+ggscatter(tab.annot.gen, x="PC4.gen", y="PC1.gen",
+          col="Treatment", size=2.5, alpha=0.85, ellipse = TRUE, star.plot = TRUE, 
+           palette = c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c")) +
+  theme_minimal() + ggtitle("Global gene expression, PC1xPC4") + 
+  # xlab(paste("PC1 (", round(pc.percent[1], digits = 1), "%)", sep="")) + 
+  # ylab(paste("PC2 (", round(pc.percent[4], digits = 1), "%)", sep="")) + 
+  theme(legend.position = "right") + 
+  guides(colour = guide_legend(override.aes = list(size=3.5, linetype="blank"))) 
+
+ggscatter(tab.annot.gen, x="PC3.gen", y="PC2.gen",
+          col="Treatment", size=2.5, alpha=0.85, ellipse = TRUE, star.plot = TRUE, 
+           palette = c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c")) +
+  theme_minimal() + ggtitle("Global gene expression, PC3xPC2") + 
+  # xlab(paste("PC1 (", round(pc.percent[1], digits = 1), "%)", sep="")) + 
+  # ylab(paste("PC2 (", round(pc.percent[4], digits = 1), "%)", sep="")) + 
+  theme(legend.position = "right") + 
+  guides(colour = guide_legend(override.aes = list(size=3.5, linetype="blank"))) 
 ```
 
 ```{r}
@@ -481,6 +519,7 @@ Fsts %>% filter(FstSNP >=out.min) %>% dplyr::select(snp.id) %>% unique() %>% nro
 
 snps.fst <- Fsts %>% filter(FstSNP >=out.min) %>% dplyr::select(snp.id) %>% unique() %>% pull(snp.id)
 ```
+
 ### Here is a list of SNPs that have the highest Fst values (outliers in boxplot, Fst>`out.min`) and are located within genes
 
 ```{r}
@@ -521,7 +560,7 @@ tab.annot.gen <- tab.annot.gen %>% left_join(
     x < -0.1 ~ "left",
     x > 0.1 ~"right",
     x < 0.05 & x > -0.1 & y < 0.1 ~ "middle",
-    y > 0.1 ~ "top")) %>% select(sample, ibs.cluster),
+    y > 0.1 ~ "top")) %>% dplyr::select(sample, ibs.cluster),
   by=c("sample.id"="sample"))
 table(tab.annot.gen$ibs.cluster)
 ```
@@ -548,7 +587,7 @@ ibs$ibs %>% hist(breaks=100, main="Histogram of Identity-By-State proportion\nfr
 
 ```{r}
 load(file = "../results/deseq2/vsd.pH") #vsd.pH
-pca.princomp.expr <- prcomp(cov(assay(vsd.pH)), scale=F) #scale=F for variance-covariance matrix
+pca.princomp.expr <- prcomp(t(assay(vsd.pH)), scale=T, center=T) #scale=F for variance-covariance matrix
 pca.eigenval(pca.princomp.expr) #The Proporation of Variance = %variance 
 (pc.percent <- pca.eigenval(pca.princomp.expr)[2,1:4]*100)
 screeplot(pca.princomp.expr, bstick=TRUE) #looks like PC 1-2 are significant, but also pull the 3rd 
@@ -598,14 +637,19 @@ load(file = "../results/deseq2/diffex.ML")
 
 pca.princomp.expr.pH <-
   princomp(cov(assay(vsd.pH[unique(c(rownames(diffex.AM),rownames(diffex.AL),rownames(diffex.ML))),])))
+
+pca.princomp.expr.pH <-
+  prcomp(t(assay(vsd.pH[unique(c(rownames(diffex.AM),rownames(diffex.AL),rownames(diffex.ML))),])),
+         center=T, scale=T)
+
 pca.eigenval(pca.princomp.expr.pH) #The Proporation of Variance = %variance 
 (pc.percent.pH <- pca.eigenval(pca.princomp.expr.pH)[2,1:4]*100)
 screeplot(pca.princomp.expr.pH, bstick=TRUE) #looks like PC 1 & 2
 tab.expr.pH <- data.frame(sample.id = colnames(assay(vsd.pH)),
-    PC1.degs = pca.princomp.expr.pH$scores[,1],    # the first eigenvector
-    PC2.degs = pca.princomp.expr.pH$scores[,2],    # the second eigenvector
-    PC3.degs = pca.princomp.expr.pH$scores[,3],    # the third eigenvector
-    PC4.degs = pca.princomp.expr.pH$scores[,4],    # the third eigenvector
+    PC1.degs = pca.princomp.expr.pH$x[,1],    # the first eigenvector
+    PC2.degs = pca.princomp.expr.pH$x[,2],    # the second eigenvector
+    PC3.degs = pca.princomp.expr.pH$x[,3],    # the third eigenvector
+    PC4.degs = pca.princomp.expr.pH$x[,4],    # the third eigenvector
     stringsAsFactors = FALSE)
 tab.expr.pH.annot <- left_join(tab.expr.pH, sample.info, by=c("sample.id"="Sample")) %>% droplevels()
 group.pH.expr <- as.factor(tab.expr.pH.annot$Treatment)

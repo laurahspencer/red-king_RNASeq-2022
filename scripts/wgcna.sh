@@ -5,7 +5,7 @@
 #SBATCH --mail-user=laura.spencer@noaa.gov
 #SBATCH --mail-type=ALL
 #SBATCH --mem=180GB
-#SBATCH -t 7-0:0:0
+#SBATCH -t 21-0:0:0
 
 module load R
 R CMD BATCH /home/lspencer/2022-redking-OA/scripts/wgcna.R /home/lspencer/2022-redking-OA/wgcna/wgcna-output.txt
