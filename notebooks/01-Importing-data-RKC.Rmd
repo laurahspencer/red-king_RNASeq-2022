@@ -49,7 +49,6 @@ lapply(all.packages, FUN = function(X) {
 ### Import sample info, library/file names, and then join 
 
 ```{r}
-View(sample.info)
 library.stats <- read.csv("../data/library-prep-stats.csv", header=T) %>% clean_names %>%
   dplyr::mutate_at(vars(tank, p_h, batch, date_extracted), as.factor)
 
@@ -79,11 +78,11 @@ cor(multiqc.stats %>% mutate(Tank=as.numeric(Tank)) %>% dplyr::select_if(is.nume
 ```
 
 ### Import counts matrix file as dataframe, extract sample # from file/column names to simplify them 
-NOTE: featurecounts_redking_gene-v3 is the counts table that I will use. It does include singletons but does not include chimeras
+NOTE: featurecounts_redking_gene-v7 is the counts table that I will use. It does not include singletons or chimeras
 
 ```{r}
 #read_delim(file = "../results/featureCounts/featurecounts_redking_gene-v3.summary", skip = 1, col_names = F)  %>% as.data.frame() %>% View() #using the blue king crab aligned data
-read_delim(file = "../results/featureCounts/featurecounts_rkc-genome_gene-v3.summary", skip = 1, col_names = F)  %>% as.data.frame() #using the red king crab aligned data
+read_delim(file = "../results/featureCounts/featurecounts_rkc-genome_gene-v7.summary", skip = 1, col_names = F)  %>% as.data.frame() #using the red king crab aligned data
 ```
 
 
@@ -198,7 +197,7 @@ NOTE: Should i do this? DESeq2 throws out low-frequency genes anyway, BUT other 
 
 ```{r}
 keep1 <- colMeans(counts.t, na.rm=TRUE) >= 10 #identify genes with mean count >= 10 across all samples (excluding NAs = 10)
-keep2 <- rowSums( counts[-1:-5] >= 30 ) >= 0.1*43 #identify genes with counts>=10 across at minimum 10% of the samples
+keep2 <- rowSums( counts[-1:-5] >= 30 ) >= 0.1*43 #identify genes with counts>=30 across at minimum 10% of the samples
 keep <- unique(c(names(which(keep1 == T)), names(which(keep2 == T)))) # list of genes meeting one of the two above criteria
 counts.ts <- counts.t[,keep]
 
@@ -281,9 +280,10 @@ save(P.camt.blast.GO, file = "../references/P.camt.blast.GO")
 ```{r}
 counts.annot.Pcamt <- right_join(
   P.camt.blast %>% ungroup() %>% dplyr::select(geneID, SPID, gene.Uni, species, pident, evalue),
-  counts %>% rownames_to_column(var = "geneID"), "geneID") %>%
-  left_join(P.camt.blast.GO %>% dplyr::select(gene_id, protein_names, gene_names), by=c("geneID"="gene_id")) %>%
-  dplyr::select(Chr, Start, End, Strand, Length, geneID, evalue, SPID, gene.Uni, species, pident, gene_names, protein_names, everything())
+  counts.ts %>% t() %>% as.data.frame() %>% rownames_to_column("geneID"), "geneID") %>%
+  left_join(P.camt.blast.GO %>% dplyr::select(gene_id, protein_names, gene_names), by=c("geneID"="gene_id")) #%>%
+  #dplyr::select(Chr, Start, End, Strand, Length, geneID, evalue, SPID, gene.Uni, species, pident, gene_names, protein_names, everything())
+
 save(counts.annot.Pcamt, file = "../results/bowtie/counts.annot.Pcamt")
 write.csv(counts.annot.Pcamt, file = "../results/counts.annotated-Pcamt.csv", row.names = F, quote = F)
 ```
@@ -295,7 +295,7 @@ right_join(
   counts.ts %>% t() %>% as.data.frame() %>% rownames_to_column(var = "geneID"), "geneID") %>% filter(!is.na(SPID)) %>%
   nrow()
 
-42064/ncol(counts.ts)*100
+32435/ncol(counts.ts)*100
 ```
 
 

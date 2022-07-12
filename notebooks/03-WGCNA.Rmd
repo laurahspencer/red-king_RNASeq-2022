@@ -105,7 +105,7 @@ par(mar = c(0,4,2,0))
 plot(sampleTree, main = "Sample clustering to detect outliers", sub="", xlab="", cex.lab = 1.5, 
      cex.axis = 1.5, cex.main = 2)
 # Plot a line to show the cut
-abline(h = 110, col = "red");
+abline(h = 240, col = "red");
 #dev.off()
 
 # Determine cluster under the line
@@ -215,7 +215,7 @@ I now calculate the adjacencies, using the soft thresholding power 9:
 #softPower = 14; # for bowtie2 aligned to BKC genome 
 #softPower = 20; #for star aligned
 #softPower = 10; #for star + RSEM
-softPower = 9; # for bowtie2 aligned to RKC genome 
+softPower = 15; # for bowtie2 aligned to RKC genome 
 adjacency = adjacency(datExpr, power = softPower, type="signed", corFnc="bicor");
 
 # for testing purposes, subset expression dataframe 
@@ -251,6 +251,9 @@ We now use hierarchical clustering to produce a hierarchical clustering tree (de
 # Call the hierarchical clustering function
 geneTree = hclust(as.dist(dissTOM), method = "average");
 # Plot the resulting clustering tree (dendrogram)
+
+load(file = "../results/wgcna/geneTree")
+
 sizeGrWindow(12,9)
 #pdf(file = "C:/Users/laura.spencer/Desktop/gene-clustering.pdf", width = 12, height = 9);
 plot(geneTree, xlab="", sub="", main = "Gene clustering on TOM-based dissimilarity",
@@ -260,17 +263,28 @@ plot(geneTree, xlab="", sub="", main = "Gene clustering on TOM-based dissimilari
 
 ```{r}
 # We like large modules, so we set the minimum module size relatively high:
-minModuleSize = 30;
+#minModuleSize = 30;
 # Module identification using dynamic tree cut:
-dynamicMods = cutreeDynamic(dendro = geneTree, distM = dissTOM,
-                deepSplit = 2, pamRespectsDendro = FALSE,
-                minClusterSize = minModuleSize);
-table(dynamicMods)
+# dynamicMods = cutreeDynamic(dendro = geneTree, distM = dissTOM,
+#                 deepSplit = 2, pamRespectsDendro = FALSE,
+#                 minClusterSize = minModuleSize);
+# 
+# dynamicMods.50 = cutreeDynamic(dendro = geneTree, distM = dissTOM,
+#                 deepSplit = 2, pamRespectsDendro = FALSE,
+#                 minClusterSize = 50);
+
+#load(file = "../results/wgcna/dynamicMods")
+#load(file = "../results/wgcna/dynamicMods.50")
+load(file = "../results/wgcna/dynamicMods.75")
+
+#table(dynamicMods)
+#table(dynamicMods.50)
+table(dynamicMods.75)  # final analysis uses minimum module size 75 (so many genes!)
 ```
 
 ```{r}
 # Convert numeric lables into colors
-dynamicColors = labels2colors(dynamicMods)
+dynamicColors = labels2colors(dynamicMods.75)
 table(dynamicColors)
 # Plot the dendrogram and colors underneath
 sizeGrWindow(8,6)
@@ -564,8 +578,10 @@ names(module.lineplots) <- modules
 for (i in 1:length(modules)) {
 a <- geneInfo %>%
   filter(moduleColor==modules[i]) %>% 
-#  filter(p.GS.pH<0.05) %>% filter(!!as.symbol(modules.p[i])<0.05) %>% 
-  filter(p.GS.pco2<0.05) %>% filter(!!as.symbol(modules.p[i])<0.05) %>% 
+#  filter(p.GS.pH<0.05) %>% 
+  #filter(!!as.symbol(modules.p[i])<0.05) %>% 
+  #filter(p.GS.pco2<0.05) %>% 
+  filter(!!as.symbol(modules.p[i])<0.05) %>% 
 #  dplyr::select(id, moduleColor, GS.pH, p.GS.pH, !!as.symbol(modules.p[i]), !!as.symbol(modules.cor[i])) %>% 
   dplyr::select(id, moduleColor, GS.pco2, p.GS.pco2, !!as.symbol(modules.p[i]), !!as.symbol(modules.cor[i])) %>% 
   left_join(genes.stats, by = c("id"="gene")) %>% 
@@ -591,7 +607,7 @@ module.lineplots[[i]] <-
   ggplot(a, aes(x=pco2, y=median)) + 
   geom_line(aes(group=id), size=.01, color=modules[i]) +
   theme_minimal(base_size = 8) + facet_wrap(~moduleColor + change) + 
-  geom_smooth(method="loess",se = FALSE, color="blue", size=1) + #  method=lm, formula = formula,
+  #geom_smooth(method="loess",se = FALSE, color="blue", size=1) + #  method=lm, formula = formula,
   #scale_x_continuous(breaks=c(7.6, 7.8, 8.0)) + 
   theme(plot.title = element_text(size=8), axis.text.x = element_text(hjust = 0.2), 
         axis.title.x = element_text(size=6)) +
@@ -615,7 +631,32 @@ pdf(file = "C:/Users/laura.spencer/Desktop/module-lineplots.pdf", width = 8.5, h
 fig
 dev.off()
 
+module.lineplots
+
+# With min module size = 75
+modules.up <- c("blue2", "lightsteelblue1", "ivory", "lightgreen", "purple", "green")
+modules.down <- c("magenta", "lightcyan", "firebrick4", "darkviolet", "royalblue", "pink")
+modules.roof <- c("coral1", "plum1")
+
+# # With min module size = 30
+# modules.up <- c("blue2", "lightsteelblue1", "ivory", "lightgreen", "purple", "green")
+# modules.down <- c("magenta", "lightcyan", "firebrick4", "darkviolet", "royalblue", "pink")
+# modules.roof <- c("coral1", "plum1")
 ```
+
+```{r}
+geneInfo %>%
+  filter(moduleColor=="green") %>%
+  #  filter(p.GS.pH<0.05) %>% 
+  #filter(!!as.symbol(modules.p[i])<0.05) %>% 
+  #filter(p.GS.pco2<0.05) %>% 
+  filter(!!as.symbol(modules.p[i])<0.05) %>% 
+#  dplyr::select(id, moduleColor, GS.pH, p.GS.pH, !!as.symbol(modules.p[i]), !!as.symbol(modules.cor[i])) %>% 
+  dplyr::select(id, moduleColor, GS.pco2, p.GS.pco2, !!as.symbol(modules.p[i]), !!as.symbol(modules.cor[i])) %>% 
+  left_join(genes.stats, by = c("id"="gene"))
+```
+
+
 
 Summary of modules significantly associated with pCO2 
 ```{r}
@@ -769,9 +810,8 @@ geneInfo %>%
 # replace "modules" filter with  c(modules, "turquose", "darkgrey", "tan") to include peak/valley modules 
 
 # ANSWER: 
-# 81.4% of the DEGs were assigned to a pH-associated module. 
-# 73.9% of the DEGs were both assigned to a pH-associated module, AND those genes are sign. associated with pH (p.GS.pH<0.05)
-
+# 92.8% of the DEGs were assigned to a pH-associated module. 
+# 83.7% of the DEGs were both assigned to a pH-associated module, AND those genes are sign. associated with pH (p.GS.pH<0.05)
 ```
 ## What percentage of DEGs are also identified as correlated with pH via WGCNA (and assigned to any module)
 
@@ -784,7 +824,7 @@ geneInfo %>%
   filter(DEG=="DEG") %>% 
   ungroup() %>% dplyr::select(n, sign, not.sign) %>% colSums()/n.DEGs*100 
 
-# 85% of DEGs are deemed to be significantly correlated with pH
+# 88% of DEGs are deemed to be significantly correlated with pH
 ```
 
 ## How many genes are correlated with pH (any module?)
@@ -889,10 +929,6 @@ for (i in 1:length(modules)) {
 # How many genes assigned to each pH-associated module?
 
 ```{r}
-geneInfo %>%  
-  filter(moduleColor %in% modules) %>%
-  dplyr::count(moduleColor)
-
 # How many total genes assigned to any pH-associated module? 
 geneInfo %>%  
   filter(moduleColor %in% modules) %>%
@@ -945,21 +981,18 @@ counts.modules.matrix<- bind_rows(counts.modules[modules.sorted]) %>%
   dplyr::select(module, rownames(s)) %>%
   mutate(module=factor(module, levels=modules.sorted))
 
-pdf(file = "C:/Users/laura.spencer/Desktop/wgcna-modules-heatmap.pdf", width = 10, height = 7.5);
+#pdf(file = "C:/Users/laura.spencer/Desktop/wgcna-modules-heatmap.pdf", width = 10, height = 7.5);
 pheatmap(counts.modules.matrix[,colnames(counts.modules.matrix) !="module"], 
          cluster_cols = FALSE, cluster_rows=F, annotation_names_col = FALSE, 
          show_rownames=FALSE, na.rm=TRUE, scale="row", 
          main = "Expression by pH-associated module\n(significant genes only)", fontsize = 8, 
-         # annotation_colors = list(Treatment=c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c"),
-         #                          module=c(cyan="cyan", pink="pink", brown="brown", 
-         #                                   lightcyan1="lightcyan1", green="green", darkgreen="darkgreen")),
-         # annotation_colors = list(Treatment=c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c"),
-         #                           module=c(magenta="magenta", orangered4="orangered4", darkgreen="darkgreen",
-         #                                    plum1="plum1", salmon="salmon",
-         #                                    darkgrey="darkgrey")),
+         annotation_colors = list(Treatment=c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c"),
+                                   module=c(magenta="magenta", lightcyan="lightcyan", firebrick4="firebrick4",darkviolet="darkviolet",royalblue="royalblue",
+                                            coral1="coral1", plum1="plum1",pink="pink",blue2="blue2", lightsteelblue1="lightsteelblue1",ivory="wheat",
+                                            lightgreen="lightgreen",purple="purple", green="green")),
          annotation_col=s[,"Treatment", drop=F],
          annotation_row = counts.modules.matrix[,"module", drop=FALSE])
-dev.off()
+#dev.off()
 ```
 
 ## Prep for GO_MWU analysis 
@@ -984,58 +1017,6 @@ for (i in 1:length(modules)) {
     dplyr::select(id,sign) %>% remove_rownames()
   write.csv(geneInfo.mwu.mods[[i]], paste("../results/GO_MWU/WGCNA-module_",modules[[i]],".csv", sep = ""), quote = F,row.names = F)
 }
-
-```
-
-
-# BONEYARD
--------------------------
-
-
-## Prep for IPA
-
-```{r}
-modules
-modules.p
-modules.cor
-```
-
-NOTE: For WGCNA results I export the MM or GS and associated p-values. The p.MM is directly derived from MM, therefore p.MM is a sufficient metric for all IPA decisions (sign. genes, AND how to handle multi-hit). EXCEPT when I want to visualize the directionality of the changes (up/down regulated / correlated). That's when the GS and MM (which can be -1<x<1) come in handy. 
-
-```{r}
-ggplotly(ggplot(geneInfo, aes(y=MM.cyan, x=p.MM.cyan)) + geom_point() + ggtitle("abs(MM) ~ p.MM relationship"))
-
-# what about Gene Significance stat? 
-ggplotly(ggplot(geneInfo, aes(y=GS.pco2, x=p.GS.pco2)) + geom_point() + ggtitle("abs(MM) ~ p.MM relationship"))
-```
-```{r}
-IPA.wgcna <- geneInfo %>% 
-  dplyr::select(id,
-         # GS.pH, p.GS.pH,
-         GS.pco2, p.GS.pco2,
-         MM.brown, p.MM.brown, 
-         MM.pink, p.MM.pink, 
-         MM.lightcyan1, p.MM.lightcyan1, 
-         MM.cyan, p.MM.cyan, 
-         MM.green, p.MM.green, 
-         MM.darkgreen, p.MM.darkgreen) %>% remove_rownames()
-
-save(IPA.wgcna, file = "../results/wgcna/IPA.wgcna")
-
-# Merge DEG stats and WGCNA stats, so I make sure to have the same gene list in 
-IPA.input <- left_join(IPA.degs, IPA.wgcna, by=c("geneID"="id")) %>%
-  left_join(P.plat.bestblast %>% dplyr::select(id, id_gtf), by=c("geneID"="id_gtf")) %>%
-  dplyr::select(id, everything(), -geneID)
-
-# Save to file for IPA 
-
-IPA.input %>% dplyr::select(id, colnames(IPA.degs[-1])) %>%
-write_delim(file = "../results/IPA/RKC-for-IPA_DEGs.tab", delim = "\t",
-              col_names = TRUE, quote = "none")
-
-IPA.input %>% dplyr::select(id, colnames(IPA.wgcna[-1])) %>%
-write_delim(file = "../results/IPA/RKC-for-IPA_WGCNA.tab", delim = "\t",
-              col_names = TRUE, quote = "none")
 
 ```
 
@@ -1089,7 +1070,7 @@ modules.all.lineplots[[i]] <-
   ggplot(a, aes(x=pco2, y=median)) + 
   geom_line(aes(group=id), size=.01, color=modules.all[i]) +
   theme_minimal() + facet_wrap(~moduleColor + change) + 
-  geom_smooth(method="loess", se = FALSE, color="blue", size=1) + #method=lm, formula = formula, 
+  #geom_smooth(method="loess", se = FALSE, color="blue", size=1) + #method=lm, formula = formula, 
   #scale_x_continuous(breaks=c(7.6, 7.8, 8.0)) + 
   theme(plot.title = element_text(size=10), axis.text.x = element_text(hjust = 0.2)) +
   xlab("pH Treatment") #+
@@ -1101,17 +1082,23 @@ modules.all.stats[[i]] <- a %>% dplyr::select(-Treatment, -mean, -sd, -cv, -pH) 
 }
 print(modules.all.lineplots)
 
-modules.all.lineplots[["violet"]]
+#modules.all.lineplots[["violet"]]
 save(modules.all.lineplots, file = "../results/wgcna/modules.all.lineplots")
 ```
 
 Modules of interest, as they have higher or lower expression at moderate pH:
-- mediumpurple3, saddlebrown
+- lightsteelblue & skyblue3 - DOWN UP DOWN
+
+
+```{r}
+modules
+```
+
 
 For Go MWU
 ```{r}
 # Write out separate tables for each module that contain two columns: 1) gene id, and 2) module membership, i.e. significance. For each module, that column contains MM for genes assigned to that module, and 0 for genes not assigned to that module. 
-modules.interest <- c("mediumpurple3", "saddlebrown")
+modules.interest <- c("lightsteelblue", "mediumpurple2", "coral2" )
 modules.interest.cor <- noquote(paste("MM.", modules.interest, sep = ""))
 
 geneInfo.mwu.mods.interest <- vector("list", length(modules.interest))
@@ -1122,6 +1109,62 @@ for (i in 1:length(modules.interest)) {
     dplyr::select(id,sign) %>% remove_rownames()
   write.csv(geneInfo.mwu.mods.interest[[i]], paste("../results/GO_MWU/WGCNA-module_",modules.interest[[i]],".csv", sep = ""), quote = F,row.names = F)
 }
+```
+
+
+```{r}
+
+```
+
+# BONEYARD
+-------------------------
+
+
+## Prep for IPA
+
+```{r}
+modules
+modules.p
+modules.cor
+```
+
+NOTE: For WGCNA results I export the MM or GS and associated p-values. The p.MM is directly derived from MM, therefore p.MM is a sufficient metric for all IPA decisions (sign. genes, AND how to handle multi-hit). EXCEPT when I want to visualize the directionality of the changes (up/down regulated / correlated). That's when the GS and MM (which can be -1<x<1) come in handy. 
+
+```{r}
+ggplotly(ggplot(geneInfo, aes(y=MM.cyan, x=p.MM.cyan)) + geom_point() + ggtitle("abs(MM) ~ p.MM relationship"))
+
+# what about Gene Significance stat? 
+ggplotly(ggplot(geneInfo, aes(y=GS.pco2, x=p.GS.pco2)) + geom_point() + ggtitle("abs(MM) ~ p.MM relationship"))
+```
+```{r}
+IPA.wgcna <- geneInfo %>% 
+  dplyr::select(id,
+         # GS.pH, p.GS.pH,
+         GS.pco2, p.GS.pco2,
+         MM.brown, p.MM.brown, 
+         MM.pink, p.MM.pink, 
+         MM.lightcyan1, p.MM.lightcyan1, 
+         MM.cyan, p.MM.cyan, 
+         MM.green, p.MM.green, 
+         MM.darkgreen, p.MM.darkgreen) %>% remove_rownames()
+
+save(IPA.wgcna, file = "../results/wgcna/IPA.wgcna")
+
+# Merge DEG stats and WGCNA stats, so I make sure to have the same gene list in 
+IPA.input <- left_join(IPA.degs, IPA.wgcna, by=c("geneID"="id")) %>%
+  left_join(P.plat.bestblast %>% dplyr::select(id, id_gtf), by=c("geneID"="id_gtf")) %>%
+  dplyr::select(id, everything(), -geneID)
+
+# Save to file for IPA 
+
+IPA.input %>% dplyr::select(id, colnames(IPA.degs[-1])) %>%
+write_delim(file = "../results/IPA/RKC-for-IPA_DEGs.tab", delim = "\t",
+              col_names = TRUE, quote = "none")
+
+IPA.input %>% dplyr::select(id, colnames(IPA.wgcna[-1])) %>%
+write_delim(file = "../results/IPA/RKC-for-IPA_WGCNA.tab", delim = "\t",
+              col_names = TRUE, quote = "none")
+
 ```
 
 

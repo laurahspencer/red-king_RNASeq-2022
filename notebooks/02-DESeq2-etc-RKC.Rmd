@@ -861,6 +861,7 @@ diffex.ML.annot <- diffex.ML %>% as.data.frame() %>% rownames_to_column("gene") 
             by = c("gene"="gene_id")) %>% arrange(padj)  
 write.csv(diffex.ML.annot, file = "../results/DEGs.Mod-vs-Low_annotated.csv", row.names = F, quote = T)
   
+# Octopamine receptor, SPID Q7JQF1 = g114647
 ```
 
 How many of the differentially expressed genes are transposable elements? 
@@ -930,11 +931,53 @@ res.pco2.ML %>% as.data.frame() %>% rownames_to_column("gene") %>% dplyr::select
   write.csv("../results/GO_MWU/DEGs_mod-low.csv", quote = F,row.names = F)
 
 
+```
+
+Prep for GO_MWU using standard enrichment test (presence/absence, not using LFG values)
+```{r}
+res.pco2.AM %>% as.data.frame() %>% rownames_to_column("gene") %>% 
+  mutate(significant= case_when(
+    padj<0.05 ~ 1,
+    TRUE ~ 0)) %>%
+  left_join(P.camt.blast.GO %>% dplyr::select(gene_id, gene_ontology_i_ds), by = c("gene"="gene_id")) %>%
+  filter(!is.na(gene_ontology_i_ds)) %>% 
+  dplyr::select(gene, significant) %>% 
+  write.csv("../results/GO_MWU/DEGs_amb-mod_STANDARD.csv", quote = F,row.names = F)
+
+
+res.pco2.AL %>% as.data.frame() %>% rownames_to_column("gene") %>% 
+  mutate(significant= case_when(
+    padj<0.05 ~ 1,
+    TRUE ~ 0)) %>%
+  left_join(P.camt.blast.GO %>% dplyr::select(gene_id, gene_ontology_i_ds), by = c("gene"="gene_id")) %>%
+  filter(!is.na(gene_ontology_i_ds)) %>% 
+  dplyr::select(gene, significant) %>% 
+  write.csv("../results/GO_MWU/DEGs_amb-low_STANDARD.csv", quote = F,row.names = F)
+
+res.pco2.ML %>% as.data.frame() %>% rownames_to_column("gene") %>% 
+  mutate(significant= case_when(
+    padj<0.05 ~ 1,
+    TRUE ~ 0)) %>%
+  left_join(P.camt.blast.GO %>% dplyr::select(gene_id, gene_ontology_i_ds), by = c("gene"="gene_id")) %>%
+  filter(!is.na(gene_ontology_i_ds)) %>% 
+  dplyr::select(gene, significant) %>% 
+  write.csv("../results/GO_MWU/DEGs_mod-low_STANDARD.csv", quote = F,row.names = F)
+```
+
+
+## Messing around with the DEGs 
+```{r}
+res.pco2.AL %>% as.data.frame() %>% rownames_to_column("gene") %>% dplyr::select(gene,log2FoldChange, pvalue, padj) %>% 
+  left_join(P.camt.blast.GO, by = c("gene"="gene_id")) %>% 
+  #filter(!is.na(gene_ontology_i_ds)) %>% 
+  filter(padj<0.05) %>% View()
+
 
 # Here I check that the genes with LFC < 0 are UPREGULATED in the lower pH treatment in all pairwise comparisons
 res.pco2.AL %>% as.data.frame() %>% rownames_to_column("gene") %>%
   filter(padj<0.05) %>% dplyr::select(gene,log2FoldChange, padj) %>% 
-  left_join(P.camt.blast.GO, by = c("gene"="gene_id")) %>% View()
+  left_join(P.camt.blast.GO, by = c("gene"="gene_id")) %>% 
+  filter(!is.na(gene_ontology_i_ds)) %>% View()
 
 
 
@@ -954,8 +997,8 @@ print(ggplot(a %>% rownames_to_column("sample"),
     ggtitle(test[i]) +
     theme(axis.title.x = element_blank(), plot.title = element_text(hjust = 0.5, size=10), legend.position = "none"))
 }
-
 ```
+
 
 ## Prep for Ingenuity Pathway Analysis (IPA)
 Need tab-delimited file with gene ID column, then for each comparison 2 columns: 1: LFC, 2) p-value 
@@ -1047,6 +1090,7 @@ genes.stats %>% filter(mean>10 & cv<.02 & change=="Down-regulated" & Treatment!=
 #     theme(axis.title.x = element_blank(), plot.title = element_text(hjust = 0.5, size=10), legend.position = "none") +
 #   scale_color_manual(values = c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c"))
 ```
+
 What is the mean Coeff. Variation (CV) for DEGs upregulated by treatment? 
 theory - those upregulated in OA have lower CV 
 ```{r}
@@ -1083,8 +1127,9 @@ Significant differences in CV among treatment by DEG group?
 
 ```{r}
 genes.stats %>% 
-  group_by(change, Treatment, DEG) %>%
+  group_by(change, Treatment) %>%
   summarize(mean.cv=mean(cv), sd.cv=sd(cv))
+
 x <- genes.stats %>% filter(change=="Up-regulated")
 summary(aov(cv^2 ~ Treatment, data=x))
 TukeyHSD(aov(cv^2 ~ Treatment, data=x))
@@ -1746,8 +1791,10 @@ TukeyHSD(aov(log2(cv) ~ DEG+Treatment+DEG:Treatment, data=f %>% filter(cv!=0)))
 # }
 # diff_plots
 
+# Octopamine receptor, SPID Q7JQF1 = g114647
+
 # evm.TU.HiC_scaffold_78.1 - Methylcytosine dioxygenase TET1 (EC 1.14.11.n2) (CXXC-type zinc finger protein 6) 
-a <-  plotCounts(dds.DESeq.pH, gene="evm.TU.HiC_scaffold_81.370", intgroup=c("Treatment"), returnData = TRUE) %>% 
+a <-  plotCounts(dds.DESeq.pH, gene="g114647", intgroup=c("Treatment"), returnData = TRUE) %>% 
   mutate(Treatment=factor(Treatment, levels=c("Ambient", "Moderate", "Low")))
   
 ggplot(a %>% rownames_to_column("sample"),
@@ -1756,7 +1803,7 @@ ggplot(a %>% rownames_to_column("sample"),
   geom_point(size=2, position=position_jitter(w = 0.15,h = 0)) +
     #geom_text(size=2) +
     theme_bw() +
-    #ggtitle("Methylcytosine dioxygenase TET1\nevm.TU.HiC_scaffold_78.1") +
+    #ggtitle("Octopamine") +
     theme(axis.title.x = element_blank(), plot.title = element_text(hjust = 0.5, size=10), legend.position = "none")
 
 ```

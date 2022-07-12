@@ -34,6 +34,10 @@ goDatabase="go.obo" # download from http://www.geneontology.org/GO.downloads.ont
 source("gomwu.functions.R")
 ```
 
+```{r}
+Term("GO:0042302")
+```
+
 Create a list of GO devisions, Biological Processes (BP), Molecular Functions (MF), Cellular Components (CC), to loop over 
 
 ```{r}
@@ -193,8 +197,8 @@ for (j in 1:length(goDivisions)) {
 
     gomwuStats(input, goDatabase, goAnnotations.wgcna, goDivisions[j],
 	perlPath="perl", # replace with full path to perl executable if it is not in your system's PATH already
-	largest=0.1,  # a GO category will not be considered if it contains more than this fraction of the total number of genes
-	smallest=5,   # a GO category should contain at least this many genes to be considered
+	largest=0.65,  # a GO category will not be considered if it contains more than this fraction of the total number of genes
+	smallest=3,   # a GO category should contain at least this many genes to be considered
 	clusterCutHeight=0.25, # threshold for merging similar (gene-sharing) terms. See README for details.
 #	Alternative="g" # by default the MWU test is two-tailed; specify "g" or "l" of you want to test for "greater" or "less" instead. 
 	Module=TRUE,Alternative="g" # un-remark this if you are analyzing a SIGNED WGCNA module (values: 0 for not in module genes, kME for in-module genes). In the call to gomwuPlot below, specify absValue=0.001 (count number of "good genes" that fall into the module)
@@ -258,6 +262,9 @@ for (ci in unique(ct)) {
 mwus=read.table(paste("MWU",goDivisions[j],input,sep="_"),header=T)
 bestGOs=mwus[mwus$name %in% annots,]
 print(bestGOs)
+
+# Save best go terms to list for use outside of function
+best_GO[[paste(contrast, goDivisions[j], sep="_")]] <<- bestGOs 
 },
 error=function(e){cat("ERROR:", conditionMessage(e), "\n")})
 }
@@ -274,31 +281,57 @@ modules
 This is the list of modules that are associated with pH 
 ```{r}
 load(file = "../wgcna/module.lineplots") #load lineplots to plot alongside enrichment to aid in interpretation 
+load(file = "../wgcna/modules.all.lineplots")
 ```
 
-# TO DO - FIGURE OUT HOW TO GO GO_MWU USING THE GS DATA! 
+```{r}
+cbind(moduleTraitCor %>% as.data.frame(), moduleTraitPvalue %>% as.data.frame()) %>% dplyr::rename(corr=1, pvalue=2) %>% filter(pvalue<0.05) %>% arrange(corr)
+```
 
 ## Module == `modules[[1]]`
+DOWNREGULATED
 
 ```{r}
 module.lineplots[[1]]
 
 go.mwu.wgcna(module = modules[[1]], color = modules[[1]])
-#go.mwu.wgcna(module = "brown", color = "darkgoldenrod4")
 ```
 
-## Module == Pink 
+```{r}
+## Using DAVID 
+# module genes
+geneInfo.mwu %>% filter(moduleColor == modules[[1]]) %>% 
+  dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
+
+# Background 
+geneInfo.mwu %>% 
+  dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
+```
+
 ## Module == `modules[[2]]`
+DOWNREGULATED
 
 ```{r}
 module.lineplots[[2]]
-#module.lineplots[["pink"]]
 
 go.mwu.wgcna(module = modules[[2]], color = modules[[2]])
 ```
+# Test using DAVID - same results? 
 
-## Module == red 
+```{r}
+# module genes
+geneInfo.mwu %>% filter(moduleColor == modules[[2]]) %>% 
+  dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
+
+# Background 
+geneInfo.mwu %>% 
+  dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
+
+```
+
+
 ## Module == `modules[[3]]`
+DOWNREGULATED
 
 ```{r}
 module.lineplots[[3]]
@@ -306,74 +339,342 @@ module.lineplots[[3]]
 go.mwu.wgcna(module=modules[[3]], modules[[3]])
 ```
 
-## Module == cyan 
+```{r}
+# module genes
+geneInfo.mwu %>% filter(moduleColor == modules[[3]]) %>% 
+  dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
+
+# Background 
+geneInfo.mwu %>% 
+  dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
+```
+
 ## Module == `modules[[4]]`
+DOWNREGULATED
 
 ```{r}
-#module.lineplots[["cyan"]]
 module.lineplots[[4]]
 go.mwu.wgcna(module=modules[[4]], color=modules[[4]])
 ```
 
-## Module == green 
+```{r}
+# module genes
+geneInfo.mwu %>% filter(moduleColor == modules[[4]]) %>% 
+  dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
+
+# Background 
+geneInfo.mwu %>% 
+  dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
+```
+
 ## Module == `modules[[5]]`
 
+DOWNREGULATED
+
 ```{r}
-#module.lineplots[["green"]]
 module.lineplots[[5]]
 go.mwu.wgcna(module=modules[[5]], color=modules[[5]])
 ```
 
-## Module == darkgreen 
+```{r}
+# module genes
+geneInfo.mwu %>% filter(moduleColor == modules[[5]]) %>% 
+  dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
+
+# Background 
+geneInfo.mwu %>% 
+  dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
+```
+
 ## Module == `modules[[6]]`
+
+UPREGULATED in moderate OA, DOWNREGULATED in severe OA
 
 ```{r}
 module.lineplots[[6]]
 go.mwu.wgcna(module=modules[[6]], color=modules[[6]])
 ```
 
-## Module == lightcyan1 
+```{r}
+# module genes
+geneInfo.mwu %>% filter(moduleColor == modules[[6]]) %>% 
+  dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
+
+# Background 
+geneInfo.mwu %>% 
+  dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
+```
+
 ## Module == `modules[[7]]`
+UPREGULATED in moderate OA, DOWNREGULATED in severe OA
 
 ```{r}
-#module.lineplots[[7]]
-#go.mwu.wgcna(module=modules[[7]], color=modules[[7]])
+module.lineplots[[7]]
+go.mwu.wgcna(module=modules[[7]], color=modules[[7]])
 ```
-
-## WGCNA modules that increase or decrease in moderate compared to ambient & low 
-
-These modules were hand-selected based on line plots 
 
 ```{r}
-load(file = "../wgcna/modules.all.lineplots")
+# module genes
+geneInfo.mwu %>% filter(moduleColor == modules[[7]]) %>% 
+  dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
+
+# Background 
+geneInfo.mwu %>% 
+  dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
 ```
 
-## Module == mediumpurple3 
-
-Lower in moderate OA
+## Module == `modules[[8]]`
+DOWNREGULATED
 
 ```{r}
-# modules.all.lineplots[["mediumpurple3"]]
-# go.mwu.wgcna(module="mediumpurple3", color="mediumpurple3")
+module.lineplots[[8]]
+go.mwu.wgcna(module=modules[[8]], color=modules[[8]])
 ```
-
-## Module == saddlebrown 
-
-Higher in moderate OA 
 
 ```{r}
-# modules.all.lineplots[["saddlebrown"]]
-# go.mwu.wgcna(module="saddlebrown", color="saddlebrown")
+# module genes
+geneInfo.mwu %>% filter(moduleColor == modules[[8]]) %>% 
+  dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
+
+# Background 
+geneInfo.mwu %>% 
+  dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
 ```
 
-# Import GO_MWU results spreadsheets 
+## Module == `modules[[9]]`
+
+UPREGULATED 
+
 ```{r}
-read_delim(file="MWU_BP_WGCNA-module_cyan.csv",delim = " ") %>% mutate(module="cyan") %>% filter(p.adj<0.05)
-```
-```{r}
-getwd()
+module.lineplots[[9]]
+go.mwu.wgcna(module=modules[[9]], color=modules[[9]])
 ```
 
+```{r}
+# module genes
+geneInfo.mwu %>% filter(moduleColor == modules[[9]]) %>% 
+  dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
+
+# Background 
+geneInfo.mwu %>% 
+  dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
+```
+
+## Module == `modules[[10]]`
+
+UPREGULATED 
+
+```{r}
+module.lineplots[[10]]
+go.mwu.wgcna(module=modules[[10]], color=modules[[10]])
+```
+
+```{r}
+# module genes
+geneInfo.mwu %>% filter(moduleColor == modules[[10]]) %>% 
+  dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
+
+# Background 
+geneInfo.mwu %>% 
+  dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
+```
+
+## Module == `modules[[11]]`
+
+UPREGULATED
+
+```{r}
+module.lineplots[[11]]
+go.mwu.wgcna(module=modules[[11]], color=modules[[11]])
+```
+
+```{r}
+# module genes
+geneInfo.mwu %>% filter(moduleColor == modules[[11]]) %>% 
+  dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
+
+# Background 
+geneInfo.mwu %>% 
+  dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
+```
+
+## Module == `modules[[12]]`
+
+UPREGULATED
+
+```{r}
+module.lineplots[[12]]
+go.mwu.wgcna(module=modules[[12]], color=modules[[12]])
+```
+
+```{r}
+# module genes
+geneInfo.mwu %>% filter(moduleColor == modules[[12]]) %>% 
+  dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
+
+# Background 
+geneInfo.mwu %>% 
+  dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
+```
+
+## Module == `modules[[13]]`
+
+UPREGULATED
+
+```{r}
+module.lineplots[[13]]
+go.mwu.wgcna(module=modules[[13]], color=modules[[13]])
+
+```
+
+```{r}
+# module genes
+geneInfo.mwu %>% filter(moduleColor == modules[[13]]) %>% 
+  dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
+
+# Background 
+geneInfo.mwu %>% 
+  dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
+```
+
+## Module == `modules[[14]]`
+
+UPREGULATED
+
+```{r}
+module.lineplots[[14]]
+go.mwu.wgcna(module=modules[[14]], color=modules[[14]])
+```
+
+```{r}
+# module genes
+geneInfo.mwu %>% filter(moduleColor == modules[[14]]) %>% 
+  dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
+
+# Background 
+geneInfo.mwu %>% 
+  dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
+```
+
+## Modules of interest - those that aren't sign. correlated woth pCO2 but are DOWN UP DOWN, i.e. higher only in moderate OA 
+
+`modules.interest`
+
+```{r}
+modules.all.lineplots[["lightsteelblue"]]
+go.mwu.wgcna(module="lightsteelblue", color="lightsteelblue")
+```
+
+```{r}
+modules.all.lineplots[["mediumpurple2"]]
+go.mwu.wgcna(module="mediumpurple2", color="mediumpurple2")
+```
+
+```{r}
+modules.all.lineplots[["coral2"]]
+go.mwu.wgcna(module="coral2", color="coral2")
+```
+
+
+## REALLY HELPFUL/CRITICAL STEP - for understanding which genes are super influential in determining the GO enrichment results
+
+Here I identify genes that comprise the enriched GO Terms in each module. For example, the BP term "cell cycle progression" was enriched in the "purple" module, so I import the GO_MWU biological process results, which connects each gene ID to its GO Terms (along with the "value", which is the WGCNA module membership, where 0=not a member, and >0=membership coorelation). I then filter for only those genes with the "cell cycle process" term, and further filter for genes assigned to the "purple" module. This gives me a list of genes to examine for their function, to see what's driving the enrichment. 
+
+Upregulated biological processes: 
+
+Purple module: 
+"cell cycle process"
+"spindle organization"
+
+Green module:
+"nervous system development"
+"system development"
+
+```{r}
+level <- "BP" #select BP, MF, or CC
+MOD <- "coral1"
+GO <- "activation of immune response"
+
+# Biological processes
+read_delim(file = paste(level, "_WGCNA-module_", MOD, ".csv", sep=""), delim = "\t") %>% filter(name==GO) %>% 
+  left_join(geneInfo.mwu, by = c("seq"="id")) %>% filter(moduleColor == MOD) %>% View()
+
+  # If interested- further filter to only retain genes that were differentially expressed 
+  filter(seq %in% unique(c(rownames(diffex.AM),rownames(diffex.AL), rownames(diffex.ML)))) %>%
+  View()
+
+
+geneInfo.mwu %>% filter(grepl("Cuticle", protein_names)) %>% #View()
+  filter(id %in% unique(c(rownames(diffex.AM),rownames(diffex.AL), rownames(diffex.ML)))) %>% View()
+
+
+read_delim(file = paste(level, "_WGCNA-module_", MOD, ".csv", sep=""), delim = "\t") %>% 
+  left_join(geneInfo.mwu, by = c("seq"="id")) %>% View()
+
+geneInfo.mwu %>% filter(grepl("Mannosyltransferase", protein_names)) %>% #View()
+  filter(id %in% rownames(diffex.AL)) %>% dplyr::select(id, SPID, protein_names, moduleColor, GS.pco2, p.GS.pco2) %>%
+  left_join(diffex.AL %>% as.data.frame() %>% rownames_to_column("id"))
+           #unique(c(rownames(diffex.AM),rownames(diffex.AL), rownames(diffex.ML))))
+
+
+geneInfo.mwu %>% filter(moduleColor =="lightcyan") %>%
+  left_join(P.camt.blast.GO[,c("gene_id","gene_ontology_i_ds")], by = c("id"="gene_id")) %>%
+  filter(grepl("Cuticle", protein_names)) %>% select(id) %>% unlist() %>% as.vector()
+
+Term("GO:0032197")
+
+geneInfo.mwu.mods[["purple"]] %>% filter(sign!=0) %>% left_join(P.camt.blast.GO[c("gene_id", "protein_names", "gene_ontology_biological_process", "gene_ontology_i_ds")], by=c("id"="gene_id")) %>% 
+  filter(grepl("transposon|LINE-1|retrotransposable element|transposable element|mobile element jockey", protein_names))
+```
+# Calculate % of genes that are transposable elements in each module, and in the background 
+
+```{r}
+te.perc <- data.frame(module= character(0), te.perc= numeric(0), te.n= integer(0))
+
+# add row with %TEs in all genes (fyi could use any module color for this first step, they all have all genes)
+te.perc[1,1] <- "background"
+te.perc[1,2] <- (geneInfo.mwu.mods[["purple"]] %>% left_join(P.camt.blast.GO[c("gene_id", "protein_names", "gene_ontology_biological_process", "gene_ontology_i_ds")], by=c("id"="gene_id")) %>% 
+  filter(grepl("transposon|LINE-1|retrotransposable element|transposable element|mobile element jockey", protein_names)) %>% nrow()) / (geneInfo.mwu.mods[["purple"]] %>% nrow)
+te.perc[1,3] <- geneInfo.mwu.mods[["purple"]] %>% left_join(P.camt.blast.GO[c("gene_id", "protein_names", "gene_ontology_biological_process", "gene_ontology_i_ds")], by=c("id"="gene_id")) %>% 
+  filter(grepl("transposon|LINE-1|retrotransposable element|transposable element|mobile element jockey", protein_names)) %>% nrow()
+
+
+for (i in 1:length(modules)) {
+  te.perc[i+1,1] <- modules[i]
+  te.perc[i+1,2] <- (geneInfo.mwu.mods[[modules[i]]] %>% filter(sign!=0) %>%
+                     left_join(P.camt.blast.GO[c("gene_id", "protein_names",
+                                                 "gene_ontology_biological_process",
+                                                 "gene_ontology_i_ds")], by=c("id"="gene_id")) %>%
+                     filter(grepl("transposon|LINE-1|retrotransposable element|transposable element|mobile element jockey", protein_names)) %>% 
+                     nrow()) / (geneInfo.mwu.mods[[modules[i]]] %>% filter(sign!=0) %>% nrow)
+    te.perc[i+1,3] <- geneInfo.mwu.mods[[modules[i]]] %>% filter(sign!=0) %>%
+                     left_join(P.camt.blast.GO[c("gene_id", "protein_names",
+                                                 "gene_ontology_biological_process",
+                                                 "gene_ontology_i_ds")], by=c("id"="gene_id")) %>%
+                     filter(grepl("transposon|LINE-1|retrotransposable element|transposable element|mobile element jockey", protein_names)) %>% 
+                     nrow()
+
+}
+
+te.perc %>% mutate(change = 
+                     as.factor(case_when(
+                       module=="background" ~ "Background",
+                       module %in% modules.down ~ "Downregulated", 
+                       module %in% modules.up ~ "Upregulated", 
+                       module %in% modules.roof ~ "Up-then-down"
+                     ))) %>%
+  filter(change != "Background") %>%
+  ggplot(aes(x=change, y=te.perc)) + 
+  geom_boxplot(outlier.size = NA) + 
+  #geom_jitter(position=position_jitter(seed=10), aes(color=module)) + 
+  geom_text(position=position_jitter(seed=10), aes(color=module, label=paste(100*round(te.perc, digits = 2), "%", sep=""))) + 
+  theme_minimal() + 
+  scale_colour_manual(name = "Module", values = sort(modules)) +
+  ylab("Proportion") + xlab(NULL) + ggtitle("Proportion of genes that are TEs by module") +
+  geom_hline(yintercept = te.perc[te.perc$module=="background",]$te.perc, linetype="dashed", color="red")
+```
+
+## Visualize GO Enrichment Results using Bubble Plots 
 
 ```{bash}
 ## Remove files which list GO_MWU results filenames if they already exist  
@@ -422,9 +723,9 @@ names(file_list) <- c(filenames$gene_set)
 for (i in 1:nrow(filenames)) {
     file_list[[i]] <- data.frame(read_delim(file=files[i], delim = " "))}
 
-(gene_sets.BP <- bind_rows(file_list, .id = "gene_set") %>% filter(p.adj<0.05) %>%  # Bind dataframe for each gene_set together
+(gene_sets.BP <- bind_rows(file_list, .id = "gene_set") %>% filter(p.adj<0.1) %>%  # Bind dataframe for each gene_set together
     mutate(category=as.factor("Biological Processes")) %>%  #add column designating go category 
-    mutate(gene_set=factor(gene_set, levels=c("amb-mod", "amb-low", "mod-low", modules))) %>% #Convert gene_set column to factor, define all gene_sets 
+    mutate(gene_set=factor(gene_set, levels=c("amb-mod", "amb-low", "mod-low", modules, "lightsteelblue", "mediumpurple2", "coral2"))) %>% #Convert gene_set column to factor, define all gene_sets 
     tidyr::complete(gene_set, category) %>% # add rows for gene_sets that are missing from dataframe
 
     # Create new column that identifies which treatment is upregulated in each DEG contrast (doesn't apply for WGCNA modules)
@@ -434,13 +735,23 @@ for (i in 1:nrow(filenames)) {
                                         (gene_set == "amb-low" & delta.rank > 0) ~ "Low",
                                         (gene_set == "mod-low" & delta.rank < 0) ~ "Moderate",
                                         (gene_set == "mod-low" & delta.rank > 0) ~ "Moderate",
-                                        gene_set == "cyan" ~ "cyan",
-                                        gene_set == "pink" ~ "pink",
-                                        gene_set == "brown" ~ "brown",
-                                        gene_set == "lightcyan1" ~ "lightcyan1",
-                                        gene_set == "darkgreen" ~ "darkgreen",
-                                        gene_set == "green" ~ "green")))  
-
+                                        gene_set == modules[[1]] ~ modules[[1]],
+                                        gene_set == modules[[2]] ~ modules[[2]],
+                                        gene_set == modules[[3]] ~ modules[[3]],
+                                        gene_set == modules[[4]] ~ modules[[4]],
+                                        gene_set == modules[[5]] ~ modules[[5]],
+                                        gene_set == modules[[6]] ~ modules[[6]],
+                                        gene_set == modules[[7]] ~ modules[[7]],
+                                        gene_set == modules[[8]] ~ modules[[8]],
+                                        gene_set == modules[[9]] ~ modules[[9]],
+                                        gene_set == modules[[10]] ~ modules[[10]],
+                                        gene_set == modules[[11]] ~ modules[[11]],
+                                        gene_set == modules[[12]] ~ modules[[12]],
+                                        gene_set == modules[[13]] ~ modules[[13]],
+                                        gene_set == modules[[14]] ~ modules[[14]],
+                                        gene_set == modules.interest[[1]] ~ modules.interest[[1]],
+                                        gene_set == modules.interest[[2]] ~ modules.interest[[2]],
+                                        gene_set == modules.interest[[3]] ~ modules.interest[[3]])))  
 ```
 
 ## Read in enriched Molecular Functions
@@ -456,9 +767,9 @@ names(file_list) <- c(filenames$gene_set)
 for (i in 1:nrow(filenames)) {
     file_list[[i]] <- data.frame(read_delim(file=files[i], delim = " "))}
 
-(gene_sets.MF <- bind_rows(file_list, .id = "gene_set") %>% filter(p.adj<0.05) %>%  # Bind dataframe for each gene_set together
+(gene_sets.MF <- bind_rows(file_list, .id = "gene_set") %>% filter(p.adj<0.1) %>%  # Bind dataframe for each gene_set together
     mutate(category=as.factor("Molecular Functions")) %>%  #add column designating go category 
-    mutate(gene_set=factor(gene_set, levels=c("amb-mod", "amb-low", "mod-low", modules))) %>% #Convert gene_set column to factor, define all gene_sets 
+    mutate(gene_set=factor(gene_set, levels=c("amb-mod", "amb-low", "mod-low", modules, "lightsteelblue", "mediumpurple2", "coral2"))) %>% #Convert gene_set column to factor, define all gene_sets 
     tidyr::complete(gene_set, category) %>% # add rows for gene_sets that are missing from dataframe
 
     # Create new column that identifies which treatment is upregulated in each DEG contrast (doesn't apply for WGCNA modules)
@@ -468,12 +779,23 @@ for (i in 1:nrow(filenames)) {
                                         (gene_set == "amb-low" & delta.rank > 0) ~ "Low",
                                         (gene_set == "mod-low" & delta.rank < 0) ~ "Moderate",
                                         (gene_set == "mod-low" & delta.rank > 0) ~ "Moderate",
-                                        gene_set == "cyan" ~ "cyan",
-                                        gene_set == "pink" ~ "pink",
-                                        gene_set == "brown" ~ "brown",
-                                        gene_set == "lightcyan1" ~ "lightcyan1",
-                                        gene_set == "darkgreen" ~ "darkgreen",
-                                        gene_set == "green" ~ "green")))  
+                                        gene_set == modules[[1]] ~ modules[[1]],
+                                        gene_set == modules[[2]] ~ modules[[2]],
+                                        gene_set == modules[[3]] ~ modules[[3]],
+                                        gene_set == modules[[4]] ~ modules[[4]],
+                                        gene_set == modules[[5]] ~ modules[[5]],
+                                        gene_set == modules[[6]] ~ modules[[6]],
+                                        gene_set == modules[[7]] ~ modules[[7]],
+                                        gene_set == modules[[8]] ~ modules[[8]],
+                                        gene_set == modules[[9]] ~ modules[[9]],
+                                        gene_set == modules[[10]] ~ modules[[10]],
+                                        gene_set == modules[[11]] ~ modules[[11]],
+                                        gene_set == modules[[12]] ~ modules[[12]],
+                                        gene_set == modules[[13]] ~ modules[[13]],
+                                        gene_set == modules[[14]] ~ modules[[14]],
+                                        gene_set == modules.interest[[1]] ~ modules.interest[[1]],
+                                        gene_set == modules.interest[[2]] ~ modules.interest[[2]],
+                                        gene_set == modules.interest[[3]] ~ modules.interest[[3]])))  
 ```
 
 ## Read in enriched Cellular Componenets  
@@ -489,9 +811,9 @@ names(file_list) <- c(filenames$gene_set)
 for (i in 1:nrow(filenames)) {
     file_list[[i]] <- data.frame(read_delim(file=files[i], delim = " "))}
 
-(gene_sets.CC <- bind_rows(file_list, .id = "gene_set") %>% filter(p.adj<0.05) %>%  # Bind dataframe for each gene_set together
+(gene_sets.CC <- bind_rows(file_list, .id = "gene_set") %>% filter(p.adj<0.1) %>%  # Bind dataframe for each gene_set together
     mutate(category=as.factor("Cellular Components")) %>%  #add column designating go category 
-    mutate(gene_set=factor(gene_set, levels=c("amb-mod", "amb-low", "mod-low", modules))) %>% #Convert gene_set column to factor, define all gene_sets 
+    mutate(gene_set=factor(gene_set, levels=c("amb-mod", "amb-low", "mod-low", modules, modules.interest))) %>% #Convert gene_set column to factor, define all gene_sets 
     tidyr::complete(gene_set, category) %>% # add rows for gene_sets that are missing from dataframe
 
     # Create new column that identifies which treatment is upregulated in each DEG contrast (doesn't apply for WGCNA modules)
@@ -501,12 +823,23 @@ for (i in 1:nrow(filenames)) {
                                         (gene_set == "amb-low" & delta.rank > 0) ~ "Low",
                                         (gene_set == "mod-low" & delta.rank < 0) ~ "Moderate",
                                         (gene_set == "mod-low" & delta.rank > 0) ~ "Moderate",
-                                        gene_set == "cyan" ~ "cyan",
-                                        gene_set == "pink" ~ "pink",
-                                        gene_set == "brown" ~ "brown",
-                                        gene_set == "lightcyan1" ~ "lightcyan1",
-                                        gene_set == "darkgreen" ~ "darkgreen",
-                                        gene_set == "green" ~ "green")))  
+                                        gene_set == modules[[1]] ~ modules[[1]],
+                                        gene_set == modules[[2]] ~ modules[[2]],
+                                        gene_set == modules[[3]] ~ modules[[3]],
+                                        gene_set == modules[[4]] ~ modules[[4]],
+                                        gene_set == modules[[5]] ~ modules[[5]],
+                                        gene_set == modules[[6]] ~ modules[[6]],
+                                        gene_set == modules[[7]] ~ modules[[7]],
+                                        gene_set == modules[[8]] ~ modules[[8]],
+                                        gene_set == modules[[9]] ~ modules[[9]],
+                                        gene_set == modules[[10]] ~ modules[[10]],
+                                        gene_set == modules[[11]] ~ modules[[11]],
+                                        gene_set == modules[[12]] ~ modules[[12]],
+                                        gene_set == modules[[13]] ~ modules[[13]],
+                                        gene_set == modules[[14]] ~ modules[[14]],
+                                        gene_set == modules.interest[[1]] ~ modules.interest[[1]],
+                                        gene_set == modules.interest[[2]] ~ modules.interest[[2]],
+                                        gene_set == modules.interest[[3]] ~ modules.interest[[3]])))  
 ```
 
 ```{r}
@@ -633,17 +966,32 @@ ggplot(gene_sets.CC, aes(y=str_wrap(name),x=gene_set, col=gene_set_up)) +
   # coord_cartesian(clip = "off", ylim = c(-1.75, 63.5))
 dev.off()
 ```
+```{r}
+gene_sets.BP %>% filter(gene_set %in% modules) %>% droplevels() %>% 
+  mutate(module=as.numeric(gene_set)) %>%
+                  mutate(name=as.factor(name)) %>% 
+  mutate_at("module", function(x) {
+    case_when(
+      x == 1 ~ 2,
+      x == 6|7 ~ 8)}) %>%
+  mutate(name=fct_reorder2(name, module, pval, .desc = TRUE))
+
+?fct_reorder()
+```
+
 
 ## ONLY WGCNA bubble plots 
 
 ```{r}
 # Biological Processes
-ggplot(gene_sets.BP %>% filter(gene_set %in% modules) %>% droplevels(), aes(y=str_wrap(name),x=gene_set, col=gene_set)) + 
+ggplot(gene_sets.BP %>% filter(gene_set %in% modules) %>% droplevels() %>% 
+         filter(p.adj < 0.1),
+       aes(x=gene_set, col=gene_set, y=str_wrap(name))) + 
   geom_point(aes(alpha=p.adj,size=nseqs))+
  facet_wrap(~category,scales="free", nrow = 2) +
   scale_alpha("FDR-adjusted\nP-value", range = c(1,0.35), #breaks = c(0, .25, .5, .75, 1), 
               guide = guide_legend(override.aes = list(size=4))) + 
-  scale_size("Gene count", range = c(3,8), #breaks = c(2, 5, 10), 
+  scale_size("Gene count", range = c(2,10), #breaks = c(2, 5, 10), 
              guide = guide_legend(override.aes = list(col="gray50"))) + 
   scale_color_manual(name="Gene Set", values=modules,
              guide = guide_legend(override.aes = list(size=4))) +
@@ -658,7 +1006,9 @@ ggplot(gene_sets.BP %>% filter(gene_set %in% modules) %>% droplevels(), aes(y=st
   ggtitle("Enriched Biological Processes in gene sets")
 
 # Molecular Functions 
-ggplot(gene_sets.MF %>% filter(gene_set %in% modules) %>% droplevels(), aes(y=str_wrap(name),x=gene_set, col=gene_set)) + 
+ggplot(gene_sets.MF %>% filter(gene_set %in% modules) %>% droplevels() %>% 
+       filter(pval<0.1), 
+       aes(y=str_wrap(name),x=gene_set, col=gene_set)) + 
   geom_point(aes(alpha=p.adj,size=nseqs))+
  facet_wrap(~category,scales="free", nrow = 2) +
   scale_alpha("FDR-adjusted\nP-value", range = c(1,0.35), #breaks = c(0, .25, .5, .75, 1), 
@@ -678,7 +1028,9 @@ ggplot(gene_sets.MF %>% filter(gene_set %in% modules) %>% droplevels(), aes(y=st
   ggtitle("Enriched Molecular Functions in gene sets")
 
 # Cellular components
-ggplot(gene_sets.CC %>% filter(gene_set %in% modules) %>% droplevels(), aes(y=str_wrap(name),x=gene_set, col=gene_set)) + 
+ggplot(gene_sets.CC %>% filter(gene_set %in% modules) %>% droplevels() %>% 
+       filter(pval<0.1), 
+       aes(y=str_wrap(name),x=gene_set, col=gene_set)) + 
   geom_point(aes(alpha=p.adj,size=nseqs))+
  facet_wrap(~category,scales="free", nrow = 2) +
   scale_alpha("FDR-adjusted\nP-value", range = c(1,0.35), #breaks = c(0, .25, .5, .75, 1), 
@@ -827,488 +1179,6 @@ gene_sets.MF %>% filter(gene_set %!in% modules) %>% arrange(name)
 ```{r}
 module.lineplots[[1]]
 ```
-### Identify GO ID that was selected to represent each group of GO terms. 
-
-From the GO_MWU README file: "highly similar categories are merged according to complete linkage clustering based on the fraction of shared genes. The distance measure for clustering, introduced in Kosiol et al 2008, is the number of genes shared among the two GO categories within the analyzed dataset divided by the size of the smaller of the two categories. The resulting hierarchical tree is then “cut” at the adjustable “height” ('cutTreeHeight' parameter in the call to gomwuStats) to merge clustered categories. The default for cutTreeHeight is 0.25, implying that a group of categories will be merged if the most dissimilar two of them share >75% of genes included in the smaller of the two. **The merged categories inherit the name of the largest one.**" 
-
-So, the GO_MWU results use terms that "represent" similar terms (and not GO_SLIMs). GO_MWU doesn't specify which GO ID was used (it just uses the name), so first I need to match the IDs to the names. 
-
-```{r}
-#Here I import the go.obo object and convert to dataframe. 
-install.packages("ontologyIndex")
-require(ontologyIndex)
-ontology <- get_ontology("go.obo") %>% as.data.frame()
-goslims <- get_ontology("goslim_plant.obo") %>% as.data.frame()
-
-# Identify the representative GO ID selected for each group of merged IDs, column "id"
-gene_sets.BP %>% left_join(ontology, by="name")
-```
-## Map GO terms to GO Slims 
-
-```{r}
-# Biological Processes
-myIds <- (gene_sets.BP %>% left_join(ontology, by="name") %>% 
-            filter(!is.na(term)))$term %>% unique()
-
-myCollection <- GOCollection(myIds)
-fl <- system.file("extdata", "goslim_plant.obo", package="GSEABase")
-slim <- getOBOCollection(fl)
-
-# Sets ontology category to "Molecular Function". Use "BP" for "Biological Process"
-slimdf <- goSlim(myCollection, slim, ontology = "BP")
-
-# This should match the ontology used above.
-# E.g. GOBPOFFSPRING or GOCCOFFSPRING
-GO.db::GOBPOFFSPRING
-
-mappedIds <-
-  function(df, collection, OFFSPRING)
-  {
-    map <- as.list(OFFSPRING[rownames(df)])
-    mapped <- lapply(map, intersect, ids(collection))
-    df[["go_terms"]] <- vapply(unname(mapped), paste, collapse = ";", character(1L))
-    df
-  }
-
-slimdf <- mappedIds(slimdf, myCollection, GOBPOFFSPRING)
-slimdf %>% filter(Count>0) %>% View()
-
-write.csv(slimdf %>% filter(Count>0), file = "slim_bp.csv", quote = FALSE)
-```
-
-```{r}
-## Molecular Functions 
-
-myIds <- (gene_sets.MF %>% filter(gene_set %in% "amb-low") %>% 
-            droplevels() %>% separate_rows(term, sep = ";") %>% 
-            filter(!is.na(term)))$term %>% unique()
-myCollection <- GOCollection(myIds)
-fl <- system.file("extdata", "goslim_plant.obo", package="GSEABase")
-slim <- getOBOCollection(fl)
-
-# Sets ontology category to "Molecular Function". Use "BP" for "Biological Process"
-slimdf <- goSlim(myCollection, slim, ontology = "MF")
-
-# This should match the ontology used above.
-# E.g. GOBPOFFSPRING or GOCCOFFSPRING
-GO.db::GOMFOFFSPRING
-
-mappedIds <-
-  function(df, collection, OFFSPRING)
-  {
-    map <- as.list(OFFSPRING[rownames(df)])
-    mapped <- lapply(map, intersect, ids(collection))
-    df[["go_terms"]] <- vapply(unname(mapped), paste, collapse = ";", character(1L))
-    df
-  }
-
-slimdf.AL <- mappedIds(slimdf, myCollection, GOMFOFFSPRING) %>% filter(Count>0)
-
-left_join(
-  slimdf.AL %>% separate_rows(go_terms, sep = ";") %>% dplyr::select(Term, go_terms),
-  
-  gene_sets.MF %>% filter(gene_set %in% "amb-mod") %>% 
-            droplevels() %>% separate_rows(term, sep = ";") %>%
-    dplyr::select(gene_set, delta.rank, p.adj, term, name, gene_set_up),
-  by=c("go_terms"="term")) %>% filter(Term != "molecular_function") %>% View()
-
-
-
-#slimdf %>% filter(Count>0) %>% View()
-#write.csv(slimdf.AM, file = "slim_bp.csv", quote = FALSE)
-```
-
-```{r}
-sessionInfo()
-require(metacoder)
-```
-
-
-```{r}
-mc <- "https://cran.r-project.org/src/contrib/Archive/metacoder/metacoder_0.1.3.tar.gz"
-install.packages(mc, repos=NULL, type="source") ## version 1.3 is the only version compatible with the code below
-
-install.packages("traits")
-detach(package:metacoder, unload = TRUE)
-devtools::install_github("https://github.com/grunwaldlab/metacoder/releases/tag/v0.3.1")
-
-
-install.packages("metacoder")
-install.packages("org.Hs.eg.db")
-install.packages("airway")
-install.packages("AnnotationDbi")
-
-library(GO.db)
-require(metacoder)
-library(org.Hs.eg.db)
-library(airway)
-library(AnnotationDbi)
-
-package.version("metacoder")
-
-# set module of interest
-module <- "orange" # lightsteelblue1  orange  paleturquoise
-
-##### READ IN ALL MODULE GENE:GO INFORMATION #####
-## get list of all GO IDs and corresponding terms
-terms <- Term(GOTERM)
-terms <- as.data.frame(terms)
-terms <- cbind(rownames(terms), terms)
-rownames(terms) <- c()
-colnames(terms) <- c("go.id","term")
-```
-```{r}
-gene_sets.BP %>% left_join(ontology, by="name") %>% filter(gene_set=="amb-low") %>% filter(gene_set_up == "Low") %>% dplyr::rename("ID"="id")
-
-bpdata <- as.data.frame(final.go$ID)
-```
-
-
-```{r}
-# ## get list of gene:GO term relationships
-# ##
-# ## gene.name       go.id
-# ##
-# rep.mods <- read.csv("/Users/Avril/Documents/rna_seq/seq_data_processing_notes_and_analyses/wgcna/go_for_janna/rep4_module_gene_go_info.csv")
-# ## keep info for module of interest
-# rep.mods <- rep.mods[which(rep.mods$module==module),]
-# rep.mods$go.id <- as.character(rep.mods$go.id)
-# rep.mods <- rep.mods[,c(2,4)]
-
-
-##### GET GO TERMS UNIQUE TO MODULE OF INTEREST #####
-##
-## ID       term       count
-##
-#uni.terms <- read.csv(paste0(module,"_unique_GO_terms.csv"))
-uni.terms <- gene_sets.BP %>% left_join(ontology, by="name") %>% filter(gene_set=="amb-low") %>% filter(gene_set_up == "Low") %>% dplyr::rename("ID"="id")
-
-##### GET LIST OF INTERESTING GO TERMS (filt.go) THAT ARE ALSO UNIQUE TO MODULE #####
-n <- 30 ## can limit the # of GO terms you want to include, just to see how it runs
-n <- nrow(uni.terms)
-final.go <- head(uni.terms, n=n)
-# final.go <- uni.terms[which(uni.terms$ID %in% filt.go),]
-# rm(list=ls()[! ls() %in% c("final.go","module")])
-
-##### PASS FINAL GO LIST TO METACODER TO PLOT TREES #####
-#setwd("~/Desktop/")
-
-bpdata <- as.data.frame(final.go$ID)
-colnames(bpdata) = c("GO.ID")
-bpdata$GO.ID <- as.character(bpdata$GO.ID)
-
-x <- bpdata$GO.ID
-
-?type()
-
-#function needed to parse GO IDs
-term_class = function(x, current=x, all_paths = FALSE, type = GOBPPARENTS, verbose = TRUE, valid_relationships = c("is_a")) {
-  # Get immediate children of current taxon
-  parents = tryCatch({
-    possible_parents <- as.list(type[x[1]])[[1]] #this line doesn't function?
-    if (! is.null(valid_relationships)) {
-      possible_parents <- possible_parents[names(possible_parents) %in% valid_relationships]
-    }
-    names(AnnotationDbi::Term(possible_parents))
-  }, error = function(e) {
-    c()
-  })
-  
-  # only go down one path if desired
-  if (! all_paths) {
-    parents <- parents[1]
-  }
-  parents <- parents[parents != "all"]
-  
-  if (is.null(parents)) {
-    return(c())
-  } else if (length(parents) == 0) {
-    cat(length(x))
-    return(paste0(collapse = "|", AnnotationDbi::Term(x)))
-  } else {
-    next_x <- lapply(parents, function(y) c(y, x))
-    
-    # Run this function on them to get their output
-    child_output <- lapply(next_x, term_class, all_paths = all_paths, type = type)
-    output <- unlist(child_output, recursive = FALSE)
-    
-    return(output)
-  }
-}
-
-#modify, pull go term relationships
-bpterms = lapply(bpdata$GO.ID, term_class, all_paths = FALSE, type = GOBPPARENTS) #this line can take forever
-bpres   = data.frame(class=unlist(bpterms))
-
-#write/write data (annoyingly the only way I can get it to work, but at least it works)
-write.table(bpres, "temp.csv", sep=",", col.names=TRUE, row.names=FALSE)
-bpres=read.table("temp.csv", header=TRUE, sep=",")
-
-## bpdata contains the GO IDs for the terminal nodes
-## bpres and bpdata contain the same information, different formats = path information for each terminal node (GO Terms)
-
-#parse GO data
-data = parse_taxonomy_table("temp.csv",
-                            taxon_col = c("class" = -1),
-                            other_col_type = "obs_info",
-                            sep=",",
-                            class_sep = "\\|")
-
-# parse GO data (parse_taxonomy_table replaced by taxa::parse_tax_data)
-# data <- parse_tax_data(bpres,
-#                        class_sep = "\\|")
-
-
-#create figure
-tempdata = filter_taxa(data, n_supertaxa <= 500) #filters terms that are WAAAAY out from the middle
-## n_supertaxa sets # of nodes that can be in a single path from center to terminal nodes (cuts from terminal end, not internal nodes)
-
-# pdf(paste("output/",module,"meta_labels.pdf", sep=""), width=5, height=5, useDingbats=FALSE, onefile=FALSE)
-#grey70      grey40      dodgerblue2 tomato2  chartreuse3  darkorchid2 yellow3 orange2 magenta1
-par(bg=NA)
-set.seed(100) ## seeds: orange = 35       lightsteelblue1 = 75       paleturquoise = 100
-heat_tree(tempdata, node_label = tempdata$taxon_data$name,
-          # node_size = colsandsize$ngenes,
-          # node_size_trans = "log10",
-          node_size_range = c(0.01, 0.01),
-          # node_label_size_trans = "log10",
-          node_label_size_range = c(0.01, 0.01),
-          # edge_size_trans = "log10",
-          edge_size_range = c(0.004, 0.004),
-          node_color = module,
-          # node_color_trans = "linear",
-          # node_color_range = diverging_palette(),
-          # node_color_interval = c(-4, 4),
-          # edge_color_trans = "linear",
-          # edge_color_range = diverging_palette(),
-          # edge_color_interval =  c(-4, 4),
-          node_label_max = 500,
-          # node_color_axis_label = "Factor change",
-          # node_size_axis_label = "Number of genes",
-          layout = "da", initial_layout = "re"
-)
-# dev.off()
-
-
-
-## run this version to find best seed #s for each module's tree - have to highlight and run manually :/
-# par(bg=NA)
-# sede <- sample(1:100,1)
-# pdf(paste0("/Users/Avril/Desktop/",module,"/",sede,".pdf"), width=5, height=5, useDingbats=FALSE, onefile=F)
-# set.seed(sede) #grey70      grey40      dodgerblue2 tomato2  chartreuse3  darkorchid2 yellow3 orange2 magenta1
-# heat_tree(tempdata, #node_label = tempdata$taxon_data$name,
-#           # node_size = colsandsize$ngenes,
-#           # node_size_trans = "log10",
-#           node_size_range = c(0.01, 0.01),
-#           # node_label_size_trans = "log10",
-#           node_label_size_range = c(0.01, 0.01),
-#           # edge_size_trans = "log10",
-#           edge_size_range = c(0.004, 0.004),
-#           node_color = module,
-#           # node_color_trans = "linear",
-#           # node_color_range = diverging_palette(),
-#           # node_color_interval = c(-4, 4),
-#           # edge_color_trans = "linear",
-#           # edge_color_range = diverging_palette(),
-#           # edge_color_interval =  c(-4, 4),
-#           node_label_max = 500,
-#           # node_color_axis_label = "Factor change",
-#           # node_size_axis_label = "Number of genes",
-#           layout = "da", initial_layout = "re"
-# )
-# dev.off()
-
-```
-
-
-```{r}
-bioconductor.packages <- c("Go.db", "org.Hs.eg.db", "airway", "rnaseqGene")
-
-# Get names of all required packages that aren't installed
-new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[, "Package"])]
-new.bioc.packages <- bioconductor.packages[!(bioconductor.packages %in% installed.packages()[, "Package"])]
-# Install all new packages
-if(length(new.packages)) install.packages(new.packages)
-if(length(new.bioc.packages)) BiocManager::install(new.bioc.packages)
-```
-
-```{r}
-term_class <- function(x, current = x, all_paths = TRUE, type = GOCCPARENTS, verbose = TRUE, 
-                       valid_relationships = c("is_a")) {
-  # Get immediate children of current taxon
-  parents = tryCatch({
-    possible_parents <- as.list(type[x[1]])[[1]]
-    if (! is.null(valid_relationships)) {
-      possible_parents <- possible_parents[names(possible_parents) %in% valid_relationships]
-    }
-    names(AnnotationDbi::Term(possible_parents))
-  }, error = function(e) {
-    c()
-  })
-  
-  # only go down one path if desired
-  if (! all_paths) {
-    parents <- parents[1]
-  }
-  parents <- parents[parents != "all"]
-  
-  if (is.null(parents)) {
-    return(c())
-  } else if (length(parents) == 0) {
-    return(paste0(collapse = "|", AnnotationDbi::Term(x)))
-  } else {
-    next_x <- lapply(parents, function(y) c(y, x))
-    
-    # Run this function on them to get their output
-    child_output <- lapply(next_x, term_class, all_paths = all_paths, type = type)
-    output <- unlist(child_output, recursive = FALSE)
-    
-    return(output)
-  }
-}
-```
-
-
-## Try to use metacor 
-
-```{r}
-devtools::install_github("grunwaldlab/metacoder")
-
-# eXAMPLE DATA 
-library(rnaseqGene)
-library(airway)
-library(GO.db)
-library(org.Hs.eg.db)
-library(DESeq2)
-library(metacoder)
-
-min_p_value <- 0.05
-data("airway")
-se <- airway
-se$dex <- relevel(se$dex, "untrt")
-se$dex
-
-dds <- DESeqDataSet(se, design = ~ cell + dex)
-dds <- dds[ rowSums(counts(dds)) > 1, ]
-rld <- rlog(dds, blind=FALSE)
-dds <- estimateSizeFactors(dds)
-dds <- DESeq(dds)
-res <- results(dds)
-res$go_id <- mapIds(org.Hs.eg.db,
-                    keys=rownames(res),
-                    column="GO",
-                    keytype="ENSEMBL",
-                    multiVals="first")
-res <- res[!is.na(res$go_id), ]
-res <- res[res$go_id %in% keys(org.Hs.eg.db, keytype = "GO"), ]
-res <- res[(! is.na(res$padj)) & res$padj <= 0.05, ]
-res <-  res[abs(res$log2FoldChange) >= 0.5, ]
-
-head(res)
-
-
-cc_class <- lapply(res$go_id, term_class, all_paths = FALSE, type = GOCCPARENTS)
-mf_class <- lapply(res$go_id, term_class, all_paths = FALSE, type = GOMFPARENTS)
-bp_class <- lapply(res$go_id, term_class, all_paths = FALSE, type = GOBPPARENTS)
-
-cc_class <- lapply(res$go_id, term_class, all_paths = FALSE, type = GOCCPARENTS)
-(cc_res <- res[rep(1:nrow(res), sapply(cc_class, length)), ])
-cc_res$class <- unlist(cc_class)
-
-bp_res <- res[rep(1:nrow(res), sapply(bp_class, length)), ]
-bp_res$class <- unlist(bp_class)
-
-mf_res <- res[rep(1:nrow(res), sapply(mf_class, length)), ]
-mf_res$class <- unlist(mf_class)
-
-# 
-obj <- metacoder::parse_tax_data(as.data.frame(cc_res), class_cols = "class", class_sep = "|")
-obj$funcs <- c(obj$funcs,
-               change = function(x, subset = NULL) {
-                 vapply(obs(x, "tax_data"),
-                        function(i) {
-                          obs_change <- obj$data$tax_data[i, ]$log2FoldChange[obj$data$tax_data[i, ]$padj <= min_p_value]
-                          mean(obs_change, na.rm = TRUE)
-                        },
-                        numeric(1))
-               },
-               num_changed = function(x, subset = NULL) {
-                 vapply(obs(x, "tax_data"),
-                        function(i) {
-                          sum(obj$data$tax_data[i, ]$padj <= min_p_value, na.rm = TRUE)
-                        },
-                        numeric(1))
-               })
-
-set.seed(3)
-obj %>%
-  filter_taxa(num_changed > 0) %>%
-  filter_taxa(n_supertaxa <= 4) %>%
-  # filter_taxa(n_supertaxa >= 1) %>% 
-  # filter_taxa(nchar(taxon_names) <= 40) %>%
-  heat_tree(node_label = ifelse(nchar(taxon_names) <= 50, taxon_names, ""),
-            node_size = num_changed,
-            # node_size_trans = "log10",
-            node_size_range = c(0.01, 0.03),
-            # node_label_size_trans = "log10",
-            node_label_size_range = c(0.01, 0.02),
-            # edge_size_trans = "log10",
-            edge_size_range = c(0.008, 0.03) / 2,
-            node_color = 2^abs(change) * sign(change),
-            node_color_trans = "linear",
-            node_color_range = diverging_palette(),
-            node_color_interval = c(-4, 4),
-            # edge_color_trans = "linear",
-            # edge_color_range = diverging_palette(),
-            # edge_color_interval =  c(-4, 4),
-            # node_label_max = 500,
-            node_color_axis_label = "Factor change",
-            node_size_axis_label = "Number of genes",
-            layout = "da", initial_layout = "re",
-            output_file = "test")
-```
-
-
-```{r}
-cc_class <- lapply(uni.terms$ID, term_class, all_paths = FALSE, type = GOCCPARENTS)
-mf_class <- lapply(uni.terms$ID, term_class, all_paths = FALSE, type = GOMFPARENTS)
-bp_class <- lapply(uni.terms$ID, term_class, all_paths = FALSE, type = GOBPPARENTS)  
-```
-
-```{r}
-term_class()
-x <- res$go_id
-# Get immediate children of current taxon
-  parents = tryCatch({
-    possible_parents <- as.list(type[x[1]])[[1]]
-    if (! is.null(valid_relationships)) {
-      possible_parents <- possible_parents[names(possible_parents) %in% valid_relationships]
-    }
-    names(AnnotationDbi::Term(possible_parents))
-  }, error = function(e) {
-    c()
-  })
-  
-  # only go down one path if desired
-  if (! all_paths) {
-    parents <- parents[1]
-  }
-  parents <- parents[parents != "all"]
-  
-  if (is.null(parents)) {
-    return(c())
-  } else if (length(parents) == 0) {
-    return(paste0(collapse = "|", AnnotationDbi::Term(x)))
-  } else {
-    next_x <- lapply(parents, function(y) c(y, x))
-    
-    # Run this function on them to get their output
-    child_output <- lapply(next_x, term_class, all_paths = all_paths, type = type)
-    output <- unlist(child_output, recursive = FALSE)
-    
-    return(output)
-  }
-```
 
 
 # Standard GO_MWU analysis (Fischer Exact Test) to look at enrichment of low Coeff. Variation upregulated DEGs, perhaps critical to function in OA?
@@ -1347,11 +1217,11 @@ results=gomwuPlot(input,goAnnotations,goDivisions[j],
  	#absValue=-log(0.05,10),   # genes with the measure value exceeding this will be counted as "good genes". This setting is for signed log-pvalues. Specify absValue=0.001 if you are doing Fisher's exact test for standard GO enrichment or analyzing a WGCNA module (all non-zero genes = "good genes").
  absValue=0.001,
  	#absValue=.5, # un-remark this if you are using log2-fold changes
- #level1=0.05,level2=0.01,level3=0.001,	#stricter settings for many GO terms 
+ level1=0.05,level2=0.01,level3=0.001,	#stricter settings for many GO terms 
  #level1=0.1, # FDR threshold for plotting. 
  	#level2=.05, # FDR cutoff to print in regular (not italic) font.
  	#level3=.01, # FDR cutoff to print in large bold font.
-  level1=1, level2=0.2, level3=0.05, # Specify level1=1 to plot all GO categories containing genes exceeding the absValue.
+  #level1=1, level2=0.2, level3=0.05, # Specify level1=1 to plot all GO categories containing genes exceeding the absValue.
 
  	txtsize=1,    # decrease to fit more on one page, or increase (after rescaling the plot so the tree fits the text) for better "word cloud" effect
  	treeHeight=0.5, # height of the hierarchical clustering tree
@@ -1407,6 +1277,24 @@ error=function(e){cat("ERROR:", conditionMessage(e), "\n")})
 }
 ```
 
+
+# Standard GO enrichment using DEG lists
+
+```{r}
+go.mwu.standard(file="DEGs_amb-mod_STANDARD.csv")
+```
+
+```{r}
+go.mwu.standard(file="DEGs_amb-low_STANDARD.csv")
+```
+
+```{r}
+go.mwu.standard(file="DEGs_mod-low_STANDARD.csv")
+```
+
+
+# Standard GO enrichment using the list of genes that are upregulated at very consistent levels 
+
 ```{r}
 go.mwu.standard(file = "DEGs-upreg-lowCV_amb-mod.csv")
 ```
@@ -1419,3 +1307,376 @@ go.mwu.standard(file = "DEGs-upreg-lowCV_amb-low.csv")
 go.mwu.standard(file = "DEGs-upreg-lowCV_amb.csv")
 ```
 
+```{r}
+go.mwu.standard(file = "WGCNA-module_purple.csv")
+```
+
+
+
+
+```{r}
+(gene_sets.BP %>% filter(gene_set %in% modules.up) %>% droplevels() %>% 
+                  mutate(module=as.numeric(gene_set)) %>% 
+  arrange(gene_set,pval) %>%
+  mutate(name=factor(name, name)))$name %>% levels()
+```
+
+# Let's to generate separate bubble plots for modules that have upregulated, downregulated, and "roof" (up then down)
+
+# UPREGULATED IN OA 
+```{r}
+# Biological Processes
+print(ggplot(gene_sets.BP %>% filter(gene_set %in% modules.up) %>% droplevels() %>% 
+                  mutate(module=as.numeric(gene_set)) %>% 
+  arrange(gene_set,pval) %>%
+  mutate(name=factor(name, levels = name, ordered = T)),
+       aes(y=str_wrap(name),x=gene_set, col=gene_set)) + 
+  geom_point(aes(alpha=p.adj,size=nseqs))+
+ facet_wrap(~category,scales="free", nrow = 2) +
+  scale_alpha("FDR-adjusted\nP-value", range = c(1,0.35), #breaks = c(0, .25, .5, .75, 1), 
+              guide = guide_legend(override.aes = list(size=4))) + 
+  scale_size("Gene count", range = c(2,10), #breaks = c(2, 5, 10), 
+             guide = guide_legend(override.aes = list(col="gray50"))) + 
+  scale_color_manual(name="Gene Set", values=modules.up,
+             guide = guide_legend(override.aes = list(size=4))) +
+  scale_x_discrete(drop=FALSE) +
+  theme_cleveland() + 
+  theme(axis.title.x=element_blank(), 
+        axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1), 
+        #axis.ticks.x = element_blank(), 
+        legend.position = "right", axis.text.y=element_text(size=7.25), 
+        plot.title = element_text(size=10)) +
+  ylab("Enriched Gene Ontology (GO) Term") + 
+  ggtitle("Upregulated Genes"))
+
+# Molecular Functions 
+print(ggplot(gene_sets.MF %>% filter(gene_set %in% modules.up) %>% droplevels() %>% 
+                  mutate(module=as.numeric(gene_set)) %>% 
+  arrange(gene_set,pval) %>%
+  mutate(name=factor(name, ordered = T)),
+       aes(y=str_wrap(name),x=gene_set, col=gene_set)) + 
+  geom_point(aes(alpha=p.adj,size=nseqs))+
+ facet_wrap(~category,scales="free", nrow = 2) +
+  scale_alpha("FDR-adjusted\nP-value", range = c(1,0.35), #breaks = c(0, .25, .5, .75, 1), 
+              guide = guide_legend(override.aes = list(size=4))) + 
+  scale_size("Gene count", range = c(2,10), #breaks = c(2, 5, 10), 
+             guide = guide_legend(override.aes = list(col="gray50"))) + 
+  scale_color_manual(name="Gene Set", values=modules.up,
+             guide = guide_legend(override.aes = list(size=4))) +
+  scale_x_discrete(drop=FALSE) +
+  theme_cleveland() + 
+  theme(axis.title.x=element_blank(), 
+        axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1), 
+        #axis.ticks.x = element_blank(), 
+        legend.position = "right", axis.text.y=element_text(size=7.25), 
+        plot.title = element_text(size=10)) +
+  ylab("Enriched Gene Ontology (GO) Term") + 
+  ggtitle("Upregulated Genes"))
+
+# Cellular components
+print(ggplot(gene_sets.CC %>% filter(gene_set %in% modules.up) %>% droplevels() %>% 
+                  mutate(module=as.numeric(gene_set)) %>% 
+  arrange(gene_set,pval) %>%
+  mutate(name=factor(name, levels = name, ordered = T)),
+       aes(y=str_wrap(name),x=gene_set, col=gene_set)) + 
+  geom_point(aes(alpha=p.adj,size=nseqs))+
+ facet_wrap(~category,scales="free", nrow = 2) +
+  scale_alpha("FDR-adjusted\nP-value", range = c(1,0.35), #breaks = c(0, .25, .5, .75, 1), 
+              guide = guide_legend(override.aes = list(size=4))) + 
+  scale_size("Gene count", range = c(2,10), #breaks = c(2, 5, 10), 
+             guide = guide_legend(override.aes = list(col="gray50"))) + 
+  scale_color_manual(name="Gene Set", values=modules.up,
+             guide = guide_legend(override.aes = list(size=4))) +
+  scale_x_discrete(drop=FALSE) +
+  theme_cleveland() + 
+  theme(axis.title.x=element_blank(), 
+        axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1), 
+        #axis.ticks.x = element_blank(), 
+        legend.position = "right", axis.text.y=element_text(size=7.25), 
+        plot.title = element_text(size=10)) +
+  ylab("Enriched Gene Ontology (GO) Term") + 
+  ggtitle("Upregulated Genes"))
+
+```
+# DOWNREGULATED IN OA 
+```{r}
+# Biological Processes
+print(ggplot(gene_sets.BP %>% filter(gene_set %in% modules.down) %>% droplevels() %>% 
+                  mutate(module=as.numeric(gene_set)) %>% arrange(gene_set,pval) %>%
+  mutate(name=factor(name, ordered = T)) %>% filter(pval<0.0001),
+       aes(y=str_wrap(name),x=gene_set, col=gene_set)) + 
+  geom_point(aes(alpha=p.adj,size=nseqs))+
+ facet_wrap(~category,scales="free", nrow = 2) +
+  scale_alpha("FDR-adjusted\nP-value", range = c(1,0.35), #breaks = c(0, .25, .5, .75, 1), 
+              guide = guide_legend(override.aes = list(size=4))) + 
+  scale_size("Gene count", range = c(2,10), #breaks = c(2, 5, 10), 
+             guide = guide_legend(override.aes = list(col="gray50"))) + 
+  scale_color_manual(name="Gene Set", values=modules.down,
+             guide = guide_legend(override.aes = list(size=4))) +
+  scale_x_discrete(drop=FALSE) +
+  theme_cleveland() + 
+  theme(axis.title.x=element_blank(), 
+        axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1), 
+        #axis.ticks.x = element_blank(), 
+        legend.position = "right", axis.text.y=element_text(size=7.25), 
+        plot.title = element_text(size=10)) +
+  ylab("Enriched Gene Ontology (GO) Term") + 
+  ggtitle("downregulated Genes"))
+
+# Molecular Functions 
+print(ggplot(gene_sets.MF %>% filter(gene_set %in% modules.down) %>% droplevels() %>% filter(pval<0.01), 
+       aes(y=str_wrap(name),x=gene_set, col=gene_set)) + 
+  geom_point(aes(alpha=p.adj,size=nseqs))+
+ facet_wrap(~category,scales="free", nrow = 2) +
+  scale_alpha("FDR-adjusted\nP-value", range = c(1,0.35), #breaks = c(0, .25, .5, .75, 1), 
+              guide = guide_legend(override.aes = list(size=4))) + 
+  scale_size("Gene count", range = c(2,10), #breaks = c(2, 5, 10), 
+             guide = guide_legend(override.aes = list(col="gray50"))) + 
+  scale_color_manual(name="Gene Set", values=modules.down,
+             guide = guide_legend(override.aes = list(size=4))) +
+  scale_x_discrete(drop=FALSE) +
+  theme_cleveland() + 
+  theme(axis.title.x=element_blank(), 
+        axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1), 
+        #axis.ticks.x = element_blank(), 
+        legend.position = "right", axis.text.y=element_text(size=7.25), 
+        plot.title = element_text(size=10)) +
+  ylab("Enriched Gene Ontology (GO) Term") + 
+  ggtitle("downregulated Genes"))
+
+# Cellular components
+print(ggplot(gene_sets.CC %>% filter(gene_set %in% modules.down) %>% droplevels() %>% filter(pval<0.05), 
+       aes(y=str_wrap(name),x=gene_set, col=gene_set)) + 
+  geom_point(aes(alpha=p.adj,size=nseqs))+
+ facet_wrap(~category,scales="free", nrow = 2) +
+  scale_alpha("FDR-adjusted\nP-value", range = c(1,0.35), #breaks = c(0, .25, .5, .75, 1), 
+              guide = guide_legend(override.aes = list(size=4))) + 
+  scale_size("Gene count", range = c(2,10), #breaks = c(2, 5, 10), 
+             guide = guide_legend(override.aes = list(col="gray50"))) + 
+  scale_color_manual(name="Gene Set", values=modules.down,
+             guide = guide_legend(override.aes = list(size=4))) +
+  scale_x_discrete(drop=FALSE) +
+  theme_cleveland() + 
+  theme(axis.title.x=element_blank(), 
+        axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1), 
+        #axis.ticks.x = element_blank(), 
+        legend.position = "right", axis.text.y=element_text(size=7.25), 
+        plot.title = element_text(size=10)) +
+  ylab("Enriched Gene Ontology (GO) Term") + 
+  ggtitle("Downregulated Genes"))
+
+```
+
+## Prep for metacoder
+
+metacoder creates really pretty network plots, BUT I can only get it to work if I use an old version of metacoder, and an old version of R. Therefore, I use RStudio Cloud. 
+
+Metacoder needs a file with GO IDs, GO name, and other things like number of genes & pvalue. BUT my GO_MWU results lists multiple GO IDs, so ... 
+
+
+### Identify GO ID that was selected to represent each group of GO terms. 
+
+From the GO_MWU README file: "highly similar categories are merged according to complete linkage clustering based on the fraction of shared genes. The distance measure for clustering, introduced in Kosiol et al 2008, is the number of genes shared among the two GO categories within the analyzed dataset divided by the size of the smaller of the two categories. The resulting hierarchical tree is then “cut” at the adjustable “height” ('cutTreeHeight' parameter in the call to gomwuStats) to merge clustered categories. The default for cutTreeHeight is 0.25, implying that a group of categories will be merged if the most dissimilar two of them share >75% of genes included in the smaller of the two. **The merged categories inherit the name of the largest one.**" 
+
+So, the GO_MWU results use terms that "represent" similar terms (and not GO_SLIMs). GO_MWU doesn't specify which GO ID was used (it just uses the name), so first I need to match the IDs to the names. 
+
+## Using results from GO_MWU 
+
+```{r}
+#Here I import the go.obo object and convert to dataframe. 
+install.packages("ontologyIndex")
+require(ontologyIndex)
+ontology <- get_ontology("go.obo") %>% as.data.frame()
+goslims <- get_ontology("goslim_plant.obo") %>% as.data.frame()
+
+# Identify the representative GO ID selected for each group of merged IDs, column "id", select columns, save to object
+(BP.metacoder <- gene_sets.BP %>% left_join(ontology, by="name") %>% 
+  dplyr::select(gene_set, id, name, nseqs, pval, p.adj, 
+                delta.rank, gene_set_up) %>%
+  rename(ID=id, term=name))
+
+(MF.metacoder <- gene_sets.MF %>% left_join(ontology, by="name") %>% 
+  dplyr::select(gene_set, id, name, nseqs, pval, p.adj, 
+                delta.rank, gene_set_up) %>%
+  rename(ID=id, term=name))
+
+(CC.metacoder <- gene_sets.CC %>% left_join(ontology, by="name") %>% 
+  dplyr::select(gene_set, id, name, nseqs, pval, p.adj, 
+                delta.rank, gene_set_up) %>%
+  rename(ID=id, term=name))
+
+save(BP.metacoder, file = "BP.metacoder")
+save(MF.metacoder, file = "MF.metacoder")
+save(CC.metacoder, file = "CC.metacoder")
+```
+## USING RESULTS FROM DAVID 
+
+```{bash}
+## Remove files which list GO_MWU results filenames if they already exist  
+rm DAVID_BP_filenames.txt
+rm DAVID_MF_filenames.txt
+rm DAVID_CC_filenames.txt
+
+for file in DAVID_BP*
+do
+filename="$(echo $file)"
+sample="$(basename -a $filename | cut -d "_" -f 3  | cut -d "." -f 1)"
+printf "%s\t%s\n" "$filename" "$sample" >> DAVID_BP_filenames.txt
+done
+
+# Molecular functions results 
+for file in DAVID_MF*
+do
+filename="$(echo $file)"
+sample="$(basename -a $filename | cut -d "_" -f 3  | cut -d "." -f 1)"
+printf "%s\t%s\n" "$filename" "$sample" >> DAVID_MF_filenames.txt
+done
+
+# Cellular components results 
+for file in DAVID_CC*
+do
+filename="$(echo $file)"
+sample="$(basename -a $filename | cut -d "_" -f 3  | cut -d "." -f 1)"
+printf "%s\t%s\n" "$filename" "$sample" >> DAVID_CC_filenames.txt
+done
+```
+
+```{r}
+# Create objects from DAVID files 
+
+# BIOLOGICAL PROCESSES
+filenames <- read_delim(file="DAVID_BP_filenames.txt", col_names = c("filename", "gene_set"))
+files <- file.path(filenames$filename) #extract vector of filenames 
+all(file.exists(files)) #easy code to check that all files exist! 
+file_list <- vector(mode = "list", length = nrow(filenames))
+names(file_list) <- c(filenames$gene_set)
+for (i in 1:nrow(filenames)) {
+    file_list[[i]] <- data.frame(read_delim(file=files[i], delim = "\t"))}
+(DAVID.BP <- bind_rows(file_list, .id = "gene_set") %>% 
+    mutate(category=as.factor("Biological Processes")) %>%  #add column designating go category 
+    mutate(gene_set=factor(gene_set)) %>% #Convert gene_set column to factor, define all gene_sets 
+    tidyr::complete(gene_set, category) %>% # add rows for gene_sets that are missing from dataframe
+    separate(Term, into = c("ID", "term"), sep = "~") %>%
+    rename(c("nseqs"="Count", "percent"="X.", "pval"="PValue", "p.adj"="FDR")))
+
+# MOLECULAR PROCESSES 
+filenames <- read_delim(file="DAVID_MF_filenames.txt", col_names = c("filename", "gene_set"))
+files <- file.path(filenames$filename) #extract vector of filenames 
+all(file.exists(files)) #easy code to check that all files exist! 
+file_list <- vector(mode = "list", length = nrow(filenames))
+names(file_list) <- c(filenames$gene_set)
+for (i in 1:nrow(filenames)) {
+    file_list[[i]] <- data.frame(read_delim(file=files[i], delim = "\t"))}
+(DAVID.MF <- bind_rows(file_list, .id = "gene_set") %>% 
+    mutate(category=as.factor("Biological Processes")) %>%  #add column designating go category 
+    mutate(gene_set=factor(gene_set)) %>% #Convert gene_set column to factor, define all gene_sets 
+    tidyr::complete(gene_set, category) %>% # add rows for gene_sets that are missing from dataframe
+    separate(Term, into = c("ID", "term"), sep = "~") %>%
+    rename(c("nseqs"="Count", "percent"="X.", "pval"="PValue", "p.adj"="FDR")))
+
+# CELLULAR COMPONENTS 
+filenames <- read_delim(file="DAVID_CC_filenames.txt", col_names = c("filename", "gene_set"))
+files <- file.path(filenames$filename) #extract vector of filenames 
+all(file.exists(files)) #easy code to check that all files exist! 
+
+file_list <- vector(mode = "list", length = nrow(filenames))
+names(file_list) <- c(filenames$gene_set)
+for (i in 1:nrow(filenames)) {
+    file_list[[i]] <- data.frame(read_delim(file=files[i], delim = "\t"))}
+(DAVID.CC <- bind_rows(file_list, .id = "gene_set") %>% 
+    mutate(category=as.factor("Biological Processes")) %>%  #add column designating go category 
+    mutate(gene_set=factor(gene_set)) %>% #Convert gene_set column to factor, define all gene_sets 
+    tidyr::complete(gene_set, category) %>% # add rows for gene_sets that are missing from dataframe
+    separate(Term, into = c("ID", "term"), sep = "~") %>%
+    rename(c("nseqs"="Count", "percent"="X.", "pval"="PValue", "p.adj"="FDR")))
+
+save(DAVID.BP, file = "DAVID.BP")
+save(DAVID.MF, file = "DAVID.MF")
+save(DAVID.CC, file = "DAVID.CC")
+
+DAVID.BP %>% View()
+```
+
+
+
+
+
+
+
+
+## Map GO terms to GO Slims 
+
+```{r}
+# Biological Processes
+myIds <- (gene_sets.BP %>% left_join(ontology, by="name") %>% 
+            filter(!is.na(term)))$term %>% unique()
+
+myCollection <- GOCollection(myIds)
+fl <- system.file("extdata", "goslim_plant.obo", package="GSEABase")
+slim <- getOBOCollection(fl)
+
+# Sets ontology category to "Molecular Function". Use "BP" for "Biological Process"
+slimdf <- goSlim(myCollection, slim, ontology = "BP")
+
+# This should match the ontology used above.
+# E.g. GOBPOFFSPRING or GOCCOFFSPRING
+GO.db::GOBPOFFSPRING
+
+mappedIds <-
+  function(df, collection, OFFSPRING)
+  {
+    map <- as.list(OFFSPRING[rownames(df)])
+    mapped <- lapply(map, intersect, ids(collection))
+    df[["go_terms"]] <- vapply(unname(mapped), paste, collapse = ";", character(1L))
+    df
+  }
+
+slimdf <- mappedIds(slimdf, myCollection, GOBPOFFSPRING)
+slimdf %>% filter(Count>0) %>% View()
+
+write.csv(slimdf %>% filter(Count>0), file = "slim_bp.csv", quote = FALSE)
+
+getOBOCollection(goDatabase) %>% str()
+```
+
+```{r}
+## Molecular Functions 
+
+myIds <- (gene_sets.MF %>% filter(gene_set %in% "amb-low") %>% 
+            droplevels() %>% separate_rows(term, sep = ";") %>% 
+            filter(!is.na(term)))$term %>% unique()
+myCollection <- GOCollection(myIds)
+fl <- system.file("extdata", "goslim_plant.obo", package="GSEABase")
+slim <- getOBOCollection(fl)
+
+# Sets ontology category to "Molecular Function". Use "BP" for "Biological Process"
+slimdf <- goSlim(myCollection, slim, ontology = "MF")
+
+# This should match the ontology used above.
+# E.g. GOBPOFFSPRING or GOCCOFFSPRING
+GO.db::GOMFOFFSPRING
+
+mappedIds <-
+  function(df, collection, OFFSPRING)
+  {
+    map <- as.list(OFFSPRING[rownames(df)])
+    mapped <- lapply(map, intersect, ids(collection))
+    df[["go_terms"]] <- vapply(unname(mapped), paste, collapse = ";", character(1L))
+    df
+  }
+
+slimdf.AL <- mappedIds(slimdf, myCollection, GOMFOFFSPRING) %>% filter(Count>0)
+
+left_join(
+  slimdf.AL %>% separate_rows(go_terms, sep = ";") %>% dplyr::select(Term, go_terms),
+  
+  gene_sets.MF %>% filter(gene_set %in% "amb-mod") %>% 
+            droplevels() %>% separate_rows(term, sep = ";") %>%
+    dplyr::select(gene_set, delta.rank, p.adj, term, name, gene_set_up),
+  by=c("go_terms"="term")) %>% filter(Term != "molecular_function") %>% View()
+
+
+
+#slimdf %>% filter(Count>0) %>% View()
+#write.csv(slimdf.AM, file = "slim_bp.csv", quote = FALSE)
+```
