@@ -1,0 +1,13 @@
+DAVID_CC_coral1.txt	coral1
+DAVID_CC_darkviolet.txt	darkviolet
+DAVID_CC_firebrick4.txt	firebrick4
+DAVID_CC_green.txt	green
+DAVID_CC_ivory.txt	ivory
+DAVID_CC_lightcyan.txt	lightcyan
+DAVID_CC_lightgreen.txt	lightgreen
+DAVID_CC_lightsteelblue1.txt	lightsteelblue1
+DAVID_CC_magenta.txt	magenta
+DAVID_CC_pink.txt	pink
+DAVID_CC_plum1.txt	plum1
+DAVID_CC_purple.txt	purple
+DAVID_CC_royalblue.txt	royalblue

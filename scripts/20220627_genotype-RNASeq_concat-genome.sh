@@ -11,7 +11,7 @@
 
 module load aligners/bowtie2/2.4.2
 module load bio/gatk/4.2.0.0
-module load bio/samtools/1.11
+module load bio/samtools/1.15.1
 source /home/lspencer/venv/bin/activate
 module load bio/vcftools/0.1.16
 
@@ -19,145 +19,110 @@ REF=/home/lspencer/references/redkingcrab #red king crab genome directory
 INPUT=/home/lspencer/2022-redking-OA/trimmed/v2 #trimmed reads
 OUTPUT=/scratch/lspencer/2022-redking-OA/genotype/genotypes-bowtie-rkc-concat # destination for all output files
 
-# Move to the directory containing red king crab genome.
-# Bowtie2 looks for index in current directory - easier just to be in it from the get-go
-cd ${REF}
+# # Move to the directory containing red king crab genome.
+# # Bowtie2 looks for index in current directory - easier just to be in it from the get-go
+# cd ${REF}
 
-########### -------------- CREATE CONCATENATED RED KING CRAB GENOME WITH ~50 SUPER-CONTIGS -------------------############################
-# This step is to speed up this job. Otherwise it takes weeks/months/years!
-
-# Check to see if there are instances of 1000 N in the genome already - this returns the number of contigs that contain exactly 1000 consecutive N's
-echo "This is the number of contigs that contain exactly 1000 consecutive N's"
-grep N Paralithodes.camtschaticus.genome.fasta | awk -F '[^N]+' '{for (i=1; i<=NF; i++) if ($i != "") print length($i)}' | grep 1000$ | wc -l
-
-# Concatenate contigs together, where i=the number of sequences to combine +1
-echo "Starting genome concatenation"
-awk -v i=17198 -f /home/lspencer/2022-redking-OA/scripts/merge_contigs.awk.txt Paralithodes.camtschaticus.genome.fasta | \
-sed 's/>+Seq_1/>Seq_1/' > Paralithodes.camtschaticus.genome_concat.fa  # remove the leading character before Seq_1
-
-## Edit fasta headers from concatenated IDs to the range (e.g. "Seq_1+Seq_2+Seq_3" to "Seq_1:Seq_3")
-# create variables
-n_contigs_old=$(grep ">" Paralithodes.camtschaticus.genome.fasta | wc -l) #number of contigs in original fasta
-d="${n_contigs_old//[^[:digit:]]/}" #Return ID of last/highest number contig
-digits=$(echo ${#d}) #number of digits in the last contig
-n_contigs_new=$(grep ">" Paralithodes.camtschaticus.genome_concat.fa | wc -l) #number of contigs in concatenated genome
-n=$(seq 1 1 $n_contigs_new) #vector of 1:# of contigs in concat. genome
-
-# loop over each new contig header, paste first and last ID # together and replace concat header echo with new ID
-for i in $n
-do
-old=$(grep ">" Paralithodes.camtschaticus.genome_concat.fa | sed "${i}q;d")
-start=$(echo $old | grep -o -E '[0-9]{1,6}' | head -n 1) #If needed, change the 6 to match the value in $digits
-start_old=$(echo ">Seq_"${start}"+")
-end=$(echo $old | grep -o -E '[0-9]{1,6}' | tail -n 1) #If needed, change the 6 to match the value in $digits
-new=$(echo ">Seq_"$start":Seq_"$end)
-echo $new >> tmp.txt
-sed -i.bak "s|"$start_old".*|$new|" Paralithodes.camtschaticus.genome_concat.fa # edit fasta in place.
-done
-
-# Index concatenated genome
-echo "Indexing concatenated and re-headed fasta"
-samtools faidx Paralithodes.camtschaticus.genome_concat.fa
-
-# Create bowtie2 index for concatenated Oly genome
-echo "Building bowtie2 genome index"
-bowtie2-build \
---threads 24 \
-Paralithodes.camtschaticus.genome_concat.fa \
-Paralithodes.camtschaticus.genome_concat.fa >> "${OUTPUT}/01-bowtie2-build.txt" 2>&1
-
-# Align trimmed reads to concatenated genome
-echo "Aligning reads"
-
-# Run Bowtie2 over each RNASeq paired sample
-for file in ${INPUT}/*.trimmed.R1.v2.fastq.gz
-do
-sample="$(basename -a ${file} | cut -d "." -f 1)"
-file_R1="${sample}.trimmed.R1.v2.fastq.gz"
-file_R2="${sample}.trimmed.R2.v2.fastq.gz"
-map_file="${sample}.bowtie.concat.sam"
-
-# run Bowtie2 on each file
-bowtie2 \
--x Paralithodes.camtschaticus.genome_concat.fa \
---sensitive \
---threads 24 \
---no-unal \
--1 ${INPUT}/${file_R1} \
--2 ${INPUT}/${file_R2} \
--S ${OUTPUT}/${map_file}; \
-done >> ${OUTPUT}/02-bowtieout.txt 2>&1
-
+# # Create bowtie2 index for concatenated Oly genome
+# echo "Building bowtie2 genome index"
+# bowtie2-build \
+# --threads 1 \
+# Paralithodes.camtschaticus.genome_concat.fa \
+# Paralithodes.camtschaticus.genome_concat.fa >> "${OUTPUT}/01-bowtie2-build.txt" 2>&1
+#
+# # Align trimmed reads to concatenated genome
+# echo "Aligning reads"
+#
+# # Run Bowtie2 over each RNASeq paired sample
+# for file in ${INPUT}/*.trimmed.R1.v2.fastq.gz
+# do
+# sample="$(basename -a ${file} | cut -d "." -f 1)"
+# file_R1="${sample}.trimmed.R1.v2.fastq.gz"
+# file_R2="${sample}.trimmed.R2.v2.fastq.gz"
+# map_file="${sample}.bowtie.concat.sam"
+#
+# # run Bowtie2 on each file
+# bowtie2 \
+# -x Paralithodes.camtschaticus.genome_concat.fa \
+# --sensitive \
+# --threads 24 \
+# --no-unal \
+# -1 ${INPUT}/${file_R1} \
+# -2 ${INPUT}/${file_R2} \
+# -S ${OUTPUT}/${map_file}; \
+# done >> ${OUTPUT}/02-bowtieout.txt 2>&1
+#
 # Move to output directory where all files are to be written
 cd ${OUTPUT}
 
-# Convert sam to bam and sort
-echo "Convert aligned .sam to .bam"
-
-for file in *.bowtie.concat.sam
-do
-sample="$(basename -a $file | cut -d "." -f 1)"
-samtools view --threads 24 -b $file | samtools sort -o $sample.sorted.bam
-done >> "03-sam2sortedbam.txt" 2>&1
-
-# Deduplicate using picard (within gatk), output will have duplicates removed
-echo "Deduplicating bams"
-
-# Using Bowtie2 aligned to concatenated genome
-for file in *.sorted.bam
-do
-sample="$(basename -a $file | cut -d "." -f 1)"
-
-gatk MarkDuplicates \
-I=$file \
-O="$sample.dedup.bam" \
-M="$sample.dup_metrics.txt" \
-REMOVE_DUPLICATES=true
-done >> "01_dedup_stout.txt" 2>&1
-
-# Create a FASTA sequence dictionary file for genome (needed by gatk)
-echo "Creating sequence dictionary (.dict)"
-gatk CreateSequenceDictionary \
--R ${REF}/Paralithodes.camtschaticus.genome_concat.fa \
--O ${REF}/Paralithodes.camtschaticus.genome_concat.dict \
- >> "02-CreateSequenceDictionary.txt" 2>&1
-
-# Split reads spanning splicing events
-echo "Splitting reads spanning splice junctions (SplitNCigarReads)"
-for file in *dedup.bam
-do
-sample="$(basename -a $file | cut -d "." -f 1)"
-
-# split CigarN reads
-gatk SplitNCigarReads \
--R ${REF}/Paralithodes.camtschaticus.genome_concat.fa \
--I $file \
--O $sample.dedup-split.bam
-done >> "03-CigarNSplit_stout.txt" 2>&1
-
-# Remove interim .bam files to conserve space
-rm *.*dedup.bam
-
-# Add read group ID to bams (needed by gatk)
-echo "Adding read group to bams"
-for file in *dedup-split.bam
-do
-sample="$(basename -a $file | cut -d "." -f 1)"
-
-# add read group info to headers, specifying sample names
-gatk AddOrReplaceReadGroups \
-I=$sample.dedup-split.bam \
-O=$sample.dedup-split-RG.bam \
-RGID=1 \
-RGLB=$sample \
-RGPL=ILLUMINA \
-RGPU=unit1 \
-RGSM=$sample
-done >> "04-AddReadGroup_stout.txt" 2>&1
-
-# Remove interim .bam files to conserve space
-rm *.dedup-split.bam
-rm *.dedup-split.bam.bai
+# # Convert sam to bam and sort
+# echo "Convert aligned .sam to .bam"
+#
+# for file in *.bowtie.concat.sam
+# do
+# sample="$(basename -a $file | cut -d "." -f 1)"
+# samtools view --threads 24 -b $file | samtools sort -o $sample.sorted.bam
+# done >> "03-sam2sortedbam.txt" 2>&1
+#
+# # Deduplicate using picard (within gatk), output will have duplicates removed
+# echo "Deduplicating bams"
+#
+# # Using Bowtie2 aligned to concatenated genome
+# for file in *.sorted.bam
+# do
+# sample="$(basename -a $file | cut -d "." -f 1)"
+#
+# gatk MarkDuplicates \
+# I=$file \
+# O="$sample.dedup.bam" \
+# M="$sample.dup_metrics.txt" \
+# REMOVE_DUPLICATES=true
+# done >> "01_dedup_stout.txt" 2>&1
+#
+# # Create a FASTA sequence dictionary file for genome (needed by gatk)
+# echo "Creating sequence dictionary (.dict)"
+# gatk CreateSequenceDictionary \
+# -R ${REF}/Paralithodes.camtschaticus.genome_concat.fa \
+# -O ${REF}/Paralithodes.camtschaticus.genome_concat.dict \
+#  >> "02-CreateSequenceDictionary.txt" 2>&1
+#
+# # Split reads spanning splicing events
+# echo "Splitting reads spanning splice junctions (SplitNCigarReads)"
+# for file in *dedup.bam
+# do
+# sample="$(basename -a $file | cut -d "." -f 1)"
+#
+# # split CigarN reads
+# # NOTE: with concatenated genome the contigs are too long for indexing within gatk, so need to specify `--create-output-bam false` (we don't need them anyway for this intermediate bam file)
+# gatk SplitNCigarReads \
+# --create-output-bam-index false \
+# -R ${REF}/Paralithodes.camtschaticus.genome_concat.fa \
+# -I $file \
+# -O $sample.dedup-split.bam
+# done >> "03-CigarNSplit_stout.txt" 2>&1
+#
+# # Remove interim .bam files to conserve space
+# rm *.*dedup.bam
+#
+# # Add read group ID to bams (needed by gatk)
+# echo "Adding read group to bams"
+# for file in *dedup-split.bam
+# do
+# sample="$(basename -a $file | cut -d "." -f 1)"
+#
+# # add read group info to headers, specifying sample names
+# gatk AddOrReplaceReadGroups \
+# I=$sample.dedup-split.bam \
+# O=$sample.dedup-split-RG.bam \
+# RGID=1 \
+# RGLB=$sample \
+# RGPL=ILLUMINA \
+# RGPU=unit1 \
+# RGSM=$sample
+# done >> "04-AddReadGroup_stout.txt" 2>&1
+#
+# # Remove interim .bam files to conserve space
+# rm *.dedup-split.bam
 
 # Index the final .bam files (that have been deduplicated, split, read-group added)
 echo "Indexing variant-call ready .bam files"

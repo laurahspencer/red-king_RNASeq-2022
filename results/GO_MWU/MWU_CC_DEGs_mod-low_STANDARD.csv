@@ -1,0 +1,94 @@
+"delta.rank" "pval" "level" "nseqs" "term" "name" "p.adj"
+0 NA 2 9 "GO:0000109;GO:1990391" "nucleotide-excision repair complex" NA
+0 NA 2 65 "GO:0000118" "histone deacetylase complex" NA
+0 NA 4 34 "GO:0000123;GO:0031248;GO:1902493" "histone acetyltransferase complex" NA
+0 NA 2 6 "GO:0000124;GO:0070461" "SAGA complex" NA
+0 NA 2 9 "GO:0000127;GO:0090576" "RNA polymerase III transcription regulator complex" NA
+0 NA 2 317 "GO:0000139" "Golgi membrane" NA
+0 NA 3 74 "GO:0000151" "ubiquitin ligase complex" NA
+0 NA 3 29 "GO:0000159;GO:0005963;GO:0008287;GO:1903293" "protein serine/threonine phosphatase complex" NA
+0 NA 2 7 "GO:0000164" "protein phosphatase type 1 complex" NA
+0 NA 3 6 "GO:0000176" "nuclear exosome (RNase complex)" NA
+0 NA 3 10 "GO:0000178;GO:1905354" "exoribonuclease complex" NA
+0 NA 4 10 "GO:0000220;GO:0033179;GO:0033177" "proton-transporting two-sector ATPase complex, proton-transporting domain" NA
+0 NA 2 9 "GO:0000221;GO:0033180" "proton-transporting V-type ATPase, V1 domain" NA
+0 NA 2 5 "GO:0000242" "pericentriolar material" NA
+0 NA 4 9 "GO:0000243;GO:0005684;GO:0005681" "spliceosomal complex" NA
+0 NA 3 9 "GO:0000307;GO:1902554;GO:1902911;GO:0061695" "transferase complex, transferring phosphorus-containing groups" NA
+0 NA 4 5 "GO:0000325" "plant-type vacuole" NA
+0 NA 2 8 "GO:0000407" "phagophore assembly site" NA
+0 NA 2 11 "GO:0000421" "autophagosome membrane" NA
+0 NA 3 58 "GO:0000502;GO:1905369;GO:1905368" "peptidase complex" NA
+0 NA 3 35 "GO:0000776" "kinetochore" NA
+0 NA 2 8 "GO:0000781" "chromosome, telomeric region" NA
+0 NA 2 112 "GO:0000785" "chromatin" NA
+0 NA 2 21 "GO:0000786;GO:0032993;GO:0044815" "nucleosome" NA
+0 NA 2 15 "GO:0000791" "euchromatin" NA
+0 NA 2 6 "GO:0000792" "heterochromatin" NA
+0 NA 2 64 "GO:0000794;GO:0000228;GO:0000793;GO:0005694" "chromosome" NA
+0 NA 4 9 "GO:0000835;GO:0000153;GO:0000836" "ER ubiquitin ligase complex" NA
+0 NA 3 5 "GO:0000839" "Hrd1p ubiquitin ligase ERAD-L complex" NA
+0 NA 2 28 "GO:0000922" "spindle pole" NA
+0 NA 4 21 "GO:0000932;GO:0036464;GO:0035770" "cytoplasmic ribonucleoprotein granule" NA
+0 NA 2 5 "GO:0000974" "Prp19 complex" NA
+0 NA 4 13 "GO:0001518;GO:0034706;GO:0098797;GO:0034703;GO:0034702" "cation channel complex" NA
+0 NA 3 7 "GO:0001527" "microfibril" NA
+0 NA 2 8 "GO:0001533" "cornified envelope" NA
+0 NA 2 21 "GO:0001650" "fibrillar center" NA
+0 NA 2 10 "GO:0001669;GO:0030141;GO:0099503" "acrosomal vesicle" NA
+0 NA 3 19 "GO:0001725;GO:0042641;GO:0097517;GO:0032432" "stress fiber" NA
+0 NA 2 6 "GO:0001917" "photoreceptor inner segment" NA
+0 NA 3 6 "GO:0002102" "podosome" NA
+0 NA 3 12 "GO:0002116;GO:0043235" "semaphorin receptor complex" NA
+0 NA 2 5 "GO:0002199" "zona pellucida receptor complex" NA
+0 NA 2 89 "GO:0005576" "extracellular region" NA
+0 NA 2 38 "GO:0005615" "extracellular space" NA
+0 NA 4 17 "GO:0005635;GO:0031967;GO:0031975" "nuclear envelope" NA
+0 NA 2 97 "GO:0005654" "nucleoplasm" NA
+0 NA 2 13 "GO:0005667" "transcription regulator complex" NA
+0 NA 2 26 "GO:0005730" "nucleolus" NA
+0 NA 2 269 "GO:0005737" "cytoplasm" NA
+0 NA 2 112 "GO:0005739" "mitochondrion" NA
+0 NA 2 6 "GO:0005741;GO:0031968;GO:0019867" "outer membrane" NA
+0 NA 4 8 "GO:0005747;GO:0045271;GO:0030964;GO:0098803;GO:1990204" "respiratory chain complex" NA
+0 NA 2 5 "GO:0005758;GO:0031970" "mitochondrial intermembrane space" NA
+0 NA 5 6 "GO:0005759" "mitochondrial matrix" NA
+0 NA 4 26 "GO:0005764;GO:0000323;GO:0005773" "vacuole" NA
+0 NA 6 18 "GO:0005765;GO:0098852" "lytic vacuole membrane" NA
+0 NA 3 47 "GO:0005768;GO:0031410;GO:0097708;GO:0031982" "intracellular vesicle" NA
+0 NA 3 13 "GO:0005769" "early endosome" NA
+0 NA 2 33 "GO:0005774" "vacuolar membrane" NA
+0 NA 4 12 "GO:0005777;GO:0042579" "peroxisome" NA
+0 NA 3 74 "GO:0005783" "endoplasmic reticulum" NA
+0 NA 2 9 "GO:0005788" "endoplasmic reticulum lumen" NA
+0 NA 4 51 "GO:0005789" "endoplasmic reticulum membrane" NA
+0 NA 3 25 "GO:0005794" "Golgi apparatus" NA
+0 NA 2 5 "GO:0005797" "Golgi medial cisterna" NA
+0 NA 3 8 "GO:0005813;GO:0005815" "centrosome" NA
+0 NA 2 93 "GO:0005829" "cytosol" NA
+0 NA 3 168 "GO:0005886" "plasma membrane" NA
+0 NA 3 13 "GO:0005887;GO:0031226" "intrinsic component of plasma membrane" NA
+0 NA 4 6 "GO:0005929" "cilium" NA
+0 NA 2 60 "GO:0016021;GO:0031224" "integral component of membrane" NA
+0 NA 2 8 "GO:0031301;GO:0031300" "integral component of organelle membrane" NA
+0 NA 4 33 "GO:0031966;GO:0005743;GO:0019866" "mitochondrial membrane" NA
+0 NA 4 15 "GO:0031985;GO:0098791;GO:0031984" "Golgi apparatus subcompartment" NA
+0 NA 2 13 "GO:0033178" "proton-transporting two-sector ATPase complex, catalytic domain" NA
+0 NA 2 6 "GO:0036452" "ESCRT complex" NA
+0 NA 3 161 "GO:0043232;GO:0043228" "non-membrane-bounded organelle" NA
+0 NA 4 21 "GO:0070013;GO:0043233;GO:0031974" "intracellular organelle lumen" NA
+0 NA 2 31 "GO:0098687;GO:0000775" "chromosomal region" NA
+0 NA 2 72 "GO:0098796" "membrane protein complex" NA
+0 NA 2 20 "GO:0098800;GO:0098798" "mitochondrial protein-containing complex" NA
+0 NA 2 18 "GO:0099023;GO:0000145" "vesicle tethering complex" NA
+0 NA 2 67 "GO:0099080" "supramolecular complex" NA
+0 NA 3 11 "GO:0099512;GO:0099081" "supramolecular polymer" NA
+0 NA 2 30 "GO:0120025;GO:0042995;GO:0001726" "plasma membrane bounded cell projection" NA
+0 NA 2 142 "GO:0140513" "nuclear protein-containing complex" NA
+0 NA 2 15 "GO:0140534" "endoplasmic reticulum protein-containing complex" NA
+0 NA 2 181 "GO:0140535" "intracellular protein-containing complex" NA
+0 NA 2 298 "GO:1902494" "catalytic complex" NA
+0 NA 2 21 "GO:1902495;GO:1990351" "transmembrane transporter complex" NA
+0 NA 3 5 "GO:1902555" "endoribonuclease complex" NA
+0 NA 3 123 "GO:1990234" "transferase complex" NA
+0 NA 2 14 "GO:1990904" "ribonucleoprotein complex" NA

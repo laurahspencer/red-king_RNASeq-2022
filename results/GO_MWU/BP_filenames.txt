@@ -1,9 +1,6 @@
 MWU_BP_DEGs_amb-low.csv	amb-low
-MWU_BP_DEGs_amb-low_STANDARD.csv	amb-low
 MWU_BP_DEGs_amb-mod.csv	amb-mod
-MWU_BP_DEGs_amb-mod_STANDARD.csv	amb-mod
 MWU_BP_DEGs_mod-low.csv	mod-low
-MWU_BP_DEGs_mod-low_STANDARD.csv	mod-low
 MWU_BP_WGCNA-module_blue2.csv	blue2
 MWU_BP_WGCNA-module_coral1.csv	coral1
 MWU_BP_WGCNA-module_coral2.csv	coral2

@@ -1,0 +1,14 @@
+DAVID_blue2_DEGs-or-GS.txt	blue2
+DAVID_coral1_DEGs-or-GS.txt	coral1
+DAVID_darkviolet_DEGs-or-GS.txt	darkviolet
+DAVID_firebrick4_DEGs-or-GS.txt	firebrick4
+DAVID_green_DEGs-or-GS.txt	green
+DAVID_ivory_DEGs-or-GS.txt	ivory
+DAVID_lightcyan_DEGs-or-GS.txt	lightcyan
+DAVID_lightgreen_DEGs-or-GS.txt	lightgreen
+DAVID_lightsteelblue1_DEGs-or-GS.txt	lightsteelblue1
+DAVID_magenta_DEGs-or-GS.txt	magenta
+DAVID_pink_DEGs-or-GS.txt	pink
+DAVID_plum1_DEGs-or-GS.txt	plum1
+DAVID_purple_DEGs-or-GS.txt	purple
+DAVID_royalblue_DEGs-or-GS.txt	royalblue

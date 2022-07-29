@@ -73,9 +73,9 @@ for (j in 1:length(goDivisions)) {
 
 gomwuStats(input, goDatabase, goAnnotations, goDivisions[j],
 	perlPath="C:/Strawberry/perl/bin/perl.exe", # replace with full path to perl executable if it is not in your system's PATH already
-	largest=0.1,  # a GO category will not be considered if it contains more than this fraction of the total number of genes
+	largest=0.75,  # a GO category will not be considered if it contains more than this fraction of the total number of genes
 	smallest=5,   # a GO category should contain at least this many genes to be considered
-	clusterCutHeight=0.30, # threshold for merging similar (gene-sharing) terms. See README for details.
+	clusterCutHeight=0.25, # threshold for merging similar (gene-sharing) terms. See README for details.
 #	Alternative="g" # by default the MWU test is two-tailed; specify "g" or "l" of you want to test for "greater" or "less" instead. 
 	#Module=TRUE,Alternative="g" # un-remark this if you are analyzing a SIGNED WGCNA module (values: 0 for not in module genes, kME for in-module genes). In the call to gomwuPlot below, specify absValue=0.001 (count number of "good genes" that fall into the module)
 #	Module=TRUE # un-remark this if you are analyzing an UNSIGNED WGCNA module 
@@ -183,9 +183,9 @@ go.mwu.degs(contrast="mod-low")
 The "color" argument refers to the color for each GO tree (so for some modules, it's best to make that a slightly different color)
 
 ```{r}
-go.mwu.wgcna <- function(module, color) {
+go.mwu.wgcna <- function(file, module, color) {
   
-  input=paste("WGCNA-module_", module, ".csv", sep="") # two columns of comma-separated values: gene id, continuous measure of significance. To perform standard GO enrichment analysis based on Fisher's exact test, use binary measure (0 or 1, i.e., either sgnificant or not).
+  input=file # two columns of comma-separated values: gene id, continuous measure of significance. To perform standard GO enrichment analysis based on Fisher's exact test, use binary measure (0 or 1, i.e., either sgnificant or not).
   
   goAnnotations.wgcna="WGCNA-genes_for-GOMWU.tab" # two-column, tab-delimited, one line per gene, multiple GO terms separated by semicolon. If you have multiple lines per gene, use nrify_GOtable.pl prior to running this script.
 
@@ -197,7 +197,7 @@ for (j in 1:length(goDivisions)) {
 
     gomwuStats(input, goDatabase, goAnnotations.wgcna, goDivisions[j],
 	perlPath="perl", # replace with full path to perl executable if it is not in your system's PATH already
-	largest=0.65,  # a GO category will not be considered if it contains more than this fraction of the total number of genes
+	largest=0.90,  # a GO category will not be considered if it contains more than this fraction of the total number of genes
 	smallest=3,   # a GO category should contain at least this many genes to be considered
 	clusterCutHeight=0.25, # threshold for merging similar (gene-sharing) terms. See README for details.
 #	Alternative="g" # by default the MWU test is two-tailed; specify "g" or "l" of you want to test for "greater" or "less" instead. 
@@ -292,19 +292,32 @@ cbind(moduleTraitCor %>% as.data.frame(), moduleTraitPvalue %>% as.data.frame())
 DOWNREGULATED
 
 ```{r}
-module.lineplots[[1]]
+# Line plot 
+module.lineplots[[1]] # <--- NEED TO REMAKE WITH JUST DEGS
 
-go.mwu.wgcna(module = modules[[1]], color = modules[[1]])
+#go.mwu.wgcna(file=paste("WGCNA-module_", modules[[1]], ".csv", sep=""), module = modules[[1]], color = modules[[1]])
+#go.mwu.wgcna(file=paste("WGCNA-module_", modules[[1]], "_DEGs.csv", sep=""), module = modules[[1]], color = modules[[1]]) # genes in module that are DEGs 
+go.mwu.wgcna(file=paste("WGCNA-module_", modules[[1]], "_GS05.csv", sep=""), module = modules[[1]], color = modules[[1]]) # genes in module with p.GS<0.05 
+```
+
+## Background for DAVID 
+
+```{r}
+# Background for DAVID! 
+geneInfo.mwu %>% 
+  dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
 ```
 
 ```{r}
 ## Using DAVID 
-# module genes
-geneInfo.mwu %>% filter(moduleColor == modules[[1]]) %>% 
-  dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
 
-# Background 
-geneInfo.mwu %>% 
+# Create vector of genes that is either a DEG or is associated with pCO2 in this module
+z <- c(degs,
+       (geneInfo.mwu %>% filter(moduleColor == modules[[1]]) %>% filter(p.GS.pco2<0.05))$id)
+
+# Copy Uniprot IDs to clipboard for DAVID
+geneInfo.mwu %>% filter(moduleColor == modules[[1]]) %>% 
+  filter(id %in% z) %>%
   dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
 ```
 
@@ -314,19 +327,21 @@ DOWNREGULATED
 ```{r}
 module.lineplots[[2]]
 
-go.mwu.wgcna(module = modules[[2]], color = modules[[2]])
+#go.mwu.wgcna(file=paste("WGCNA-module_", modules[[2]], ".csv", sep=""), module = modules[[2]], color = modules[[2]]) # all genes in module
+#go.mwu.wgcna(file=paste("WGCNA-module_", modules[[2]], "_DEGs.csv", sep=""), module = modules[[2]], color = modules[[2]]) # genes in module that are DEGs 
+go.mwu.wgcna(file=paste("WGCNA-module_", modules[[2]], "_GS05.csv", sep=""), module = modules[[2]], color = modules[[2]]) # genes in module with p.GS<0.05 
 ```
 # Test using DAVID - same results? 
 
 ```{r}
-# module genes
+# Create vector of genes that is either a DEG or is associated with pCO2 in this module
+z <- c(degs,
+       (geneInfo.mwu %>% filter(moduleColor == modules[[2]]) %>% filter(p.GS.pco2<0.05))$id)
+
+# Copy Uniprot IDs to clipboard for DAVID
 geneInfo.mwu %>% filter(moduleColor == modules[[2]]) %>% 
+  filter(id %in% z) %>%
   dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
-
-# Background 
-geneInfo.mwu %>% 
-  dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
-
 ```
 
 
@@ -336,16 +351,19 @@ DOWNREGULATED
 ```{r}
 module.lineplots[[3]]
 
-go.mwu.wgcna(module=modules[[3]], modules[[3]])
+#go.mwu.wgcna(file=paste("WGCNA-module_", modules[[3]], ".csv", sep=""), module = modules[[3]], color = modules[[3]]) # all genes in module
+#go.mwu.wgcna(file=paste("WGCNA-module_", modules[[3]], "_DEGs.csv", sep=""), module = modules[[3]], color = modules[[3]]) # genes in module that are DEGs 
+go.mwu.wgcna(file=paste("WGCNA-module_", modules[[3]], "_GS05.csv", sep=""), module = modules[[3]], color = modules[[3]]) # genes in module with p.GS<0.05 
 ```
 
 ```{r}
-# module genes
-geneInfo.mwu %>% filter(moduleColor == modules[[3]]) %>% 
-  dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
+# Create vector of genes that is either a DEG or is associated with pCO2 in this module
+z <- c(degs,
+       (geneInfo.mwu %>% filter(moduleColor == modules[[3]]) %>% filter(p.GS.pco2<0.05))$id)
 
-# Background 
-geneInfo.mwu %>% 
+# Copy Uniprot IDs to clipboard for DAVID
+geneInfo.mwu %>% filter(moduleColor == modules[[3]]) %>% 
+  filter(id %in% z) %>%
   dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
 ```
 
@@ -354,16 +372,20 @@ DOWNREGULATED
 
 ```{r}
 module.lineplots[[4]]
-go.mwu.wgcna(module=modules[[4]], color=modules[[4]])
+
+#go.mwu.wgcna(file=paste("WGCNA-module_", modules[[4]], ".csv", sep=""), module = modules[[4]], color = modules[[4]]) # all genes in module
+#go.mwu.wgcna(file=paste("WGCNA-module_", modules[[4]], "_DEGs.csv", sep=""), module = modules[[4]], color = modules[[4]]) # genes in module that are DEGs 
+go.mwu.wgcna(file=paste("WGCNA-module_", modules[[4]], "_GS05.csv", sep=""), module = modules[[4]], color = modules[[4]]) # genes in module with p.GS<0.05 
 ```
 
 ```{r}
-# module genes
-geneInfo.mwu %>% filter(moduleColor == modules[[4]]) %>% 
-  dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
+# Create vector of genes that is either a DEG or is associated with pCO2 in this module
+z <- c(degs,
+       (geneInfo.mwu %>% filter(moduleColor == modules[[4]]) %>% filter(p.GS.pco2<0.05))$id)
 
-# Background 
-geneInfo.mwu %>% 
+# Copy Uniprot IDs to clipboard for DAVID
+geneInfo.mwu %>% filter(moduleColor == modules[[4]]) %>% 
+  filter(id %in% z) %>%
   dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
 ```
 
@@ -373,16 +395,20 @@ DOWNREGULATED
 
 ```{r}
 module.lineplots[[5]]
-go.mwu.wgcna(module=modules[[5]], color=modules[[5]])
+
+#go.mwu.wgcna(file=paste("WGCNA-module_", modules[[5]], ".csv", sep=""), module = modules[[5]], color = modules[[5]]) # all genes in module
+#go.mwu.wgcna(file=paste("WGCNA-module_", modules[[5]], "_DEGs.csv", sep=""), module = modules[[5]], color = modules[[5]]) # genes in module that are DEGs 
+go.mwu.wgcna(file=paste("WGCNA-module_", modules[[5]], "_GS05.csv", sep=""), module = modules[[5]], color = modules[[5]]) # genes in module with p.GS<0.05 
 ```
 
 ```{r}
-# module genes
-geneInfo.mwu %>% filter(moduleColor == modules[[5]]) %>% 
-  dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
+# Create vector of genes that is either a DEG or is associated with pCO2 in this module
+z <- c(degs,
+       (geneInfo.mwu %>% filter(moduleColor == modules[[5]]) %>% filter(p.GS.pco2<0.05))$id)
 
-# Background 
-geneInfo.mwu %>% 
+# Copy Uniprot IDs to clipboard for DAVID
+geneInfo.mwu %>% filter(moduleColor == modules[[5]]) %>% 
+  filter(id %in% z) %>%
   dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
 ```
 
@@ -392,16 +418,20 @@ UPREGULATED in moderate OA, DOWNREGULATED in severe OA
 
 ```{r}
 module.lineplots[[6]]
-go.mwu.wgcna(module=modules[[6]], color=modules[[6]])
+
+#go.mwu.wgcna(file=paste("WGCNA-module_", modules[[6]], ".csv", sep=""), module = modules[[6]], color = modules[[6]]) # all genes in module
+#go.mwu.wgcna(file=paste("WGCNA-module_", modules[[6]], "_DEGs.csv", sep=""), module = modules[[6]], color = modules[[6]]) # genes in module that are DEGs 
+go.mwu.wgcna(file=paste("WGCNA-module_", modules[[6]], "_GS05.csv", sep=""), module = modules[[6]], color = modules[[6]]) # genes in module with p.GS<0.05 
 ```
 
 ```{r}
-# module genes
-geneInfo.mwu %>% filter(moduleColor == modules[[6]]) %>% 
-  dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
+# Create vector of genes that is either a DEG or is associated with pCO2 in this module
+z <- c(degs,
+       (geneInfo.mwu %>% filter(moduleColor == modules[[6]]) %>% filter(p.GS.pco2<0.05))$id)
 
-# Background 
-geneInfo.mwu %>% 
+# Copy Uniprot IDs to clipboard for DAVID
+geneInfo.mwu %>% filter(moduleColor == modules[[6]]) %>% 
+  filter(id %in% z) %>%
   dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
 ```
 
@@ -410,16 +440,20 @@ UPREGULATED in moderate OA, DOWNREGULATED in severe OA
 
 ```{r}
 module.lineplots[[7]]
-go.mwu.wgcna(module=modules[[7]], color=modules[[7]])
+
+#go.mwu.wgcna(file=paste("WGCNA-module_", modules[[7]], ".csv", sep=""), module = modules[[7]], color = modules[[7]]) # all genes in module
+#go.mwu.wgcna(file=paste("WGCNA-module_", modules[[7]], "_DEGs.csv", sep=""), module = modules[[7]], color = modules[[7]]) # genes in module that are DEGs 
+go.mwu.wgcna(file=paste("WGCNA-module_", modules[[7]], "_GS05.csv", sep=""), module = modules[[7]], color = modules[[7]]) # genes in module with p.GS<0.05 
 ```
 
 ```{r}
-# module genes
-geneInfo.mwu %>% filter(moduleColor == modules[[7]]) %>% 
-  dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
+# Create vector of genes that is either a DEG or is associated with pCO2 in this module
+z <- c(degs,
+       (geneInfo.mwu %>% filter(moduleColor == modules[[7]]) %>% filter(p.GS.pco2<0.05))$id)
 
-# Background 
-geneInfo.mwu %>% 
+# Copy Uniprot IDs to clipboard for DAVID
+geneInfo.mwu %>% filter(moduleColor == modules[[7]]) %>% 
+  filter(id %in% z) %>%
   dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
 ```
 
@@ -428,16 +462,20 @@ DOWNREGULATED
 
 ```{r}
 module.lineplots[[8]]
-go.mwu.wgcna(module=modules[[8]], color=modules[[8]])
+
+#go.mwu.wgcna(file=paste("WGCNA-module_", modules[[8]], ".csv", sep=""), module = modules[[8]], color = modules[[8]]) # all genes in module
+go.mwu.wgcna(file=paste("WGCNA-module_", modules[[8]], "_DEGs.csv", sep=""), module = modules[[8]], color = modules[[8]]) # genes in module that are DEGs 
+#go.mwu.wgcna(file=paste("WGCNA-module_", modules[[8]], "_GS05.csv", sep=""), module = modules[[8]], color = modules[[8]]) # genes in module with p.GS<0.05 
 ```
 
 ```{r}
-# module genes
-geneInfo.mwu %>% filter(moduleColor == modules[[8]]) %>% 
-  dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
+# Create vector of genes that is either a DEG or is associated with pCO2 in this module
+z <- c(degs,
+       (geneInfo.mwu %>% filter(moduleColor == modules[[8]]) %>% filter(p.GS.pco2<0.05))$id)
 
-# Background 
-geneInfo.mwu %>% 
+# Copy Uniprot IDs to clipboard for DAVID
+geneInfo.mwu %>% filter(moduleColor == modules[[8]]) %>% 
+  filter(id %in% z) %>%
   dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
 ```
 
@@ -447,16 +485,20 @@ UPREGULATED
 
 ```{r}
 module.lineplots[[9]]
-go.mwu.wgcna(module=modules[[9]], color=modules[[9]])
+
+#go.mwu.wgcna(file=paste("WGCNA-module_", modules[[9]], ".csv", sep=""), module = modules[[9]], color = modules[[9]]) # all genes in module
+#go.mwu.wgcna(file=paste("WGCNA-module_", modules[[9]], "_DEGs.csv", sep=""), module = modules[[9]], color = modules[[9]]) # genes in module that are DEGs 
+go.mwu.wgcna(file=paste("WGCNA-module_", modules[[9]], "_GS05.csv", sep=""), module = modules[[9]], color = modules[[9]]) # genes in module with p.GS<0.05 
 ```
 
 ```{r}
-# module genes
-geneInfo.mwu %>% filter(moduleColor == modules[[9]]) %>% 
-  dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
+# Create vector of genes that is either a DEG or is associated with pCO2 in this module
+z <- c(degs,
+       (geneInfo.mwu %>% filter(moduleColor == modules[[9]]) %>% filter(p.GS.pco2<0.05))$id)
 
-# Background 
-geneInfo.mwu %>% 
+# Copy Uniprot IDs to clipboard for DAVID
+geneInfo.mwu %>% filter(moduleColor == modules[[9]]) %>% 
+  filter(id %in% z) %>%
   dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
 ```
 
@@ -466,16 +508,20 @@ UPREGULATED
 
 ```{r}
 module.lineplots[[10]]
-go.mwu.wgcna(module=modules[[10]], color=modules[[10]])
+
+#go.mwu.wgcna(file=paste("WGCNA-module_", modules[[10]], ".csv", sep=""), module = modules[[10]], color = modules[[10]]) # all genes in module
+#go.mwu.wgcna(file=paste("WGCNA-module_", modules[[10]], "_DEGs.csv", sep=""), module = modules[[10]], color = modules[[10]]) # genes in module that are DEGs 
+go.mwu.wgcna(file=paste("WGCNA-module_", modules[[10]], "_GS05.csv", sep=""), module = modules[[10]], color = modules[[10]]) # genes in module with p.GS<0.05 
 ```
 
 ```{r}
-# module genes
-geneInfo.mwu %>% filter(moduleColor == modules[[10]]) %>% 
-  dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
+# Create vector of genes that is either a DEG or is associated with pCO2 in this module
+z <- c(degs,
+       (geneInfo.mwu %>% filter(moduleColor == modules[[10]]) %>% filter(p.GS.pco2<0.05))$id)
 
-# Background 
-geneInfo.mwu %>% 
+# Copy Uniprot IDs to clipboard for DAVID
+geneInfo.mwu %>% filter(moduleColor == modules[[10]]) %>% 
+  filter(id %in% z) %>%
   dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
 ```
 
@@ -485,16 +531,20 @@ UPREGULATED
 
 ```{r}
 module.lineplots[[11]]
-go.mwu.wgcna(module=modules[[11]], color=modules[[11]])
+
+#go.mwu.wgcna(file=paste("WGCNA-module_", modules[[11]], ".csv", sep=""), module = modules[[11]], color = modules[[11]]) # all genes in module
+#go.mwu.wgcna(file=paste("WGCNA-module_", modules[[11]], "_DEGs.csv", sep=""), module = modules[[11]], color = modules[[11]]) # genes in module that are DEGs 
+go.mwu.wgcna(file=paste("WGCNA-module_", modules[[11]], "_GS05.csv", sep=""), module = modules[[11]], color = modules[[11]]) # genes in module with p.GS<0.05 
 ```
 
 ```{r}
-# module genes
-geneInfo.mwu %>% filter(moduleColor == modules[[11]]) %>% 
-  dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
+# Create vector of genes that is either a DEG or is associated with pCO2 in this module
+z <- c(degs,
+       (geneInfo.mwu %>% filter(moduleColor == modules[[11]]) %>% filter(p.GS.pco2<0.05))$id)
 
-# Background 
-geneInfo.mwu %>% 
+# Copy Uniprot IDs to clipboard for DAVID
+geneInfo.mwu %>% filter(moduleColor == modules[[11]]) %>% 
+  filter(id %in% z) %>%
   dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
 ```
 
@@ -504,16 +554,20 @@ UPREGULATED
 
 ```{r}
 module.lineplots[[12]]
-go.mwu.wgcna(module=modules[[12]], color=modules[[12]])
+
+#go.mwu.wgcna(file=paste("WGCNA-module_", modules[[12]], ".csv", sep=""), module = modules[[12]], color = modules[[12]]) # all genes in module
+#go.mwu.wgcna(file=paste("WGCNA-module_", modules[[12]], "_DEGs.csv", sep=""), module = modules[[12]], color = modules[[12]]) # genes in module that are DEGs 
+go.mwu.wgcna(file=paste("WGCNA-module_", modules[[12]], "_GS05.csv", sep=""), module = modules[[12]], color = modules[[12]]) # genes in module with p.GS<0.05 
 ```
 
 ```{r}
-# module genes
-geneInfo.mwu %>% filter(moduleColor == modules[[12]]) %>% 
-  dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
+# Create vector of genes that is either a DEG or is associated with pCO2 in this module
+z <- c(degs,
+       (geneInfo.mwu %>% filter(moduleColor == modules[[12]]) %>% filter(p.GS.pco2<0.05))$id)
 
-# Background 
-geneInfo.mwu %>% 
+# Copy Uniprot IDs to clipboard for DAVID
+geneInfo.mwu %>% filter(moduleColor == modules[[12]]) %>% 
+  filter(id %in% z) %>%
   dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
 ```
 
@@ -523,17 +577,20 @@ UPREGULATED
 
 ```{r}
 module.lineplots[[13]]
-go.mwu.wgcna(module=modules[[13]], color=modules[[13]])
 
+#go.mwu.wgcna(file=paste("WGCNA-module_", modules[[13]], ".csv", sep=""), module = modules[[13]], color = modules[[13]]) # all genes in module
+#go.mwu.wgcna(file=paste("WGCNA-module_", modules[[13]], "_DEGs.csv", sep=""), module = modules[[13]], color = modules[[13]]) # genes in module that are DEGs 
+go.mwu.wgcna(file=paste("WGCNA-module_", modules[[13]], "_GS05.csv", sep=""), module = modules[[13]], color = modules[[13]]) # genes in module with p.GS<0.05 
 ```
 
 ```{r}
-# module genes
-geneInfo.mwu %>% filter(moduleColor == modules[[13]]) %>% 
-  dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
+# Create vector of genes that is either a DEG or is associated with pCO2 in this module
+z <- c(degs,
+       (geneInfo.mwu %>% filter(moduleColor == modules[[13]]) %>% filter(p.GS.pco2<0.05))$id)
 
-# Background 
-geneInfo.mwu %>% 
+# Copy Uniprot IDs to clipboard for DAVID
+geneInfo.mwu %>% filter(moduleColor == modules[[13]]) %>% 
+  filter(id %in% z) %>%
   dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
 ```
 
@@ -543,16 +600,20 @@ UPREGULATED
 
 ```{r}
 module.lineplots[[14]]
-go.mwu.wgcna(module=modules[[14]], color=modules[[14]])
+
+#go.mwu.wgcna(file=paste("WGCNA-module_", modules[[14]], ".csv", sep=""), module = modules[[14]], color = modules[[14]]) # all genes in module
+#go.mwu.wgcna(file=paste("WGCNA-module_", modules[[14]], "_DEGs.csv", sep=""), module = modules[[14]], color = modules[[14]]) # genes in module that are DEGs 
+go.mwu.wgcna(file=paste("WGCNA-module_", modules[[14]], "_GS05.csv", sep=""), module = modules[[14]], color = modules[[14]]) # genes in module with p.GS<0.05 
 ```
 
 ```{r}
-# module genes
-geneInfo.mwu %>% filter(moduleColor == modules[[14]]) %>% 
-  dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
+# Create vector of genes that is either a DEG or is associated with pCO2 in this module
+z <- c(degs,
+       (geneInfo.mwu %>% filter(moduleColor == modules[[14]]) %>% filter(p.GS.pco2<0.05))$id)
 
-# Background 
-geneInfo.mwu %>% 
+# Copy Uniprot IDs to clipboard for DAVID
+geneInfo.mwu %>% filter(moduleColor == modules[[14]]) %>% 
+  filter(id %in% z) %>%
   dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
 ```
 
@@ -592,18 +653,43 @@ Green module:
 
 ```{r}
 level <- "BP" #select BP, MF, or CC
-MOD <- "coral1"
-GO <- "activation of immune response"
+MOD <- "pink"
+GO <- "negative regulation of cell proliferation"
+GO <- "immune|cytotoxicity|pattern recognition"
+GO <- "viral"
+GO <- "immune"
 
-# Biological processes
-read_delim(file = paste(level, "_WGCNA-module_", MOD, ".csv", sep=""), delim = "\t") %>% filter(name==GO) %>% 
-  left_join(geneInfo.mwu, by = c("seq"="id")) %>% filter(moduleColor == MOD) %>% View()
+
+# GO MWU 
+read_delim(file = paste(level, "_WGCNA-module_", MOD, ".csv", sep=""), delim = "\t") %>% #filter(name==GO) %>% 
+filter(., grepl(GO,name)) %>% 
+  left_join(geneInfo.mwu, by = c("seq"="id")) %>% filter(moduleColor == MOD)%>% 
+  select(seq, SPID, protein_names) %>% unique() %>% View()
 
   # If interested- further filter to only retain genes that were differentially expressed 
   filter(seq %in% unique(c(rownames(diffex.AM),rownames(diffex.AL), rownames(diffex.ML)))) %>%
   View()
 
 
+# DAVID 
+z <- c(degs,
+       (geneInfo.mwu %>% filter(moduleColor == MOD) %>%
+          filter(p.GS.pco2<0.05))$id)
+
+read_delim(file = paste("DAVID_", MOD, "_DEGs-or-GS.txt", sep=""), delim = "\t") %>% 
+  separate(Term, into = c("GO", "name"), sep = "~") %>% 
+filter(., grepl("positive regulation of microglial cell activation",name)) %>%
+  select(Genes) %>% noquote() %>% separate(Genes, sep = ",", into=c("a","b","c","d")) %>%
+  pivot_longer(cols = everything()) %>%
+  left_join(geneInfo.mwu %>% filter(moduleColor == MOD) %>% filter(id %in% z) %>% select(id, SPID),
+            by=c("value"="SPID"))
+
+  
+
+
+
+    
+  
 geneInfo.mwu %>% filter(grepl("Cuticle", protein_names)) %>% #View()
   filter(id %in% unique(c(rownames(diffex.AM),rownames(diffex.AL), rownames(diffex.ML)))) %>% View()
 
@@ -623,8 +709,8 @@ geneInfo.mwu %>% filter(moduleColor =="lightcyan") %>%
 
 Term("GO:0032197")
 
-geneInfo.mwu.mods[["purple"]] %>% filter(sign!=0) %>% left_join(P.camt.blast.GO[c("gene_id", "protein_names", "gene_ontology_biological_process", "gene_ontology_i_ds")], by=c("id"="gene_id")) %>% 
-  filter(grepl("transposon|LINE-1|retrotransposable element|transposable element|mobile element jockey", protein_names))
+geneInfo.mwu.mods[["magenta"]] %>% filter(sign!=0) %>% left_join(P.camt.blast.GO[c("gene_id", "spid", "evalue", "protein_names", "gene_ontology_biological_process", "gene_ontology_i_ds")], by=c("id"="gene_id")) %>% 
+  filter(grepl("transposon|LINE-1|retrotransposable|transposable element|mobile element jockey", protein_names)) %>% View() 
 ```
 # Calculate % of genes that are transposable elements in each module, and in the background 
 
@@ -656,22 +742,35 @@ for (i in 1:length(modules)) {
 
 }
 
-te.perc %>% mutate(change = 
+# Assign factor to each module indicating if it contains upreg/downreg/up-then-down genes 
+te.perc <- te.perc %>% mutate(change = 
                      as.factor(case_when(
                        module=="background" ~ "Background",
                        module %in% modules.down ~ "Downregulated", 
                        module %in% modules.up ~ "Upregulated", 
                        module %in% modules.roof ~ "Up-then-down"
-                     ))) %>%
+                     )))
+
+te.perc %>% 
+  filter(change == "Upregulated") %>% droplevels() %>%
+  summarize(mean=mean(te.perc))
+
+te.perc %>% 
+  filter(change != "Upregulated") %>% filter(change != "Background") %>% droplevels() %>%
+  summarize(mean=mean(te.perc))
+
+# Boxplot
+te.perc %>%
   filter(change != "Background") %>%
   ggplot(aes(x=change, y=te.perc)) + 
   geom_boxplot(outlier.size = NA) + 
   #geom_jitter(position=position_jitter(seed=10), aes(color=module)) + 
-  geom_text(position=position_jitter(seed=10), aes(color=module, label=paste(100*round(te.perc, digits = 2), "%", sep=""))) + 
+  geom_text(position=position_jitter(width = .2,seed = 9), 
+            aes(color=module, label=paste(100*round(te.perc, digits = 2), "%", sep=""))) + 
   theme_minimal() + 
-  scale_colour_manual(name = "Module", values = sort(modules)) +
-  ylab("Proportion") + xlab(NULL) + ggtitle("Proportion of genes that are TEs by module") +
-  geom_hline(yintercept = te.perc[te.perc$module=="background",]$te.perc, linetype="dashed", color="red")
+  scale_colour_manual(name = "Module", values = sort(modules) %>% gsub("ivory", "wheat", .)) +
+  ylab("Percent TEs") + xlab(NULL) + ggtitle("Percent of genes that are TEs by module") +
+  geom_hline(yintercept = te.perc[te.perc$module=="background",]$te.perc, linetype="dashed", color="gray20")
 ```
 
 ## Visualize GO Enrichment Results using Bubble Plots 
@@ -1509,6 +1608,7 @@ save(BP.metacoder, file = "BP.metacoder")
 save(MF.metacoder, file = "MF.metacoder")
 save(CC.metacoder, file = "CC.metacoder")
 ```
+
 ## USING RESULTS FROM DAVID 
 
 ```{bash}
@@ -1680,3 +1780,369 @@ left_join(
 #slimdf %>% filter(Count>0) %>% View()
 #write.csv(slimdf.AM, file = "slim_bp.csv", quote = FALSE)
 ```
+
+# READ IN DAVID ENRICHMENT RESULTS! 
+
+First create list of file names and module / DEG set 
+
+```{bash}
+## Remove files which list GO_MWU results filenames if they already exist  
+rm DAVID_mods-degs_filenames.txt
+rm DAVID_DEGs-FC0.5_filenames.txt
+rm DAVID_mods-degs-GS_filenames.txt
+
+# Modules (using only genes that are also DEGs)
+for file in DAVID_*_DEGs.txt
+do
+filename="$(echo $file)"
+sample="$(basename -a $filename | cut -d "_" -f 2  | cut -d "." -f 1)"
+printf "%s\t%s\n" "$filename" "$sample" >> DAVID_mods-degs_filenames.txt
+done
+
+
+# DEGs that are up/down in pairwise comparisons
+for file in DAVID_*_FC0.5.txt
+do
+filename="$(echo $file)"
+sample="$(basename -a $filename | cut -d "_" -f 2  | cut -d "." -f 1)"
+printf "%s\t%s\n" "$filename" "$sample" >> DAVID_DEGs-FC0.5_filenames.txt
+done
+
+
+# DEGs that are up/down in pairwise comparisons
+for file in DAVID_*_DEGs-or-GS.txt
+do
+filename="$(echo $file)"
+sample="$(basename -a $filename | cut -d "_" -f 2  | cut -d "." -f 1)"
+printf "%s\t%s\n" "$filename" "$sample" >> DAVID_mods-degs-GS_filenames.txt
+done
+
+```
+
+## Read in enriched Biological Processes 
+
+IMPORTANT:  The files contain all results from DAVID's Functional Annotation Chart, which includes the GO_BP, GO_MF, and GO_CC, but also other enriched "things", like Uniprot Keywords (UP_KW_BIOLOGICAL_PROCESS, UP_KW_MOLECULAR_FUNCTION, UP_KW_CELLULAR_COMPONENT), and KEGG Pathways (KEGG_PATHWAY). Very cool!  It provides more insight into the broad functions of my gene sets.  
+
+```{r}
+filenames <- read_delim(file="DAVID_mods-degs_filenames.txt", col_names = c("filename", "gene_set"))
+files <- file.path(filenames$filename) #extract vector of filenames 
+all(file.exists(files)) #easy code to check that all files exist! 
+
+file_list <- vector(mode = "list", length = nrow(filenames))
+names(file_list) <- c(filenames$gene_set)
+
+for (i in 1:nrow(filenames)) {
+    file_list[[i]] <- data.frame(read_delim(file=files[i], delim = "\t"))}
+
+(DAVID_mods_degs <- bind_rows(file_list, .id = "gene_set") %>% #filter(p.adj<0.1) %>%  # Bind dataframe for each gene_set together
+    mutate(Category=as.factor(Category)) %>% 
+    mutate(gene_set=factor(gene_set, levels=modules)) %>%  #Convert gene_set column to factor, define all gene_sets 
+    separate(Term, into = c("ID", "term"), sep = "~") %>%
+    rename("category"="Category", "nseqs"="Count", "percent"="X.", "pval"="PValue", "p.adj"="FDR") %>%
+
+    # Create new column that identifies which treatment is upregulated in each DEG contrast (doesn't apply for WGCNA modules)
+    mutate(OA.response = as.factor(case_when(gene_set %in% modules.up ~ "Upregulated",
+                                   gene_set %in% modules.down ~ "Downregulated",
+                                   gene_set %in% modules.roof ~ "Up-then-Down"))))
+save(DAVID_mods_degs, file = "DAVID_mods_degs")
+```
+## Exploring results of DAVID 
+
+```{r}
+DAVID_mods_degs %>% filter(OA.response=="Upregulated") %>% View()
+```
+
+
+```{r}
+# What are enriched GO terms? 
+
+# Create objects for upregualted, downregualted, and up-then-down regulated 
+up.go <- DAVID_mods_degs %>% filter(category %in% c("GOTERM_BP_DIRECT","GOTERM_CC_DIRECT", "GOTERM_MF_DIRECT")) %>% filter(OA.response=="Upregulated")
+updown.go <- DAVID_mods_degs %>% filter(category %in% c("GOTERM_BP_DIRECT", "GOTERM_MF_DIRECT")) %>% filter(OA.response=="Up-then-Down")
+down.go <- DAVID_mods_degs %>% filter(category %in% c("GOTERM_BP_DIRECT", "GOTERM_MF_DIRECT")) %>% filter(OA.response=="Downregulated")
+
+# Check out BP and CC in upregulated, downreulgated, and up-then-down regulated genes. While doing so, remove terms that are based on the same exact genes, selecting the KW that has lowest p-value 
+
+# Upregulated Biological processes
+up.go %>% filter(category %in% "GOTERM_BP_DIRECT") %>% group_by(gene_set, category, nseqs, Genes) %>%
+summarise(pval=min(pval)) %>% distinct() %>% ungroup() %>% #for rows with duplicate grouping variabes, select one with lowest p-value
+left_join(up.go %>% select(gene_set, term, ID, Genes, pval, p.adj, percent, Fold.Enrichment, OA.response)) %>% 
+  filter(pval<0.05) %>% View() #re-add data
+
+# Upregulated cellular componenets
+up.go %>% filter(category %in% "GOTERM_CC_DIRECT") %>% group_by(gene_set, category, nseqs, Genes) %>%
+summarise(pval=min(pval)) %>% distinct() %>% ungroup() %>% #for rows with duplicate grouping variabes, select one with lowest p-value
+left_join(up.go %>% select(gene_set, term, ID, Genes, pval, p.adj, percent, Fold.Enrichment, OA.response)) %>% View() #re-add data
+
+# Upregulated cellular componenets
+up.go %>% filter(category %in% "GOTERM_MF_DIRECT") %>% group_by(gene_set, category, nseqs, Genes) %>%
+summarise(pval=min(pval)) %>% distinct() %>% ungroup() %>% #for rows with duplicate grouping variabes, select one with lowest p-value
+left_join(up.go %>% select(gene_set, term, ID, Genes, pval, p.adj, percent, Fold.Enrichment, OA.response)) %>% View() #re-add data
+
+View(up.go)
+
+
+
+# Up-then-down Biological processes
+updown.go %>% filter(category %in% "GOTERM_BP_DIRECT") %>% group_by(gene_set, category, nseqs, Genes) %>%
+summarise(pval=min(pval)) %>% distinct() %>% ungroup() %>% #for rows with duplicate grouping variabes, select one with lowest p-value
+left_join(updown.go %>% select(gene_set, term, ID, Genes, pval, p.adj, percent, Fold.Enrichment, OA.response)) %>% View() #re-add data
+
+# Up-then-down cellular componenets
+updown.go %>% filter(category %in% "GOTERM_CC_DIRECT") %>% group_by(gene_set, category, nseqs, Genes) %>%
+summarise(pval=min(pval)) %>% distinct() %>% ungroup() %>% #for rows with duplicate grouping variabes, select one with lowest p-value
+left_join(updown.go %>% select(gene_set, term, ID, Genes, pval, p.adj, percent, Fold.Enrichment, OA.response)) %>% View() #re-add data
+
+
+
+# Downregulated Biological processes
+down.go %>% filter(category %in% "GOTERM_BP_DIRECT") %>% group_by(gene_set, category, nseqs, Genes) %>%
+summarise(pval=min(pval)) %>% distinct() %>% ungroup() %>% #for rows with duplicate grouping variabes, select one with lowest p-value
+left_join(down.go %>% select(gene_set, term, ID, Genes, pval, p.adj, percent, Fold.Enrichment, OA.response)) %>%
+    filter(pval<0.05, nseqs>=3) %>% arrange(gene_set, pval) %>% 
+  select(gene_set, ID, term, pval, nseqs, Genes) %>% View()
+  filter(gene_set == "magenta") %>% nrow()
+  head(n=10) %>% 
+  write_clip()
+
+
+# Downregulated Cellular Components
+down.go %>% filter(category %in% "GOTERM_MF_DIRECT") %>% filter(pval<0.05, nseqs>=3) %>% arrange(gene_set, pval) %>% View()
+  group_by(gene_set, category, nseqs, Genes) %>%
+  summarise(pval=min(pval)) %>% distinct() %>% ungroup() %>% #for rows with duplicate grouping variabes, select one with lowest p-value
+left_join(down.go %>% select(gene_set, term, ID, Genes, pval, p.adj, percent, Fold.Enrichment, OA.response)) %>%
+    filter(pval<0.05, nseqs>=3) %>% arrange(gene_set, pval) %>% 
+  select(gene_set, ID, term, pval, nseqs, Genes) %>% View()
+
+
+
+```
+
+```{r}
+# What are enriched Uniprot Keywords? 
+
+# Create objects for upregualted, downregualted, and up-then-down regulated 
+up.kw <- DAVID_mods_degs %>% filter(category == c("UP_KW_BIOLOGICAL_PROCESS", "UP_KW_CELLULAR_COMPONENT")) %>% filter(OA.response=="Upregulated")
+updown.kw <- DAVID_mods_degs %>%  filter(category == c("UP_KW_BIOLOGICAL_PROCESS", "UP_KW_CELLULAR_COMPONENT")) %>% filter(OA.response=="Up-then-Down")
+down.kw <- DAVID_mods_degs %>%filter(category == c("UP_KW_BIOLOGICAL_PROCESS", "UP_KW_CELLULAR_COMPONENT")) %>% filter(OA.response=="Downregulated")
+
+# Check out BP and CC in upregulated, downreulgated, and up-then-down regulated genes. While doing so, remove terms that are based on the same exact genes, selecting the KW that has lowest p-value 
+
+# Upregulated Biological processes
+up.kw %>% filter(category %in% "UP_KW_BIOLOGICAL_PROCESS") %>% group_by(gene_set, category, nseqs, Genes) %>% View()
+summarise(pval=min(pval)) %>% distinct() %>% ungroup() %>% #for rows with duplicate grouping variabes, select one with lowest p-value
+left_join(up.kw %>% select(gene_set, term, ID, Genes, pval, p.adj, percent, Fold.Enrichment, OA.response)) %>% View() #re-add data
+
+# Upregulated cellular componenets
+up.kw %>% filter(category %in% "UP_KW_CELLULAR_COMPONENT") %>% group_by(gene_set, category, nseqs, Genes) %>%
+summarise(pval=min(pval)) %>% distinct() %>% ungroup() %>% #for rows with duplicate grouping variabes, select one with lowest p-value
+left_join(up.kw %>% select(gene_set, term, ID, Genes, pval, p.adj, percent, Fold.Enrichment, OA.response)) %>% View() #re-add data
+
+
+
+# Up-then-down Biological processes
+updown.kw %>% filter(category %in% "UP_KW_BIOLOGICAL_PROCESS") %>% group_by(gene_set, category, nseqs, Genes) %>%
+summarise(pval=min(pval)) %>% distinct() %>% ungroup() %>% #for rows with duplicate grouping variabes, select one with lowest p-value
+left_join(updown.kw %>% select(gene_set, term, ID, Genes, pval, p.adj, percent, Fold.Enrichment, OA.response)) %>% View() #re-add data
+
+# Up-then-down cellular componenets
+updown.kw %>% filter(category %in% "UP_KW_CELLULAR_COMPONENT") %>% group_by(gene_set, category, nseqs, Genes) %>%
+summarise(pval=min(pval)) %>% distinct() %>% ungroup() %>% #for rows with duplicate grouping variabes, select one with lowest p-value
+left_join(updown.kw %>% select(gene_set, term, ID, Genes, pval, p.adj, percent, Fold.Enrichment, OA.response)) %>% View() #re-add data
+
+
+
+# Downregulated Biological processes
+down.kw %>% filter(category %in% "UP_KW_BIOLOGICAL_PROCESS") %>% group_by(gene_set, category, nseqs, Genes) %>%
+summarise(pval=min(pval)) %>% distinct() %>% ungroup() %>% #for rows with duplicate grouping variabes, select one with lowest p-value
+left_join(down.kw %>% select(gene_set, term, ID, Genes, pval, p.adj, percent, Fold.Enrichment, OA.response)) %>%
+  filter(pval<0.05) %>% View() #re-add data
+
+# Downregulated Biological processes
+down.kw %>% filter(category %in% "UP_KW_CELLULAR_COMPONENT") %>% group_by(gene_set, category, nseqs, Genes) %>%
+summarise(pval=min(pval)) %>% distinct() %>% ungroup() %>% #for rows with duplicate grouping variabes, select one with lowest p-value
+left_join(down.kw %>% select(gene_set, term, ID, Genes, pval, p.adj, percent, Fold.Enrichment, OA.response)) %>% View() #re-add data
+
+```
+
+## DAVID results using DEGs with abs(L2FC) > 0.5. Very simlar to the WGCNA results, so I'm going to use the above results. 
+
+```{r}
+filenames <- read_delim(file="DAVID_DEGs-FC0.5_filenames.txt", col_names = c("filename", "gene_set"))
+files <- file.path(filenames$filename) #extract vector of filenames 
+all(file.exists(files)) #easy code to check that all files exist! 
+
+file_list <- vector(mode = "list", length = nrow(filenames))
+names(file_list) <- c(filenames$gene_set)
+
+for (i in 1:nrow(filenames)) {
+    file_list[[i]] <- data.frame(read_delim(file=files[i], delim = "\t"))}
+
+(DAVID_degs_fc0.5 <- bind_rows(file_list, .id = "gene_set") %>% #filter(p.adj<0.1) %>%  # Bind dataframe for each gene_set together
+    mutate(Category=as.factor(Category)) %>% 
+    separate(gene_set, into=c("gene_set", "OA.response")) %>%
+    mutate(gene_set=factor(gene_set), OA.response=as.factor(OA.response)) %>%  #Convert gene_set column to factor, define all gene_sets 
+    separate(Term, into = c("ID", "term"), sep = "~") %>%
+    rename("category"="Category", "nseqs"="Count", "percent"="X.", "pval"="PValue", "p.adj"="FDR"))
+save(DAVID_degs_fc0.5, file = "DAVID_degs_fc0.5")
+
+# What are enriched Uniprot Keywords? 
+DAVID_degs_fc0.5 %>% filter(gene_set != "ML") %>% filter(category == "UP_KW_BIOLOGICAL_PROCESS") %>% filter(OA.response=="UP") #in genes upregulated in OA  
+DAVID_degs_fc0.5 %>% filter(gene_set != "ML") %>% filter(category == "UP_KW_BIOLOGICAL_PROCESS") %>% filter(OA.response=="DOWN") #in genes downreulgated in OA 
+
+# enriched KEGG pathways?
+DAVID_degs_fc0.5 %>% filter(gene_set != "ML") %>% filter(category == "KEGG_PATHWAY") %>% filter(OA.response=="UP")
+DAVID_degs_fc0.5 %>% filter(gene_set != "ML") %>% filter(category == "KEGG_PATHWAY") %>% filter(OA.response=="DOWN")
+```
+```{r}
+# What are enriched Uniprot Keywords? 
+
+# Create objects for upregualted, downregualted, and up-then-down regulated 
+up.kw <- DAVID_degs_fc0.5 %>% filter(category == "UP_KW_BIOLOGICAL_PROCESS") %>% filter(OA.response=="UP")
+down.kw <- DAVID_degs_fc0.5 %>% filter(category == "UP_KW_BIOLOGICAL_PROCESS") %>% filter(OA.response=="DOWN")
+
+# Remove Uniprot KWs that are based on the same exact genes, selecting the KW that has lowest p-value 
+up.kw %>% group_by(gene_set, category, nseqs, Genes) %>%
+summarise(pval=min(pval)) %>% distinct() %>% ungroup() %>% #for rows with duplicate grouping variabes, select one with lowest p-value
+left_join(up.kw %>% select(gene_set, term, ID, Genes, pval, p.adj, percent, Fold.Enrichment, OA.response)) #re-add data
+
+down.kw %>% group_by(gene_set, category, nseqs, Genes) %>%
+summarise(pval=min(pval)) %>% distinct() %>% ungroup() %>% #for rows with duplicate grouping variabes, select one with lowest p-value
+left_join(down.kw %>% select(gene_set, term, ID, Genes, pval, p.adj, percent, Fold.Enrichment, OA.response)) #re-add data
+
+```
+
+## DAVID results using gene modules, but filtering to retain those that are also DEGS OR have Gene Significance p-values < 0.05. 
+
+```{r}
+filenames <- read_delim(file="DAVID_mods-degs-GS_filenames.txt", col_names = c("filename", "gene_set"))
+files <- file.path(filenames$filename) #extract vector of filenames 
+all(file.exists(files)) #easy code to check that all files exist! 
+
+file_list <- vector(mode = "list", length = nrow(filenames))
+names(file_list) <- c(filenames$gene_set)
+
+for (i in 1:nrow(filenames)) {
+    file_list[[i]] <- data.frame(read_delim(file=files[i], delim = "\t"))}
+
+(DAVID_mods_degs_GS <- bind_rows(file_list, .id = "gene_set") %>% #filter(p.adj<0.1) %>%  # Bind dataframe for each gene_set together
+    mutate(Category=as.factor(Category)) %>% 
+    mutate(gene_set=factor(gene_set, levels=modules)) %>%  #Convert gene_set column to factor, define all gene_sets 
+    separate(Term, into = c("ID", "term"), sep = "~") %>%
+    rename("category"="Category", "nseqs"="Count", "percent"="X.", "pval"="PValue", "p.adj"="FDR") %>%
+
+    # Create new column that identifies which treatment is upregulated in each DEG contrast (doesn't apply for WGCNA modules)
+    mutate(OA.response = as.factor(case_when(gene_set %in% modules.up ~ "Upregulated",
+                                   gene_set %in% modules.down ~ "Downregulated",
+                                   gene_set %in% modules.roof ~ "Up-then-Down"))))
+save(DAVID_mods_degs_GS, file = "DAVID_mods_degs_GS")
+```
+
+
+
+
+
+
+# DAVID enrichment analysis - using DEGs that were also:
+-- assigned to a pCO2-correlated module AND
+-- correlated with pCO2 on an individual basis (p.GS < 0.05)
+
+```{r}
+# These are genes that are assigned to a pCO2-correlated module, AND correlate with pCO2 on an individual basis
+sig.genes.wgcna <- (geneInfo %>%
+  filter(moduleColor %in% modules))$id #%>% 
+#  filter(p.GS.pco2<0.05))$id
+```
+
+
+```{r}
+# BACKGROUND - all genes submitted to DESeq2 analysis 
+res.pco2.AM %>% as.data.frame() %>% rownames_to_column("gene") %>% 
+  left_join(P.camt.blast.GO %>% dplyr::select(gene_id, gene_ontology_i_ds, spid), by = c("gene"="gene_id")) %>%
+  dplyr::select(spid) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
+
+
+# -------
+# DEGs between Ambient & Moderate - DOWNREGULATED IN MODERATE OA VS. AMBIENT
+res.pco2.AM %>% as.data.frame() %>% rownames_to_column("gene") %>% 
+  filter(gene %in% sig.genes.wgcna) %>%
+  filter(padj<0.05) %>% 
+  filter(log2FoldChange>0.5) %>% 
+  left_join(P.camt.blast.GO %>% dplyr::select(gene_id, gene_ontology_i_ds, spid), by = c("gene"="gene_id")) %>% 
+  dplyr::select(spid) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
+
+# DEGs between Ambient & Moderate - UPREGULATED IN MODERATE OA VS. AMBIENT
+res.pco2.AM %>% as.data.frame() %>% rownames_to_column("gene") %>% 
+  filter(gene %in% sig.genes.wgcna) %>%
+  filter(padj<0.05) %>% 
+  filter(log2FoldChange<(-0.5)) %>% 
+  left_join(P.camt.blast.GO %>% dplyr::select(gene_id, gene_ontology_i_ds, spid), by = c("gene"="gene_id")) %>% 
+  dplyr::select(spid) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
+
+# -------
+# DEGs between Ambient & Low - DOWNREGULATED IN SEVERE OA VS. AMBIENT
+res.pco2.AL %>% as.data.frame() %>% rownames_to_column("gene") %>% 
+  filter(gene %in% sig.genes.wgcna) %>%
+  filter(padj<0.05) %>% 
+  filter(log2FoldChange>0.5) %>%
+  left_join(P.camt.blast.GO %>% dplyr::select(gene_id, gene_ontology_i_ds, spid), by = c("gene"="gene_id")) %>% 
+  dplyr::select(spid) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
+
+# DEGs between Ambient & Low - UPREGUALTED IN SEVERE OA VS. AMBIENT
+res.pco2.AL %>% as.data.frame() %>% rownames_to_column("gene") %>% 
+  filter(gene %in% sig.genes.wgcna) %>%
+  filter(padj<0.05) %>% 
+  filter(log2FoldChange<(-0.5)) %>% 
+  left_join(P.camt.blast.GO %>% dplyr::select(gene_id, gene_ontology_i_ds, spid), by = c("gene"="gene_id")) %>% 
+  dplyr::select(spid) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
+
+# -------
+# DEGs between Moderate & Low - DOWNREGULATED IN SEVERE OA VS MODERATE OA 
+res.pco2.ML %>% as.data.frame() %>% rownames_to_column("gene") %>% 
+  filter(gene %in% sig.genes.wgcna) %>%
+  filter(padj<0.05) %>% 
+  filter(log2FoldChange>0.5) %>% 
+  left_join(P.camt.blast.GO %>% dplyr::select(gene_id, gene_ontology_i_ds, spid), by = c("gene"="gene_id")) %>% 
+  dplyr::select(spid) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
+
+# DEGs between Moderate & Low - UPREGUALTED IN SEVERE OA VS MODERATE OA
+res.pco2.ML %>% as.data.frame() %>% rownames_to_column("gene") %>% 
+  filter(gene %in% sig.genes.wgcna) %>%
+  filter(padj<0.05) %>% 
+  filter(log2FoldChange<(-0.5)) %>% 
+  left_join(P.camt.blast.GO %>% dplyr::select(gene_id, gene_ontology_i_ds, spid), by = c("gene"="gene_id")) %>% 
+  dplyr::select(spid) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
+```
+
+
+## DAVID results using DEGs that are ALSO assigned to a pCO2-correlated module AND correlated with pCO2 on an individual basis (p.GS < 0.05)
+
+```{r}
+filenames <- read_delim(file="DAVID_DEGs-FC0.5_filenames.txt", col_names = c("filename", "gene_set"))
+files <- file.path(filenames$filename) #extract vector of filenames 
+all(file.exists(files)) #easy code to check that all files exist! 
+
+file_list <- vector(mode = "list", length = nrow(filenames))
+names(file_list) <- c(filenames$gene_set)
+
+for (i in 1:nrow(filenames)) {
+    file_list[[i]] <- data.frame(read_delim(file=files[i], delim = "\t"))}
+
+(DAVID_degs_fc0.5 <- bind_rows(file_list, .id = "gene_set") %>% #filter(p.adj<0.1) %>%  # Bind dataframe for each gene_set together
+    mutate(Category=as.factor(Category)) %>% 
+    separate(gene_set, into=c("gene_set", "OA.response")) %>%
+    mutate(gene_set=factor(gene_set), OA.response=as.factor(OA.response)) %>%  #Convert gene_set column to factor, define all gene_sets 
+    separate(Term, into = c("ID", "term"), sep = "~") %>%
+    rename("category"="Category", "nseqs"="Count", "percent"="X.", "pval"="PValue", "p.adj"="FDR"))
+save(DAVID_degs_fc0.5, file = "DAVID_degs_fc0.5")
+
+# What are enriched Uniprot Keywords? 
+DAVID_degs_fc0.5 %>% filter(gene_set != "ML") %>% filter(category == "UP_KW_BIOLOGICAL_PROCESS") %>% filter(OA.response=="UP") #in genes upregulated in OA  
+DAVID_degs_fc0.5 %>% filter(gene_set != "ML") %>% filter(category == "UP_KW_BIOLOGICAL_PROCESS") %>% filter(OA.response=="DOWN") #in genes downreulgated in OA 
+
+# enriched KEGG pathways?
+DAVID_degs_fc0.5 %>% filter(gene_set != "ML") %>% filter(category == "KEGG_PATHWAY") %>% filter(OA.response=="UP")
+DAVID_degs_fc0.5 %>% filter(gene_set != "ML") %>% filter(category == "KEGG_PATHWAY") %>% filter(OA.response=="DOWN")
+```
+
+
