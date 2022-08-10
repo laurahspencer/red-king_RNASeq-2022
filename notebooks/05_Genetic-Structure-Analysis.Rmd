@@ -50,17 +50,17 @@ source("../references/biostats.R")
 ```{r}
 sample.info <- read.csv("../data/RCK-exp-design.csv", header=T, na.strings = NA)
 
-load(file = "../references/P.plat.bestblast")
+#load(file = "../references/P.plat.bestblast")
 load(file = "../references/P.camt.blast")
 load(file = "../references/P.camt.blast.GO")
 
-genes <- read_delim(file = "../references/P.platypus_genes.bed", delim = "\t", col_names = c("chrom", "start", "end", "geneID"))
+genes <- read_delim(file = "../references/Paralithodes.camtschaticus_genes.bed", delim = "\t", col_names = c("chrom", "start", "end", "geneID"))
 ```
 
 ### Must close genofile if it's already open before running 
 
 ```{r}
-#snpgdsClose(genofile)
+snpgdsClose(genofile)
 ```
 
 
@@ -71,7 +71,9 @@ genes <- read_delim(file = "../references/P.platypus_genes.bed", delim = "\t", c
 
 ```{r}
 #vcf.fn <- "../results/genotype/rkc_rnaseq_genotypes-filtered-true.vcf.gz"  # SNP file from the Blue king crab aligned data aligned with Bowtie2
-vcf.fn <- "../results/star/rkc_rnaseq_genotypes-filtered-true.vcf.gz"  # SNP file from the Blue king crab aligned data aligned with STAR
+#vcf.fn <- "../results/star/rkc_rnaseq_genotypes-filtered-true.vcf.gz"  # SNP file from the Blue king crab aligned data aligned with STAR
+
+vcf.fn <- "../results/genotype/rkc-genome/rkc_rnaseq_genotypes-filtered-true.vcf.gz"  # SNPs aligned with bowtie2 to concatenated Red king crab genome
 SNPRelate::snpgdsVCF2GDS(vcf.fn, "../results/genotype/genotypes.gds", method="biallelic.only")
 snpgdsSummary("../results/genotype/genotypes.gds")
 ```
@@ -87,7 +89,9 @@ snpgdsSummary("../results/genotype/genotypes.gds")
 - Remove those that are missing from 20% or more of samples  
 
 ```{r}
-snpset <- snpgdsLDpruning(genofile, maf=.05, missing.rate=0.10, autosome.only=FALSE, sample.id = sample.info[sample.info$Sample!="Tank_9_Crab_4",]$Sample) #<--- here I remove one sample, it has lots of missing data
+snpset <- snpgdsLDpruning(genofile, maf=.05, missing.rate=0.15, autosome.only=FALSE, 
+                          sample.id = sample.info[sample.info$Sample!="Tank_10_Crab_2",]$Sample) #<--- here I remove one sample, it has lots of missing data
+                          #sample.id = sample.info$Sample) #<--- here I don't remove any samples
 #snpset.id <- unlist(unname(snpset))
 snpset.id <- unlist(snpset)
 ```
@@ -140,7 +144,9 @@ save(genofile.snpset.annot, file="../results/genotype/genofile.snpset.annot")
 ```{r}
 # PCA using SNPRelate 
 pca <- snpgdsPCA(genofile, num.thread=2, autosome.only=FALSE, verbose = TRUE, 
-                 need.genmat = TRUE, snp.id =snpset.id, sample.id = sample.info[sample.info$Sample!="Tank_9_Crab_4",]$Sample )
+                 need.genmat = TRUE, snp.id =snpset.id, 
+                 sample.id = sample.info[sample.info$Sample!="Tank_10_Crab_2",]$Sample )
+                 #sample.id = sample.info$Sample )
 pc.percent <- pca$varprop*100
 head(round(pc.percent, 2)) #This is the proportion variance explained by each PC 
 tab <- data.frame(sample.id = pca$sample.id,
@@ -175,7 +181,9 @@ group <- as.factor(tab.annot.gen$Treatment)
 ## Per-sample missing rate for retained SNPs 
 
 ```{r}
-RV <- snpgdsSampMissRate(genofile, snp.id = snpset.id, sample.id = sample.info[sample.info$Sample!="Tank_9_Crab_4",]$Sample)
+RV <- snpgdsSampMissRate(genofile, snp.id = snpset.id, 
+                         sample.id = sample.info[sample.info$Sample!="Tank_10_Crab_2",]$Sample)
+                         #sample.id = sample.info$Sample)
 names(RV) <- pca$sample.id
 
 barplot(RV, las = 2, cex.names = .5, col = c("#2c7bb6", "#d7191c", "#fdae61")[group])
@@ -205,18 +213,18 @@ tab.annot.gen %>% mutate(Treatment=factor(Treatment, levels=c("Ambient", "Modera
 
 ```{r}
 # PC1 X PC2
-ggplot(tab.annot.gen, aes(x=PC1.gen, y=PC2.gen, size=missingness)) +
+(a <- ggplot(tab.annot.gen, aes(x=PC2.gen, y=PC1.gen, size=missingness)) +
   geom_point(aes(col=Treatment), alpha=0.75) + # 
   theme_minimal() + ggtitle("Genetic Structure, PC1xPC2") + 
-  xlab(paste("PC1 (", round(pc.percent[1], digits = 2), "%)", sep="")) + 
-  ylab(paste("PC2 (", round(pc.percent[2], digits = 2), "%)", sep="")) + 
+  xlab(paste("PC2 (", round(pc.percent[2], digits = 2), "%)", sep="")) + 
+  ylab(paste("PC1 (", round(pc.percent[1], digits = 2), "%)", sep="")) + 
   theme(legend.position = "right") + 
   scale_color_manual(values=c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c"), name="pH Treatment") +
   guides(colour = guide_legend(override.aes = list(size=3.5))) + 
-  stat_ellipse(aes(col=Treatment), size=0.3)
+  stat_ellipse(aes(col=Treatment), size=0.3))
 
 # PC1 X PC3
-ggplot(tab.annot.gen, aes(x=PC3.gen, y=PC1.gen, size=missingness)) + 
+(b <- ggplot(tab.annot.gen, aes(x=PC3.gen, y=PC1.gen, size=missingness)) + 
   geom_point(aes(col=Treatment), alpha=0.75) + 
   theme_minimal() + ggtitle("Genetic Structure, PC1xPC3") + 
   xlab(paste("PC3 (", round(pc.percent[3], digits = 2), "%)", sep="")) + 
@@ -224,10 +232,10 @@ ggplot(tab.annot.gen, aes(x=PC3.gen, y=PC1.gen, size=missingness)) +
   theme(legend.position = "right") + 
   scale_color_manual(values=c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c"), name="pH Treatment") +
   guides(colour = guide_legend(override.aes = list(size=3.5))) + 
-  stat_ellipse(aes(col=Treatment), size=0.3)
+  stat_ellipse(aes(col=Treatment), size=0.3))
 
 # PC1 X PC4
-ggplot(tab.annot.gen, aes(x=PC4.gen, y=PC1.gen, size=missingness)) + 
+(c <- ggplot(tab.annot.gen, aes(x=PC4.gen, y=PC1.gen, size=missingness)) + 
   geom_point(aes(col=Treatment), alpha=0.75) + 
   theme_minimal() + ggtitle("Genetic Structure, PC1xPC4") + 
   xlab(paste("PC4 (", round(pc.percent[4], digits = 2), "%)", sep="")) + 
@@ -235,10 +243,10 @@ ggplot(tab.annot.gen, aes(x=PC4.gen, y=PC1.gen, size=missingness)) +
   theme(legend.position = "right") + 
   scale_color_manual(values=c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c"), name="pH Treatment") +
   guides(colour = guide_legend(override.aes = list(size=3.5))) + 
-  stat_ellipse(aes(col=Treatment), size=0.3)
+  stat_ellipse(aes(col=Treatment), size=0.3))
 
 # PC1 X PC5
-ggplot(tab.annot.gen, aes(x=PC5.gen, y=PC1.gen, size=missingness)) + 
+(d <- ggplot(tab.annot.gen, aes(x=PC5.gen, y=PC1.gen, size=missingness)) + 
   geom_point(aes(col=Treatment), alpha=0.75) + 
   theme_minimal() + ggtitle("Genetic Structure, PC1xPC4") + 
   xlab(paste("PC5 (", round(pc.percent[5], digits = 2), "%)", sep="")) + 
@@ -246,7 +254,7 @@ ggplot(tab.annot.gen, aes(x=PC5.gen, y=PC1.gen, size=missingness)) +
   theme(legend.position = "right") + 
   scale_color_manual(values=c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c"), name="pH Treatment") +
   guides(colour = guide_legend(override.aes = list(size=3.5))) + 
-  stat_ellipse(aes(col=Treatment), size=0.3)
+  stat_ellipse(aes(col=Treatment), size=0.3))
 
 # PC2 X PC3
 ggplot(tab.annot.gen, aes(x=PC2.gen, y=PC3.gen, size=missingness)) + 
@@ -308,6 +316,34 @@ ggscatter(tab.annot.gen, x="PC3.gen", y="PC2.gen",
   theme(legend.position = "right") + 
   guides(colour = guide_legend(override.aes = list(size=3.5, linetype="blank"))) 
 ```
+```{r}
+tab.annot.gen %>% pivot_longer(cols=contains(c("PC2.gen", "PC3.gen", "PC4.gen", "PC5.gen")), names_to = "PC.axis", values_to = "PC.loc") %>%
+  mutate(PC.axis=factor(PC.axis,
+                           levels=c("PC2.gen", "PC3.gen", "PC4.gen", "PC5.gen"),
+                           labels=c(
+    paste("PC2 (", round(pc.percent[2], digits = 2), "%)", sep=""),
+    paste("PC3 (", round(pc.percent[3], digits = 2), "%)", sep=""),
+    paste("PC4 (", round(pc.percent[4], digits = 2), "%)", sep=""),
+    paste("PC5 (", round(pc.percent[5], digits = 2), "%)", sep="")))) %>%
+  ggplot(aes(x=PC.loc, y=PC1.gen, size=missingness, col=Treatment)) +
+  geom_point(alpha=0.75) + # 
+  theme_minimal() + #ggtitle("Genetic Structure, PC1xPC2") + 
+  xlab(NULL) + 
+  ylab(paste("PC1 (", round(pc.percent[1], digits = 2), "%)", sep="")) + 
+  theme(legend.position = "right") + 
+  scale_color_manual(values=c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c"), name="pH Treatment") +
+  scale_size_continuous(range = c(1,4), name = "% of SNPs missing") + 
+  guides(colour = guide_legend(order=1, override.aes = list(size=3.5))) + 
+  stat_ellipse(aes(col=Treatment), size=0.3) + 
+  facet_wrap(~PC.axis)
+
+```
+ADONIS or other multivariate method using SNP data? 
+
+```{r}
+#pairwise.adonis(vsd.t[,-1:-3], vsd.t$Treatment, perm = 1000)
+```
+
 
 ```{r}
 ggplot(tab.annot.gen %>% pivot_longer(cols=starts_with("PC"), names_to = "PC.axis", values_to = "PC.loc"), 
@@ -336,7 +372,7 @@ k1: the probability of sharing ONE alleles
 kinship: kinship coefficient
 
 ```{r}
-ibd.mle <- snpgdsIBDMLE(genofile, snp.id=snpset.id, num.thread=2, autosome.only = F, sample.id = sample.info[sample.info$Sample!="Tank_9_Crab_4",]$Sample)
+ibd.mle <- snpgdsIBDMLE(genofile, snp.id=snpset.id, num.thread=2, autosome.only = F, sample.id = sample.info[sample.info$Sample!="Tank_10_Crab_2",]$Sample)
 
 # Kinship metric
 ibd.mle.coeff <- snpgdsIBDSelection(ibd.mle)
@@ -345,9 +381,9 @@ hist(ibd.mle.coeff$kinship, breaks = 100)
 
 kinship <- ibd.mle.coeff %>% 
   left_join(sample.info %>% dplyr::select(Sample, Treatment), by=c("ID1"="Sample")) %>% 
-  rename("Treatment"="Treatment1") %>%
+  rename("Treatment1"="Treatment") %>%
   left_join(sample.info %>% dplyr::select(Sample, Treatment), by=c("ID2"="Sample")) %>% 
-  rename("Treatment"="Treatment2") %>%
+  rename("Treatment2"="Treatment") %>%
   mutate(contrast=case_when(
       Treatment1 == Treatment2 ~ "same",
       Treatment1 != Treatment2 ~ "different")) %>%
@@ -392,7 +428,8 @@ Use SNPRelate to calculate the fraction of identity by state for each pair of sa
 # To perform cluster analysis on the matrix of genome-wide IBS pairwise distances, 
 # and determine the groups by a permutation score. 
 # Result= only 1 group (?)
-ibs.hc <- snpgdsHCluster(snpgdsIBS(genofile, snp.id=snpset.id, num.thread=2, autosome.only=FALSE, sample.id = sample.info[sample.info$Sample!="Tank_9_Crab_4",]$Sample))
+ibs.hc <- snpgdsHCluster(snpgdsIBS(genofile, snp.id=snpset.id, num.thread=2, autosome.only=FALSE, sample.id = sample.info[sample.info$Sample!="Tank_10_Crab_2",]$Sample))
+#ibs.hc <- snpgdsHCluster(snpgdsIBS(genofile, snp.id=snpset.id, num.thread=2, autosome.only=FALSE, sample.id = sample.info$Sample))
 rv <- snpgdsCutTree(ibs.hc)
 plot(rv$dendrogram, leaflab="none", main="HapMap Phase II")
 
@@ -408,7 +445,7 @@ legend("bottom", legend=levels(group), col=1:nlevels(group), pch=19, ncol=3, cex
 AF.ambient <- snpgdsSNPRateFreq(genofile, snp.id=snpset.id, sample.id=subset(tab.annot.gen, Treatment=="Ambient")$sample.id, with.id = TRUE)
 
 #AF.moderate <- snpgdsSNPRateFreq(genofile, snp.id=snpset.id, sample.id=subset(tab.annot.gen, Treatment=="Moderate")$sample.id, with.id = TRUE)
-AF.moderate <- snpgdsSNPRateFreq(genofile, snp.id=snpset.id, sample.id=subset(tab.annot.gen, Treatment=="Moderate" & sample.id!="Tank_9_Crab_4")$sample.id, with.id = TRUE)
+AF.moderate <- snpgdsSNPRateFreq(genofile, snp.id=snpset.id, sample.id=subset(tab.annot.gen, Treatment=="Moderate" & sample.id!="Tank_10_Crab_2")$sample.id, with.id = TRUE)
 
 AF.low <- snpgdsSNPRateFreq(genofile, snp.id=snpset.id, sample.id=subset(tab.annot.gen, Treatment=="Low")$sample.id, with.id = TRUE)
 
@@ -535,7 +572,9 @@ genofile.snpset.annot %>% filter(snp.id.snp %in% snps.fst)
 
 ## Multidimensional scaling analysis using Identity-By-State (IBS) proportion
 ```{r}
-ibs <- snpgdsIBS(genofile, snp.id=snpset.id, num.thread=2, autosome.only=FALSE, sample.id = sample.info[sample.info$Sample!="Tank_9_Crab_4",]$Sample)
+ibs <- snpgdsIBS(genofile, snp.id=snpset.id, num.thread=2, autosome.only=FALSE, 
+                 sample.id = sample.info[sample.info$Sample!="Tank_10_Crab_2",]$Sample)
+                 #sample.id = sample.info$Sample)
 pop.idx <- order(tab.annot.gen$Treatment)
 
 # par(xpd=TRUE)
@@ -559,8 +598,9 @@ tab.annot.gen <- tab.annot.gen %>% left_join(
   mutate(ibs.cluster=case_when(
     x < -0.1 ~ "left",
     x > 0.1 ~"right",
-    x < 0.05 & x > -0.1 & y < 0.1 ~ "middle",
-    y > 0.1 ~ "top")) %>% dplyr::select(sample, ibs.cluster),
+    x < 0.05 & x > -0.1 & y < 0.1 ~ "middle")) %>% #,
+    #y > 0.1 ~ "top"))
+      dplyr::select(sample, ibs.cluster),
   by=c("sample.id"="sample"))
 table(tab.annot.gen$ibs.cluster)
 ```
@@ -693,11 +733,11 @@ Correlated PC axes:
 #   pivot_longer(cols = c(PC3.expr, PC4.degs), values_to = "score", names_to = "PC.expr") %>% 
 #   mutate(PC.expr=as.factor(PC.expr))
 
-ggscatter(PCA.merged, x="PC1.gen", y="PC1.expr", add="reg.line", conf.int = TRUE,
+ggscatter(PCA.merged, x="PC1.gen", y="PC3.expr", add="reg.line", conf.int = TRUE,
           color="white", 
           add.params = list(color = "gray50", fill = "gray70")) + 
-    ggtitle("Genetic PC1 ~ Expression PC1 Axes") + 
-  xlab("Genetic PC1") + ylab("Expr PC1") + 
+    ggtitle("Genetic PC1 ~ Expression PC3 Axes") + 
+  xlab("Genetic PC1") + ylab("Expr PC3") + 
   stat_cor(method = "pearson", show.legend=FALSE) +
   theme_pubclean() +theme(legend.position = "bottom") + 
   scale_color_manual(values=c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c"), name="pH Treatment") +
@@ -705,11 +745,11 @@ ggscatter(PCA.merged, x="PC1.gen", y="PC1.expr", add="reg.line", conf.int = TRUE
   geom_point(aes(col=Treatment), alpha=0.85, size=1.8)
 
 
-ggscatter(PCA.merged, x="PC1.gen", y="PC4.expr", add="reg.line", conf.int = TRUE,
+ggscatter(PCA.merged, x="PC2.gen", y="PC4.expr", add="reg.line", conf.int = TRUE,
           color="white", 
           add.params = list(color = "gray50", fill = "gray70")) + 
-    ggtitle("Genetic PC1 ~ Expression PC4 Axes") + 
-  xlab("Genetic PC1") + ylab("Expr PC4") + 
+    ggtitle("Genetic PC2 ~ Expression PC4 Axes") + 
+  xlab("Genetic PC2") + ylab("Expr PC4") + 
   stat_cor(method = "pearson", show.legend=FALSE) +
   theme_pubclean() +theme(legend.position = "bottom") + 
   scale_color_manual(values=c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c"), name="pH Treatment") +
@@ -718,35 +758,11 @@ ggscatter(PCA.merged, x="PC1.gen", y="PC4.expr", add="reg.line", conf.int = TRUE
 
 
 # Most significant correlation, PC2.gen x PC4.degs
-ggscatter(PCA.merged, x="PC2.gen", y="PC4.degs", add="reg.line", conf.int = TRUE,
+ggscatter(PCA.merged, x="PC3.gen", y="PC4.expr", add="reg.line", conf.int = TRUE,
           color="white", 
           add.params = list(color = "gray50", fill = "gray70")) + 
-    ggtitle("Genetic PC2 ~ Expression (DEGs only) PC4 Axes") + 
-  xlab("Genetic PC2") + ylab("DEGs PC4") + 
-  stat_cor(method = "pearson", show.legend=FALSE) +
-  theme_pubclean() +theme(legend.position = "bottom") + 
-  scale_color_manual(values=c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c"), name="pH Treatment") +
-  guides(colour = guide_legend(override.aes = list(size=3.5))) + 
-  geom_point(aes(col=Treatment), alpha=0.85, size=1.8)
-
-# Modestly sign. correlation
-ggscatter(PCA.merged, x="PC1.gen", y="PC2.expr", add="reg.line", conf.int = TRUE,
-          color="white", 
-          add.params = list(color = "gray50", fill = "gray70")) + 
-    ggtitle("Genetic PC1 ~ Expression (all genes) PC3 Axes") + 
-  xlab("Genetic PC1") + ylab("DEGs PC4") + 
-  stat_cor(method = "pearson", show.legend=FALSE) +
-  theme_pubclean() +theme(legend.position = "bottom") + 
-  scale_color_manual(values=c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c"), name="pH Treatment") +
-  guides(colour = guide_legend(override.aes = list(size=3.5))) + 
-  geom_point(aes(col=Treatment), alpha=0.85, size=1.8)
-
-# Modestly sign. correlation
-ggscatter(PCA.merged, x="PC3.gen", y="PC2.expr", add="reg.line", conf.int = TRUE,
-          color="white", 
-          add.params = list(color = "gray50", fill = "gray70")) + 
-    ggtitle("Genetic PC2 ~ Expression (all genes) PC3 Axes") + 
-  xlab("Genetic PC2") + ylab("DEGs PC4") + 
+    ggtitle("Genetic PC3 ~ Expression PC4 Axes") + 
+  xlab("Genetic PC3") + ylab("Expr PC4") + 
   stat_cor(method = "pearson", show.legend=FALSE) +
   theme_pubclean() +theme(legend.position = "bottom") + 
   scale_color_manual(values=c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c"), name="pH Treatment") +
@@ -757,17 +773,20 @@ ggscatter(PCA.merged, x="PC3.gen", y="PC2.expr", add="reg.line", conf.int = TRUE
 # Normal? 
 hist(PCA.merged$PC1.gen)
 hist(PCA.merged$PC2.gen)
-hist(PCA.merged$PC4.degs)
+hist(PCA.merged$PC3.gen)
 hist(PCA.merged$PC3.expr)
+hist(PCA.merged$PC4.expr)
+
 shapiro.test(PCA.merged$PC1.gen)
 shapiro.test(PCA.merged$PC2.gen)
-shapiro.test(PCA.merged$PC4.degs)
+shapiro.test(PCA.merged$PC3.degs)
 shapiro.test(PCA.merged$PC3.expr)
+shapiro.test(PCA.merged$PC4.expr)
 
 # Examine linear relationship between Expression PC axes and genetic PC axes, also testing for effect of & interaction with Treatment 
-anova(lm(PC4.degs ~ PC2.gen*Treatment, data=PCA.merged)) 
 anova(lm(PC3.expr ~ PC1.gen*Treatment, data=PCA.merged)) 
-anova(lm(PC3.expr ~ PC2.gen*Treatment, data=PCA.merged)) 
+anova(lm(PC4.expr ~ PC2.gen*Treatment, data=PCA.merged)) 
+anova(lm(PC4.expr ~ PC3.gen*Treatment, data=PCA.merged)) 
 ```
 
 
@@ -876,7 +895,7 @@ I used [this tutorial](http://www.ddocent.com/filtering/) as an example.
 
 ```{r}
 # Load the data
-vcf <- read.vcfR("../results/genotype/rkc_rnaseq_genotypes-final_miss25.recode.vcf", verbose = FALSE )
+vcf <- read.vcfR("../results/genotype/rkc-genome/rkc_rnaseq_genotypes-final_miss25.recode.vcf", verbose = FALSE )
 # It results in 1,429 SNPs, which does not match SNPRelate's number (1,355). Why? 
 
 # Quantify missing data for each sample 
@@ -926,7 +945,7 @@ ggplot(dpf, aes(x=Treatment, y=Depth)) +
   scale_fill_manual(values = c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c"))
 ```
 
-# Allelic richness - but that seems to be skewed by missing samples and data for SNPs
+# Allelic richness - could this be skewed by missing samples and data for SNPs
 
 ```{r}
 dpf.n <- melt(myDiff[,c(7:9)], varnames=c('Index', 'Sample'), value.name = 'Depth', na.rm=TRUE) %>%
@@ -1029,7 +1048,7 @@ Mac suggested that I only keep SNPs with very high minor allele frequencies. Her
 ## Sibship analysis via Colony 
 
 ```{r}
-snpset.4Colony <- snpgdsLDpruning(genofile, maf=.20, missing.rate=.20, autosome.only=FALSE)
+snpset.4Colony <- snpgdsLDpruning(genofile, maf=.05, missing.rate=.15, autosome.only=FALSE)
 snpset.id.4Colony <- unlist(unname(snpset.4Colony))
 snpgdsCreateGenoSet(src.fn="../results/genotype/genotypes.gds",
                     dest.fn="../results/genotype/colony/genotypes-4Colony.gds",
@@ -1236,7 +1255,7 @@ NOTE: Because PCAdapt uses PC eigenvalues to identify outliers, they are not lik
 ## Read in data 
 
 ```{r}
-path_to_file <- "../results/genotype/rkc_rnaseq_genotypes-final_miss25.recode.vcf"
+path_to_file <- "../results/genotype/rkc-genome/rkc_rnaseq_genotypes-final_miss25.recode.vcf"
 filename <- read.pcadapt(path_to_file, type = "vcf")
 ```
 ```{bash}
@@ -1419,13 +1438,14 @@ RESULTS: no outlier loci identified between pH treatments using FDR<10%, two out
 ```{r}
 source("../scripts/Bayescan_plot_R.r")
 # Read in vcf to extract locus id/order 
-vcf.bay <- read.vcfR("../results/genotype/rkc_rnaseq_genotypes-final_miss25.recode.vcf", verbose = FALSE )
+vcf.bay <- read.vcfR("../results/genotype/rkc-genome/rkc_rnaseq_genotypes-final_miss25.recode.vcf", verbose = FALSE )
 
 # Any outlier SNPs between pH treatment
 out.pH <- plot_bayescan("../results/genotype/bayescan/rkc_miss25_bayescan_outliers_pH_fst.txt",0, FDR=0.1, size = 1)
 out.pH.names <- rownames(extract.gt(vcf.bay))[out.pH$outliers] #chromosome 47 and 73
 snps.annot %>%filter(snp.id %in% rownames(extract.gt(vcf.bay))[out.pH$outliers])
 ```
+
 ## Outlier SNPs identified by Bayescan, using IBD cluster as grouping/population variable 
 
 RESULTS: 23 outlier loci identified between clusters using FDR<10% (30 using FDR<15%), 7 of which reside in gene coding regions. 
@@ -1727,14 +1747,14 @@ gen.order.amb <- ibs.amb$sample.id[rv.amb$samp.order]
 ibs.mod <- snpgdsHCluster(snpgdsIBS(genofile, snp.id=snpset.id, num.thread=2, autosome.only=FALSE, 
                                     sample.id = (sample.info %>% filter(Treatment=="Moderate"))$Sample))
 rv.mod <- snpgdsCutTree(ibs.mod)
-plot(rv.mod$dendrogram, leaflab="perpendicular", main="Ambient Treatment\nHapMap Phase II")
+plot(rv.mod$dendrogram, leaflab="perpendicular", main="Moderate Treatment\nHapMap Phase II")
 gen.order.mod <- ibs.mod$sample.id[rv.mod$samp.order]
 
 # Low pH group 
 ibs.low <- snpgdsHCluster(snpgdsIBS(genofile, snp.id=snpset.id, num.thread=2, autosome.only=FALSE, 
                                     sample.id = (sample.info %>% filter(Treatment=="Low"))$Sample))
 rv.low <- snpgdsCutTree(ibs.low)
-plot(rv.low$dendrogram, leaflab="perpendicular", main="Ambient Treatment\nHapMap Phase II")
+plot(rv.low$dendrogram, leaflab="perpendicular", main="Severe Treatment\nHapMap Phase II")
 gen.order.low <- ibs.low$sample.id[rv.low$samp.order]
 ```
 
@@ -1833,7 +1853,7 @@ Since OutFLANK doesn't use phasing information, I will treat the genotype info w
 
 ```{r}
 # Load the data
-vcf <- read.vcfR("../results/genotype/rkc_rnaseq_genotypes-final_miss25.recode.vcf", verbose = FALSE )
+vcf <- read.vcfR("../results/genotype/rkc-genome/rkc_rnaseq_genotypes-final_miss25.recode.vcf", verbose = FALSE )
 
 # Extract genotype matrix 
 geno.matrix4outflank <- extract.gt(vcf) %>% as.data.frame()

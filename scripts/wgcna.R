@@ -225,19 +225,36 @@ save(dissTOM, file = "/home/lspencer/2022-redking-OA/wgcna/dissTom-bowtie-rkc")
 
 # Call the hierarchical clustering function
 geneTree = hclust(as.dist(dissTOM), method = "average");
+save(geneTree, file = "/home/lspencer/2022-redking-OA/wgcna/geneTree")
+
 # Plot the resulting clustering tree (dendrogram)
+
 pdf(file = "/home/lspencer/2022-redking-OA/wgcna/gene-clustering.pdf", width = 12, height = 9);
 plot(geneTree, xlab="", sub="", main = "Gene clustering on TOM-based dissimilarity",
      labels = FALSE, hang = 0.04);
 dev.off()
 
 # We like large modules, so we set the minimum module size relatively high:
-minModuleSize = 30;
+#minModuleSize = 30;
 # Module identification using dynamic tree cut:
 dynamicMods = cutreeDynamic(dendro = geneTree, distM = dissTOM,
                             deepSplit = 2, pamRespectsDendro = FALSE,
-                            minClusterSize = minModuleSize);
+                            minClusterSize = 30);
+
+dynamicMods.50 = cutreeDynamic(dendro = geneTree, distM = dissTOM,
+                            deepSplit = 2, pamRespectsDendro = FALSE,
+                            minClusterSize = 50);
+
+dynamicMods.75 = cutreeDynamic(dendro = geneTree, distM = dissTOM,
+                            deepSplit = 2, pamRespectsDendro = FALSE,
+                            minClusterSize = 75);
+
+
 table(dynamicMods)
+save(dynamicMods, file = "/home/lspencer/2022-redking-OA/wgcna/dynamicMods")
+save(dynamicMods.50, file = "/home/lspencer/2022-redking-OA/wgcna/dynamicMods.50")
+save(dynamicMods.75, file = "/home/lspencer/2022-redking-OA/wgcna/dynamicMods.75")
+
 
 # Convert numeric lables into colors
 dynamicColors = labels2colors(dynamicMods)

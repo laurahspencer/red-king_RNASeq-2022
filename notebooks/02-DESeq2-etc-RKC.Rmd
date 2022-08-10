@@ -548,11 +548,20 @@ paste("No. of genes differentially expressed (padj<0.05) by pH, Ambient vs. Low:
 print("Comparison: Moderate pH vs. Low pH")
 summary(res.pco2.ML <- results(dds.DESeq.pH, contrast=c("Treatment", "Moderate", "Low"), alpha=0.05))
 paste("No. of genes differentially expressed (padj<0.05) by pH, Moderate vs. Low:",  sum(res.pco2.ML$padj < 0.05, na.rm=TRUE))
+
+# Number of genes analyzed 
 nrow(res.pco2.AM)
 save(res.pco2.AM, file = "../results/deseq2/res.pco2.AM")
 save(res.pco2.AL, file = "../results/deseq2/res.pco2.AL")
 save(res.pco2.ML, file = "../results/deseq2/res.pco2.ML")
 ```
+### % of DEGs that were downregulated in OA - here we only consider 7.8 and 7.6 vs. ambient (8.0)
+
+```{r}
+(933 + 3907) / (1459 + 6257)
+```
+
+
 ### How many DEGs in total?
 ```{r}
 length(unique(c(diffex.AM %>% rownames(), diffex.AL %>% rownames(), diffex.ML %>% rownames())))
@@ -889,7 +898,43 @@ print(paste("Percentage of Moderate vs. Low UPREGULATED genes that are Transposa
 print(paste("Percentage of Moderate vs. Low DOWNREGULATED genes that are Transposable Elements:",
             round(100*nrow(diffex.ML.annot %>% filter(log2FoldChange>0) %>% 
                        filter(str_detect(protein_names, TE.genes)))/nrow(diffex.ML.annot), digits = 1)))
-  
+
+```
+
+Calculate average CV of TEs in upregulated / downregulated gene sets 
+
+```{r}
+TEs.AM.up <- (diffex.AM.annot %>% filter(log2FoldChange<0) %>% filter(str_detect(protein_names, TE.genes)))$gene
+TEs.AM.down <- (diffex.AM.annot %>% filter(log2FoldChange>0) %>% filter(str_detect(protein_names, TE.genes)))$gene
+
+TEs.AL.up <- (diffex.AL.annot %>% filter(log2FoldChange<0) %>% filter(str_detect(protein_names, TE.genes)))$gene
+TEs.AL.down <- (diffex.AL.annot %>% filter(log2FoldChange>0) %>% filter(str_detect(protein_names, TE.genes)))$gene
+
+TEs.ML.up <- (diffex.ML.annot %>% filter(log2FoldChange<0) %>% filter(str_detect(protein_names, TE.genes)))$gene
+TEs.ML.down <- (diffex.ML.annot %>% filter(log2FoldChange>0) %>% filter(str_detect(protein_names, TE.genes)))$gene
+
+genes.stats %>% 
+  filter(gene %in% TEs.AM.up) %>%
+  filter(Treatment %in% c("Ambient", "Moderate")) %>% 
+  group_by(Treatment) %>% summarise(mean.cv = mean(cv))
+
+genes.stats %>% 
+  filter(gene %in% TEs.AL.up) %>%
+  filter(Treatment %in% c("Ambient", "Low")) %>% 
+  group_by(Treatment) %>% summarise(mean.cv = mean(cv))
+
+
+genes.stats %>% 
+  filter(gene %in% TEs.AM.down) %>%
+  filter(Treatment %in% c("Ambient", "Moderate")) %>% 
+  group_by(Treatment) %>% summarise(mean.cv = mean(cv))
+
+
+genes.stats %>% 
+  filter(gene %in% TEs.AL.down) %>%
+  filter(Treatment %in% c("Ambient", "Low")) %>% 
+  group_by(Treatment) %>% summarise(mean.cv = mean(cv))
+
 ```
 
 
@@ -1082,7 +1127,7 @@ genes.stats <- gene.counts.norm %>% group_by(Treatment, gene) %>%
   mutate(change=factor(change, levels=c("Non-DEG", "Down-regulated", "Up-regulated"))) %>%
   ungroup() %>% 
   #left_join(P.plat.bestblast %>% select(id, id_gtf, hit_acc, hit_desc, e_value), by=c("gene"="id")) %>%
-  left_join(P.camt.blast.GO %>% dplyr::select(gene_id, spid, protein_names, evalue), by=c("gene"="gene_id")) %>%
+  left_join(P.camt.blast.GO %>% dplyr::select(gene_id, spid, protein_names, evalue, gene_ontology_biological_process, gene_ontology_i_ds), by=c("gene"="gene_id")) %>%
   
   # Add Log2FoldChange and padj for each pairwise treatment comparison for each gene
   left_join(cbind(res.pco2.AM %>% as.data.frame() %>% dplyr::rename("L2FC.AM"="log2FoldChange", "padj.AM"="padj") %>% 
@@ -1520,7 +1565,38 @@ res.pco2.AL %>% as.data.frame() %>% rownames_to_column("gene") %>%
 
 ```
 
-## No significantly enriched processes in those "critical" genes. Instead, I used Go_MWU to look at all GO categories (see GO_MWU script). 
+DAVID enrichment with critical genes 
+
+```{r}
+# Upregulated DEGs in Moderate (compared to ambient) that are also expressed very consistently 
+diffex.AM %>% as.data.frame() %>% rownames_to_column("gene") %>% 
+  filter(gene %in% critical.mod) %>%
+  left_join(P.camt.blast.GO %>% dplyr::select(gene_id, spid, protein_names), by = c("gene"="gene_id")) %>% 
+  filter(!is.na(spid)) %>% select(spid) %>% unlist() %>% as.vector() %>% write_clip()
+
+# Upregulated DEGs in Moderate (compared to ambient) that are also expressed very consistently 
+diffex.AL %>% as.data.frame() %>% rownames_to_column("gene") %>% 
+  filter(gene %in% critical.low) %>%
+  left_join(P.camt.blast.GO %>% dplyr::select(gene_id, spid, protein_names), by = c("gene"="gene_id")) %>% 
+  filter(!is.na(spid)) %>% select(spid) %>% unlist() %>% as.vector() %>% write_clip()
+
+# Upregulated DEGs in Moderate (compared to ambient) that are also expressed very consistently 
+res.pco2.AL %>% as.data.frame() %>% rownames_to_column("gene") %>% 
+  filter(gene %in% c(unique(rownames(diffex.AM, diffex.AL)))) %>% 
+  filter(gene %in% critical.amb) %>%
+  left_join(P.camt.blast.GO %>% dplyr::select(gene_id, spid, protein_names), by = c("gene"="gene_id")) %>% 
+  filter(!is.na(spid)) %>% select(spid) %>% unlist() %>% as.vector() %>% write_clip()
+  
+
+# Background 
+res.pco2.AL %>% as.data.frame() %>% rownames_to_column("gene") %>% 
+  left_join(P.camt.blast.GO %>% dplyr::select(gene_id, spid, protein_names), by = c("gene"="gene_id")) %>% 
+  filter(!is.na(spid)) %>% select(spid) %>% unlist() %>% as.vector() %>% write_clip()
+```
+
+
+
+## No significantly enriched processes in those "critical" genes according to GO_MWU. Instead, I used Go_MWU to look at all GO categories (see GO_MWU script). 
 
 ```{r}
 # Upregulated DEGs in moderate (compared to ambient) that are also expressed very consistently 
