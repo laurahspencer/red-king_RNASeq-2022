@@ -627,7 +627,7 @@ ibs$ibs %>% hist(breaks=100, main="Histogram of Identity-By-State proportion\nfr
 
 ```{r}
 load(file = "../results/deseq2/vsd.pH") #vsd.pH
-pca.princomp.expr <- prcomp(t(assay(vsd.pH)), scale=T, center=T) #scale=F for variance-covariance matrix
+pca.princomp.expr <- prcomp(t(assay(vsd.pH))) #scale=F for variance-covariance matrix
 pca.eigenval(pca.princomp.expr) #The Proporation of Variance = %variance 
 (pc.percent <- pca.eigenval(pca.princomp.expr)[2,1:4]*100)
 screeplot(pca.princomp.expr, bstick=TRUE) #looks like PC 1-2 are significant, but also pull the 3rd 
@@ -676,11 +676,12 @@ load(file = "../results/deseq2/diffex.AL")
 load(file = "../results/deseq2/diffex.ML")
 
 pca.princomp.expr.pH <-
-  princomp(cov(assay(vsd.pH[unique(c(rownames(diffex.AM),rownames(diffex.AL),rownames(diffex.ML))),])))
+  prcomp(cov(assay(vsd.pH[unique(c(rownames(diffex.AM),rownames(diffex.AL),rownames(diffex.ML))),])))
 
-pca.princomp.expr.pH <-
-  prcomp(t(assay(vsd.pH[unique(c(rownames(diffex.AM),rownames(diffex.AL),rownames(diffex.ML))),])),
-         center=T, scale=T)
+# pca.princomp.expr.pH <-
+#   prcomp(t(assay(vsd.pH[unique(c(rownames(diffex.AM),rownames(diffex.AL),rownames(diffex.ML))),])),
+#          center=T, scale=T)
+
 
 pca.eigenval(pca.princomp.expr.pH) #The Proporation of Variance = %variance 
 (pc.percent.pH <- pca.eigenval(pca.princomp.expr.pH)[2,1:4]*100)
@@ -723,70 +724,129 @@ PCA.merged <- left_join(left_join(
 chart.Correlation(PCA.merged %>% dplyr::select(starts_with("PC")), histogram=F, pch=19, method = "pearson")
 mtext("PC Axes Correlation, Genetic (.gen) ~ Expression (.all & .degs)", side=3, line=1.25)
 ```
-Correlated PC axes: 
-- PC2.gen x PC4.degs (positive correlation, highly significant)
-- PC1.gen x PC3 expr (negativel ycorrelated, modestly significant)
-- PC2.gen x PC3 expr (negativel ycorrelated, modestly significant)
+```{r}
+# Examine linear relationship between first two Expression PC axes and genetic PC axes, also testing for effect of & interaction with Treatment 
+
+anova(lm(PC1.expr ~ PC1.gen*Treatment, data=PCA.merged))
+summary(lm(PC1.expr ~ PC1.gen*Treatment, data=PCA.merged)) 
+ggscatter(PCA.merged, x="PC1.gen", y="PC1.expr", 
+          add="reg.line", conf.int = TRUE,
+          color="Treatment", palette=c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c")) +
+    ggtitle("Genetic PC1 (8.9%) ~ Expression PC1 Axes") + 
+  xlab("Genetic PC1") + ylab("Expr PC1") + 
+  stat_cor(aes(color=Treatment), method = "pearson", show.legend=FALSE, label.y = c(-200, -175, -150)) +
+  theme_pubclean() + theme(legend.position = "bottom") + 
+  guides(colour = guide_legend(override.aes = list(size=3.5))) + 
+  geom_point(aes(col=Treatment), alpha=0.85, size=1.8)
+
+anova(lm(PC1.expr ~ PC2.gen*Treatment, data=PCA.merged)) 
+summary(lm(PC1.expr ~ PC2.gen*Treatment, data=PCA.merged)) 
+ggscatter(PCA.merged, x="PC2.gen", y="PC1.expr", 
+          add="reg.line", conf.int = TRUE,
+          color="Treatment", palette=c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c")) +
+    ggtitle("Genetic PC2 ~ Expression PC1 Axes") + 
+  xlab("Genetic PC2") + ylab("Expr PC1") + 
+  stat_cor(aes(color=Treatment), method = "pearson", show.legend=FALSE, label.y = c(-200, -175, -150)) +
+  theme_pubclean() + theme(legend.position = "bottom") + 
+  guides(colour = guide_legend(override.aes = list(size=3.5))) + 
+  geom_point(aes(col=Treatment), alpha=0.85, size=1.8)
+
+
+anova(lm(PC2.expr ~ PC1.gen*Treatment, data=PCA.merged)) 
+summary(lm(PC2.expr ~ PC1.gen*Treatment, data=PCA.merged)) 
+ggscatter(PCA.merged, x="PC1.gen", y="PC2.expr", 
+          add="reg.line", conf.int = TRUE,
+          color="Treatment", palette=c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c")) +
+    ggtitle("Genetic PC2 ~ Expression PC1 Axes") + 
+  xlab("Genetic PC1") + ylab("Expr PC2") + 
+  stat_cor(aes(color=Treatment), method = "pearson", show.legend=FALSE, label.y = c(-200, -175, -150)) +
+  theme_pubclean() + theme(legend.position = "bottom") + 
+  guides(colour = guide_legend(override.aes = list(size=3.5))) + 
+  geom_point(aes(col=Treatment), alpha=0.85, size=1.8)
+
+anova(lm(PC2.expr ~ PC2.gen*Treatment, data=PCA.merged)) 
+summary(lm(PC2.expr ~ PC2.gen*Treatment, data=PCA.merged)) 
+ggscatter(PCA.merged, x="PC2.gen", y="PC2.expr", 
+          add="reg.line", conf.int = TRUE,
+          color="Treatment", palette=c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c")) +
+    ggtitle("Genetic PC2 ~ Expression PC2 Axes") + 
+  xlab("Genetic PC2") + ylab("Expr PC2") + 
+  stat_cor(aes(color=Treatment), method = "pearson", show.legend=FALSE, label.y = c(-200, -175, -150)) +
+  theme_pubclean() + theme(legend.position = "bottom") + 
+  guides(colour = guide_legend(override.aes = list(size=3.5))) + 
+  geom_point(aes(col=Treatment), alpha=0.85, size=1.8)
+
+```
+
+```{r}
+# Examine linear relationship between first DEG Expression PC axis and genetic PC axes, also testing for effect of & interaction with Treatment 
+
+anova(lm(PC1.degs ~ PC1.gen*Treatment, data=PCA.merged))
+summary(lm(PC1.degs ~ PC1.gen*Treatment, data=PCA.merged)) 
+ggscatter(PCA.merged, x="PC1.gen", y="PC1.degs", 
+          add="reg.line", conf.int = TRUE,
+          color="Treatment", 
+          palette=c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c")) +
+    ggtitle("Genetic PC1 ~ DEGs PC1 Axes") + 
+  xlab("Genetic PC1") + ylab("DEGs PC1") + 
+  stat_cor(aes(color=Treatment), 
+    method = "pearson", show.legend=FALSE, 
+           #label.y = c(-200, -175, -150)
+           ) +
+  theme_pubclean() + theme(legend.position = "bottom") + 
+  guides(colour = guide_legend(override.aes = list(size=3.5))) + 
+  geom_point(aes(col=Treatment), 
+    alpha=0.85, size=1.8)
+
+anova(lm(PC1.degs ~ PC2.gen*Treatment, data=PCA.merged)) 
+summary(lm(PC1.degs ~ PC2.gen*Treatment, data=PCA.merged)) 
+ggscatter(PCA.merged, x="PC2.gen", y="PC1.degs", 
+          add="reg.line", conf.int = TRUE,
+          color="Treatment", palette=c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c")) +
+    ggtitle("Genetic PC2 ~ DEGs PC1 Axes") + 
+  xlab("Genetic PC2") + ylab("DEGs PC1") + 
+  stat_cor(aes(color=Treatment), method = "pearson", show.legend=FALSE, 
+           #label.y = c(-200, -175, -150)
+           ) +
+  theme_pubclean() + theme(legend.position = "bottom") + 
+  guides(colour = guide_legend(override.aes = list(size=3.5))) + 
+  geom_point(aes(col=Treatment), alpha=0.85, size=1.8)
+```
+
 
 ```{r}
 # PCA.merged.4plots <- PCA.merged %>% dplyr::select(PC1.gen, PC2.gen, PC3.expr, PC4.degs) %>% 
 #   pivot_longer(cols = c(PC3.expr, PC4.degs), values_to = "score", names_to = "PC.expr") %>% 
 #   mutate(PC.expr=as.factor(PC.expr))
 
-ggscatter(PCA.merged, x="PC1.gen", y="PC3.expr", add="reg.line", conf.int = TRUE,
-          color="white", 
-          add.params = list(color = "gray50", fill = "gray70")) + 
-    ggtitle("Genetic PC1 ~ Expression PC3 Axes") + 
-  xlab("Genetic PC1") + ylab("Expr PC3") + 
-  stat_cor(method = "pearson", show.legend=FALSE) +
-  theme_pubclean() +theme(legend.position = "bottom") + 
-  scale_color_manual(values=c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c"), name="pH Treatment") +
+anova(lm(PC3.expr ~ PC2.gen*Treatment, data=PCA.merged))
+summary(lm(PC3.expr ~ PC2.gen*Treatment, data=PCA.merged)) 
+ggscatter(PCA.merged, x="PC2.gen", y="PC3.expr", 
+          add="reg.line", conf.int = TRUE,
+          color="Treatment", palette=c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c")) +
+    ggtitle("Genetic PC2 ~ Expression PC3 Axes") + 
+  xlab("Genetic PC2") + ylab("Expr PC3") + 
+  stat_cor(aes(color=Treatment), method = "pearson", show.legend=FALSE, label.y = c(-200, -175, -150)) +
+  theme_pubclean() + theme(legend.position = "bottom") + 
   guides(colour = guide_legend(override.aes = list(size=3.5))) + 
   geom_point(aes(col=Treatment), alpha=0.85, size=1.8)
 
 
-ggscatter(PCA.merged, x="PC2.gen", y="PC4.expr", add="reg.line", conf.int = TRUE,
-          color="white", 
-          add.params = list(color = "gray50", fill = "gray70")) + 
-    ggtitle("Genetic PC2 ~ Expression PC4 Axes") + 
-  xlab("Genetic PC2") + ylab("Expr PC4") + 
-  stat_cor(method = "pearson", show.legend=FALSE) +
-  theme_pubclean() +theme(legend.position = "bottom") + 
-  scale_color_manual(values=c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c"), name="pH Treatment") +
-  guides(colour = guide_legend(override.aes = list(size=3.5))) + 
-  geom_point(aes(col=Treatment), alpha=0.85, size=1.8)
-
-
-# Most significant correlation, PC2.gen x PC4.degs
-ggscatter(PCA.merged, x="PC3.gen", y="PC4.expr", add="reg.line", conf.int = TRUE,
-          color="white", 
-          add.params = list(color = "gray50", fill = "gray70")) + 
-    ggtitle("Genetic PC3 ~ Expression PC4 Axes") + 
+anova(lm(PC4.expr ~ PC3.gen*Treatment, data=PCA.merged))
+summary(lm(PC4.expr ~ PC3.gen*Treatment, data=PCA.merged)) 
+ggscatter(PCA.merged, x="PC3.gen", y="PC4.expr", 
+          add="reg.line", conf.int = TRUE,
+          color="Treatment", 
+          palette=c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c")) +
+    ggtitle("Genetic PC2 ~ Expression PC3 Axes") + 
   xlab("Genetic PC3") + ylab("Expr PC4") + 
-  stat_cor(method = "pearson", show.legend=FALSE) +
-  theme_pubclean() +theme(legend.position = "bottom") + 
-  scale_color_manual(values=c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c"), name="pH Treatment") +
+  stat_cor(aes(color=Treatment), method = "pearson", show.legend=FALSE, label.y = c(-200, -175, -150)) +
+  theme_pubclean() + theme(legend.position = "bottom") + 
   guides(colour = guide_legend(override.aes = list(size=3.5))) + 
   geom_point(aes(col=Treatment), alpha=0.85, size=1.8)
 
-# Run linear models 
-# Normal? 
-hist(PCA.merged$PC1.gen)
-hist(PCA.merged$PC2.gen)
-hist(PCA.merged$PC3.gen)
-hist(PCA.merged$PC3.expr)
-hist(PCA.merged$PC4.expr)
 
-shapiro.test(PCA.merged$PC1.gen)
-shapiro.test(PCA.merged$PC2.gen)
-shapiro.test(PCA.merged$PC3.degs)
-shapiro.test(PCA.merged$PC3.expr)
-shapiro.test(PCA.merged$PC4.expr)
 
-# Examine linear relationship between Expression PC axes and genetic PC axes, also testing for effect of & interaction with Treatment 
-anova(lm(PC3.expr ~ PC1.gen*Treatment, data=PCA.merged)) 
-anova(lm(PC4.expr ~ PC2.gen*Treatment, data=PCA.merged)) 
-anova(lm(PC4.expr ~ PC3.gen*Treatment, data=PCA.merged)) 
 ```
 
 
@@ -827,6 +887,8 @@ all(snp.dists.filt %>% as.matrix() %>% rownames() == sampleDistss.filt %>% as.ma
 # Perform correlation 
 plot(x=snp.dists.filt, y=sampleDistss.filt, main="Correlation between pairwise distances\nSNP-based ~ Expr-based")
 plot(x=snp.dists.filt, y=sampleDistss.pH.filt, main="Correlation between pairwise distances\nSNP-based ~ DEG-based")
+
+packageVersion("SNPRelate")
 ```
 ```{r}
 # Perform mantel test 
@@ -895,8 +957,7 @@ I used [this tutorial](http://www.ddocent.com/filtering/) as an example.
 
 ```{r}
 # Load the data
-vcf <- read.vcfR("../results/genotype/rkc-genome/rkc_rnaseq_genotypes-final_miss25.recode.vcf", verbose = FALSE )
-# It results in 1,429 SNPs, which does not match SNPRelate's number (1,355). Why? 
+vcf <- read.vcfR("../results/genotype/rkc-genome/rkc_rnaseq_genotypes-final_miss15.recode.vcf", verbose = FALSE )
 
 # Quantify missing data for each sample 
 myMiss <- apply(extract.gt(vcf), MARGIN = 2, function(x){ sum(is.na(x)) })
@@ -907,6 +968,7 @@ title(ylab = "Sample Missingness (%)")
 ```
 ```{r}
 #extract.gt(vcf)
+packageVersion("vcfR")
 ```
 
 
@@ -920,6 +982,7 @@ sample.info.vcf <- sample.info %>% dplyr::slice(match(colnames(extract.gt(vcf)),
 # How many samples per pH treatment?
 nsamples <- sample.info.vcf[match(colnames(extract.gt(vcf)), sample.info.vcf$Sample),] %>% group_by(Treatment) %>% tally()
 
+
 # Calculate differentiation / diversity stats for each treatment
 myDiff <- genetic_diff(vcf, pops = sample.info.vcf$Treatment, method = 'nei')
 paste("No. SNPs included in this vcfR analysis ", nrow(myDiff), sep="")
@@ -932,7 +995,8 @@ round(colMeans(myDiff[,-1:-2], na.rm = TRUE), digits = 3)
 
 ```{r}
 dpf <- melt(myDiff[,c(3:5)], varnames=c('Index', 'Sample'), value.name = 'Depth', na.rm=TRUE) %>%
-  mutate(Treatment=as.factor(substring(variable, 4)))
+  mutate(Treatment=as.factor(substring(variable, 4))) %>%
+  mutate(Treatment=factor(Treatment, levels=c("Ambient", "Moderate", "Low")))
 
 ggplot(dpf, aes(x=Treatment, y=Depth)) + 
   geom_violin(aes(fill=Treatment), adjust = 1.2, alpha=0.75) + 
@@ -941,7 +1005,7 @@ ggplot(dpf, aes(x=Treatment, y=Depth)) +
   ggtitle(paste("Heterozygosity by pH Treatment \nNo. SNPs =", nrow(myDiff))) +
         stat_summary(fun.y=mean, geom="point", shape=15, size=3, color="black", fill="black") +
     geom_text(data=dpf %>% group_by(Treatment) %>% 
-                summarize(mean=mean(Depth)), aes(x=Treatment, y=.45, label=round(mean, 4)), size=3) +
+                summarize(mean=mean(Depth)), aes(x=Treatment, y=.45, label=round(mean, 3)), size=3) +
   scale_fill_manual(values = c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c"))
 ```
 
@@ -1048,11 +1112,13 @@ Mac suggested that I only keep SNPs with very high minor allele frequencies. Her
 ## Sibship analysis via Colony 
 
 ```{r}
-snpset.4Colony <- snpgdsLDpruning(genofile, maf=.05, missing.rate=.15, autosome.only=FALSE)
+snpset.4Colony <- snpgdsLDpruning(genofile, maf=.05, missing.rate=.15, autosome.only=FALSE,
+                                  sample.id = sample.info[sample.info$Sample!="Tank_10_Crab_2",]$Sample)
 snpset.id.4Colony <- unlist(unname(snpset.4Colony))
 snpgdsCreateGenoSet(src.fn="../results/genotype/genotypes.gds",
                     dest.fn="../results/genotype/colony/genotypes-4Colony.gds",
-                    snp.id=snpset.id.4Colony, verbose = FALSE)
+                    snp.id=snpset.id.4Colony, verbose = FALSE,
+                    sample.id = sample.info[sample.info$Sample!="Tank_10_Crab_2",]$Sample)
 ```
 
 ## Recode genotypes for Colony 
@@ -1104,7 +1170,8 @@ c[[evens.names[i]]] <- substring(b[[evens.names[i]]], first = 2, last = 2)
 (geno.matrix4Colony.recode <- c %>% 
   mutate_all(funs(str_replace(., "B", "1"))) %>%
   mutate_all(funs(str_replace(., "A", "2"))) %>%
-  mutate(., across(everything(), ~replace_na(.x, 0))))
+  mutate_if(is.character,as.numeric) %>%
+  replace(is.na(.), 0))
 
 # Save genotype matrix to file, while also adding a column with sample number 
 write_delim(cbind(sampleID=paste("O", geno.matrix4Colony$sample.id, sep=""),
@@ -1121,8 +1188,8 @@ Here's a snapshot of the input file, truncating the genotype info (there are 53 
 ```
 'rkc_snps'  !Dataset name
 'rkc_colony'  !Output file name
-43         ! Number of offspring in the sample
-263        ! Number of loci
+42         ! Number of offspring in the sample
+333        ! Number of loci
 100        ! Seed for random number generator
 0          ! 0/1=Not updating/updating allele frequency
 2          ! 2/1=Dioecious/Monoecious species
