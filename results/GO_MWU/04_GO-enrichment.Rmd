@@ -2,7 +2,14 @@
 title: "04_GO-enrichment"
 author: "Laura H Spencer"
 date: "3/22/2022"
-output: html_document
+output: 
+  html_document
+    code_folding: hide
+    toc: yes
+    toc_depth: 6
+    toc_float: yes
+  pdf_document:
+    keep_tex: yes
 ---
 
 ```{r}
@@ -11,10 +18,14 @@ output: html_document
 # 
 # BiocManager::install("GSEABase")
 
+require(stringr)
 require(ggpubr)
 require(tidyverse)
 require(GSEABase)
 require(ape)
+library(splitstackshape) 
+install.packages("splitstackshape")
+
 ```
 
 In this notebook I use GO_MWU to perform a gene ontology enrichment analysis for gene sets of interest, which include 1) Differentially expressed genes (DEGs) derived from DESeq2, and 2) Modules of genes associated with pH, derived from WGCNA. The input files for each of the gene sets were generated in the DESeq2 and WGCNA notebooks. 
@@ -30,18 +41,18 @@ getwd()
 ```
 
 ```{r}
-goDatabase="go.obo" # download from http://www.geneontology.org/GO.downloads.ontology.shtml
-source("gomwu.functions.R")
+# goDatabase="go.obo" # download from http://www.geneontology.org/GO.downloads.ontology.shtml
+# source("gomwu.functions.R")
 ```
 
 ```{r}
-Term("GO:0042302")
+# Term("GO:0042302")
 ```
 
 Create a list of GO devisions, Biological Processes (BP), Molecular Functions (MF), Cellular Components (CC), to loop over 
 
 ```{r}
-goDivisions <- c("BP", "MF", "CC")
+# goDivisions <- c("BP", "MF", "CC")
 ```
 
 # NOTE:  I write separate GO_MWU functions for the DEG lists and the WGCNA module lists. This is because GO_MWU has different settings for those two types of analyses. 
@@ -51,105 +62,105 @@ goDivisions <- c("BP", "MF", "CC")
 ## Create a GO_MWU function for enrichment analysis of DEGs 
 
 ```{r}
-log(0.05, base = 10)
+# log(0.05, base = 10)
 ```
 Create an empty list in which to save the best GO terms from each enrichment analysis. This list consitutes GO terms that best represent *independent* groups of significant GO terms
 
 ```{r}
-best_GO <- list()
+# best_GO <- list()
 ```
 
 ```{r}
-go.mwu.degs <- function(contrast) {
-  
-  input = paste("DEGs_", contrast, ".csv", sep="")
-  goAnnotations = "DESeq-genes_for-GOMWU.tab"
-
-for (j in 1:length(goDivisions)) {
-  tryCatch({
-  
-# ------------- Calculating stats
-# It might take a few minutes for MF and BP. Do not rerun it if you just want to replot the data with different cutoffs, go straight to gomwuPlot. If you change any of the numeric values below, delete the files that were generated in previos runs first.
-
-gomwuStats(input, goDatabase, goAnnotations, goDivisions[j],
-	perlPath="C:/Strawberry/perl/bin/perl.exe", # replace with full path to perl executable if it is not in your system's PATH already
-	largest=0.75,  # a GO category will not be considered if it contains more than this fraction of the total number of genes
-	smallest=5,   # a GO category should contain at least this many genes to be considered
-	clusterCutHeight=0.25, # threshold for merging similar (gene-sharing) terms. See README for details.
-#	Alternative="g" # by default the MWU test is two-tailed; specify "g" or "l" of you want to test for "greater" or "less" instead. 
-	#Module=TRUE,Alternative="g" # un-remark this if you are analyzing a SIGNED WGCNA module (values: 0 for not in module genes, kME for in-module genes). In the call to gomwuPlot below, specify absValue=0.001 (count number of "good genes" that fall into the module)
-#	Module=TRUE # un-remark this if you are analyzing an UNSIGNED WGCNA module 
-)
-# do not continue if the printout shows that no GO terms pass 10% FDR.
-
-
-# ----------- Plotting results
-
-#quartz()
-pdf(file = paste("GO-tree_", contrast, "_", goDivisions[j], ".pdf", sep=""), height = length(results[[2]]$labels)/3)
-results=gomwuPlot(input,goAnnotations,goDivisions[j],
- 	#absValue=-log(0.05,10),   # genes with the measure value exceeding this will be counted as "good genes". This setting is for signed log-pvalues. Specify absValue=0.001 if you are doing Fisher's exact test for standard GO enrichment or analyzing a WGCNA module (all non-zero genes = "good genes").
- absValue=.5, # un-remark this if you are using log2-fold changes
- level1=0.05,level2=0.01,level3=0.001,	#stricter settings for many GO terms 
- #level1=0.1, # FDR threshold for plotting. Specify level1=1 to plot all GO categories containing genes exceeding the absValue.
- 	#level2=0.05, # FDR cutoff to print in regular (not italic) font.
- 	#level3=0.01, # FDR cutoff to print in large bold font.
- 	txtsize=1,    # decrease to fit more on one page, or increase (after rescaling the plot so the tree fits the text) for better "word cloud" effect
- 	treeHeight=0.5, # height of the hierarchical clustering tree
- 	#colors=c(color, color, color, color, color)
- colors=c("dodgerblue2","firebrick1","skyblue2","lightcoral") # these are default colors, un-remar and change if needed
- )
-mtext(paste(contrast, " - ", goDivisions[j], sep=""), side = 3, line = 3, adj = -.05, col="black")
-dev.off()
- # manually rescale the plot so the tree matches the text 
- # if there are too many categories displayed, try make it more stringent with level1=0.05,level2=0.01,level3=0.001.  
- 
- # text representation of results, with actual adjusted p-values
- print(results[[1]])
-
-
-# ------- extracting representative GOs
-
-# this module chooses GO terms that best represent *independent* groups of significant GO terms
-
-pcut=1e-2 # adjusted pvalue cutoff for representative GO
-hcut=0.9 # height at which cut the GO terms tree to get "independent groups". 
-
-# plotting the GO tree with the cut level (un-remark the next two lines to plot)
-# plot(results[[2]],cex=0.6)
-# abline(h=hcut,col="red")
-
-# cutting
-ct=cutree(results[[2]],h=hcut)
-annots=c();ci=1
-for (ci in unique(ct)) {
-  message(ci)
-	rn=names(ct)[ct==ci]
-	obs=grep("obsolete",rn)
-	if(length(obs)>0) { rn=rn[-obs] }
-	if (length(rn)==0) {next}
-	rr=results[[1]][rn,]
-	bestrr=rr[which(rr$pval==min(rr$pval)),]
-	best=1
-	if(nrow(bestrr)>1) {
-		nns=sub(" .+","",row.names(bestrr))
-		fr=c()
-		for (i in 1:length(nns)) { fr=c(fr,eval(parse(text=nns[i]))) }
-		best=which(fr==max(fr))
-	}
-	if (bestrr$pval[best]<=pcut) { annots=c(annots,sub("\\d+\\/\\d+ ","",row.names(bestrr)[best]))}
-}
-
-mwus=read.table(paste("MWU",goDivisions[j],input,sep="_"),header=T)
-bestGOs=mwus[mwus$name %in% annots,]
-print(bestGOs)
-
-# Save best go terms to list for use outside of function
-best_GO[[paste(contrast, goDivisions[j], sep="_")]] <<- bestGOs 
-},
-error=function(e){cat("ERROR:", conditionMessage(e), "\n")})
-}
-}
+# go.mwu.degs <- function(contrast) {
+#   
+#   input = paste("DEGs_", contrast, ".csv", sep="")
+#   goAnnotations = "DESeq-genes_for-GOMWU.tab"
+# 
+# for (j in 1:length(goDivisions)) {
+#   tryCatch({
+#   
+# # ------------- Calculating stats
+# # It might take a few minutes for MF and BP. Do not rerun it if you just want to replot the data with different cutoffs, go straight to gomwuPlot. If you change any of the numeric values below, delete the files that were generated in previos runs first.
+# 
+# gomwuStats(input, goDatabase, goAnnotations, goDivisions[j],
+# 	perlPath="C:/Strawberry/perl/bin/perl.exe", # replace with full path to perl executable if it is not in your system's PATH already
+# 	largest=0.75,  # a GO category will not be considered if it contains more than this fraction of the total number of genes
+# 	smallest=5,   # a GO category should contain at least this many genes to be considered
+# 	clusterCutHeight=0.25, # threshold for merging similar (gene-sharing) terms. See README for details.
+# #	Alternative="g" # by default the MWU test is two-tailed; specify "g" or "l" of you want to test for "greater" or "less" instead. 
+# 	#Module=TRUE,Alternative="g" # un-remark this if you are analyzing a SIGNED WGCNA module (values: 0 for not in module genes, kME for in-module genes). In the call to gomwuPlot below, specify absValue=0.001 (count number of "good genes" that fall into the module)
+# #	Module=TRUE # un-remark this if you are analyzing an UNSIGNED WGCNA module 
+# )
+# # do not continue if the printout shows that no GO terms pass 10% FDR.
+# 
+# 
+# # ----------- Plotting results
+# 
+# #quartz()
+# pdf(file = paste("GO-tree_", contrast, "_", goDivisions[j], ".pdf", sep=""), height = length(results[[2]]$labels)/3)
+# results=gomwuPlot(input,goAnnotations,goDivisions[j],
+#  	#absValue=-log(0.05,10),   # genes with the measure value exceeding this will be counted as "good genes". This setting is for signed log-pvalues. Specify absValue=0.001 if you are doing Fisher's exact test for standard GO enrichment or analyzing a WGCNA module (all non-zero genes = "good genes").
+#  absValue=.5, # un-remark this if you are using log2-fold changes
+#  level1=0.05,level2=0.01,level3=0.001,	#stricter settings for many GO terms 
+#  #level1=0.1, # FDR threshold for plotting. Specify level1=1 to plot all GO categories containing genes exceeding the absValue.
+#  	#level2=0.05, # FDR cutoff to print in regular (not italic) font.
+#  	#level3=0.01, # FDR cutoff to print in large bold font.
+#  	txtsize=1,    # decrease to fit more on one page, or increase (after rescaling the plot so the tree fits the text) for better "word cloud" effect
+#  	treeHeight=0.5, # height of the hierarchical clustering tree
+#  	#colors=c(color, color, color, color, color)
+#  colors=c("dodgerblue2","firebrick1","skyblue2","lightcoral") # these are default colors, un-remar and change if needed
+#  )
+# mtext(paste(contrast, " - ", goDivisions[j], sep=""), side = 3, line = 3, adj = -.05, col="black")
+# dev.off()
+#  # manually rescale the plot so the tree matches the text 
+#  # if there are too many categories displayed, try make it more stringent with level1=0.05,level2=0.01,level3=0.001.  
+#  
+#  # text representation of results, with actual adjusted p-values
+#  print(results[[1]])
+# 
+# 
+# # ------- extracting representative GOs
+# 
+# # this module chooses GO terms that best represent *independent* groups of significant GO terms
+# 
+# pcut=1e-2 # adjusted pvalue cutoff for representative GO
+# hcut=0.9 # height at which cut the GO terms tree to get "independent groups". 
+# 
+# # plotting the GO tree with the cut level (un-remark the next two lines to plot)
+# # plot(results[[2]],cex=0.6)
+# # abline(h=hcut,col="red")
+# 
+# # cutting
+# ct=cutree(results[[2]],h=hcut)
+# annots=c();ci=1
+# for (ci in unique(ct)) {
+#   message(ci)
+# 	rn=names(ct)[ct==ci]
+# 	obs=grep("obsolete",rn)
+# 	if(length(obs)>0) { rn=rn[-obs] }
+# 	if (length(rn)==0) {next}
+# 	rr=results[[1]][rn,]
+# 	bestrr=rr[which(rr$pval==min(rr$pval)),]
+# 	best=1
+# 	if(nrow(bestrr)>1) {
+# 		nns=sub(" .+","",row.names(bestrr))
+# 		fr=c()
+# 		for (i in 1:length(nns)) { fr=c(fr,eval(parse(text=nns[i]))) }
+# 		best=which(fr==max(fr))
+# 	}
+# 	if (bestrr$pval[best]<=pcut) { annots=c(annots,sub("\\d+\\/\\d+ ","",row.names(bestrr)[best]))}
+# }
+# 
+# mwus=read.table(paste("MWU",goDivisions[j],input,sep="_"),header=T)
+# bestGOs=mwus[mwus$name %in% annots,]
+# print(bestGOs)
+# 
+# # Save best go terms to list for use outside of function
+# best_GO[[paste(contrast, goDivisions[j], sep="_")]] <<- bestGOs 
+# },
+# error=function(e){cat("ERROR:", conditionMessage(e), "\n")})
+# }
+# }
 ```
 
 
@@ -158,24 +169,24 @@ error=function(e){cat("ERROR:", conditionMessage(e), "\n")})
 ## DEGs between ambient conditions (pH ~8.0) and moderate OA (pH ~7.8)
 
 ```{r}
-go.mwu.degs(contrast="amb-mod")
+#go.mwu.degs(contrast="amb-mod")
 ```
 
 ```{r}
-best_GO$`amb-mod_BP`
+#best_GO$`amb-mod_BP`
 ```
 
 
 ## DEGs between ambient conditions (pH ~8.0) and severe OA (pH ~7.5)
 
 ```{r}
-go.mwu.degs(contrast="amb-low")
+#go.mwu.degs(contrast="amb-low")
 ```
 
 ## DEGs between moderate conditions (pH ~8.0) and severe OA (pH ~7.5)
 
 ```{r}
-go.mwu.degs(contrast="mod-low")
+#go.mwu.degs(contrast="mod-low")
 ```
 
 # Identify enriched functions in genes within modules that are signficantly associated with pH (from WGCNA) 
@@ -183,92 +194,92 @@ go.mwu.degs(contrast="mod-low")
 The "color" argument refers to the color for each GO tree (so for some modules, it's best to make that a slightly different color)
 
 ```{r}
-go.mwu.wgcna <- function(file, module, color) {
-  
-  input=file # two columns of comma-separated values: gene id, continuous measure of significance. To perform standard GO enrichment analysis based on Fisher's exact test, use binary measure (0 or 1, i.e., either sgnificant or not).
-  
-  goAnnotations.wgcna="WGCNA-genes_for-GOMWU.tab" # two-column, tab-delimited, one line per gene, multiple GO terms separated by semicolon. If you have multiple lines per gene, use nrify_GOtable.pl prior to running this script.
-
-for (j in 1:length(goDivisions)) {
-  tryCatch({
-  
-# ------------- Calculating stats
-# It might take a few minutes for MF and BP. Do not rerun it if you just want to replot the data with different cutoffs, go straight to gomwuPlot. If you change any of the numeric values below, delete the files that were generated in previos runs first.
-
-    gomwuStats(input, goDatabase, goAnnotations.wgcna, goDivisions[j],
-	perlPath="perl", # replace with full path to perl executable if it is not in your system's PATH already
-	largest=0.90,  # a GO category will not be considered if it contains more than this fraction of the total number of genes
-	smallest=3,   # a GO category should contain at least this many genes to be considered
-	clusterCutHeight=0.25, # threshold for merging similar (gene-sharing) terms. See README for details.
-#	Alternative="g" # by default the MWU test is two-tailed; specify "g" or "l" of you want to test for "greater" or "less" instead. 
-	Module=TRUE,Alternative="g" # un-remark this if you are analyzing a SIGNED WGCNA module (values: 0 for not in module genes, kME for in-module genes). In the call to gomwuPlot below, specify absValue=0.001 (count number of "good genes" that fall into the module)
-#	Module=TRUE # un-remark this if you are analyzing an UNSIGNED WGCNA module 
-)
-# do not continue if the printout shows that no GO terms pass 10% FDR.
-
-# ----------- Plotting results
-
-#quartz()
-results=gomwuPlot(input,goAnnotations.wgcna,goDivisions[j],
- 	absValue=0.001,  #-log(0.05,10) # genes with the measure value exceeding this will be counted as "good genes". This setting is for signed log-pvalues. Specify absValue=0.001 if you are doing Fisher's exact test for standard GO enrichment or analyzing a WGCNA module (all non-zero genes = "good genes").
- #	absValue=1, # un-remark this if you are using log2-fold changes
- 	level1=0.1, # FDR threshold for plotting. Specify level1=1 to plot all GO categories containing genes exceeding the absValue.
- 	level2=0.05, # FDR cutoff to print in regular (not italic) font.
- 	level3=0.01, # FDR cutoff to print in large bold font.
- 	txtsize=1.2,    # decrease to fit more on one page, or increase (after rescaling the plot so the tree fits the text) for better "word cloud" effect
- 	treeHeight=0.5, # height of the hierarchical clustering tree
- 	#colors=c(color, color, color, color, color)
- colors=c("dodgerblue2","firebrick1","skyblue2","lightcoral") # these are default colors, un-remar and change if needed
- )
-mtext(paste(module, "-", goDivisions[j], sep=""), side = 3, line = .25, adj = 0, col=color) #module
- # manually rescale the plot so the tree matches the text 
- # if there are too many categories displayed, try make it more stringent with level1=0.05,level2=0.01,level3=0.001.  
- 
- # text representation of results, with actual adjusted p-values
- print(results[[1]])
-
-
-# ------- extracting representative GOs
-# this module chooses GO terms that best represent *independent* groups of significant GO terms
-
-pcut=1e-2 # adjusted pvalue cutoff for representative GO
-hcut=0.9 # height at which cut the GO terms tree to get "independent groups". 
-
-# plotting the GO tree with the cut level (un-remark the next two lines to plot)
-# plot(results[[2]],cex=0.6)
-# abline(h=hcut,col="red")
-
-# cutting
-ct=cutree(results[[2]],h=hcut)
-annots=c();ci=1
-for (ci in unique(ct)) {
-  message(ci)
-	rn=names(ct)[ct==ci]
-	obs=grep("obsolete",rn)
-	if(length(obs)>0) { rn=rn[-obs] }
-	if (length(rn)==0) {next}
-	rr=results[[1]][rn,]
-	bestrr=rr[which(rr$pval==min(rr$pval)),]
-	best=1
-	if(nrow(bestrr)>1) {
-		nns=sub(" .+","",row.names(bestrr))
-		fr=c()
-		for (i in 1:length(nns)) { fr=c(fr,eval(parse(text=nns[i]))) }
-		best=which(fr==max(fr))
-	}
-	if (bestrr$pval[best]<=pcut) { annots=c(annots,sub("\\d+\\/\\d+ ","",row.names(bestrr)[best]))}
-}
-
-mwus=read.table(paste("MWU",goDivisions[j],input,sep="_"),header=T)
-bestGOs=mwus[mwus$name %in% annots,]
-print(bestGOs)
-
-# Save best go terms to list for use outside of function
-best_GO[[paste(contrast, goDivisions[j], sep="_")]] <<- bestGOs 
-},
-error=function(e){cat("ERROR:", conditionMessage(e), "\n")})
-}
-}
+# go.mwu.wgcna <- function(file, module, color) {
+#   
+#   input=file # two columns of comma-separated values: gene id, continuous measure of significance. To perform standard GO enrichment analysis based on Fisher's exact test, use binary measure (0 or 1, i.e., either sgnificant or not).
+#   
+#   goAnnotations.wgcna="WGCNA-genes_for-GOMWU.tab" # two-column, tab-delimited, one line per gene, multiple GO terms separated by semicolon. If you have multiple lines per gene, use nrify_GOtable.pl prior to running this script.
+# 
+# for (j in 1:length(goDivisions)) {
+#   tryCatch({
+#   
+# # ------------- Calculating stats
+# # It might take a few minutes for MF and BP. Do not rerun it if you just want to replot the data with different cutoffs, go straight to gomwuPlot. If you change any of the numeric values below, delete the files that were generated in previos runs first.
+# 
+#     gomwuStats(input, goDatabase, goAnnotations.wgcna, goDivisions[j],
+# 	perlPath="perl", # replace with full path to perl executable if it is not in your system's PATH already
+# 	largest=0.90,  # a GO category will not be considered if it contains more than this fraction of the total number of genes
+# 	smallest=3,   # a GO category should contain at least this many genes to be considered
+# 	clusterCutHeight=0.25, # threshold for merging similar (gene-sharing) terms. See README for details.
+# #	Alternative="g" # by default the MWU test is two-tailed; specify "g" or "l" of you want to test for "greater" or "less" instead. 
+# 	Module=TRUE,Alternative="g" # un-remark this if you are analyzing a SIGNED WGCNA module (values: 0 for not in module genes, kME for in-module genes). In the call to gomwuPlot below, specify absValue=0.001 (count number of "good genes" that fall into the module)
+# #	Module=TRUE # un-remark this if you are analyzing an UNSIGNED WGCNA module 
+# )
+# # do not continue if the printout shows that no GO terms pass 10% FDR.
+# 
+# # ----------- Plotting results
+# 
+# #quartz()
+# results=gomwuPlot(input,goAnnotations.wgcna,goDivisions[j],
+#  	absValue=0.001,  #-log(0.05,10) # genes with the measure value exceeding this will be counted as "good genes". This setting is for signed log-pvalues. Specify absValue=0.001 if you are doing Fisher's exact test for standard GO enrichment or analyzing a WGCNA module (all non-zero genes = "good genes").
+#  #	absValue=1, # un-remark this if you are using log2-fold changes
+#  	level1=0.1, # FDR threshold for plotting. Specify level1=1 to plot all GO categories containing genes exceeding the absValue.
+#  	level2=0.05, # FDR cutoff to print in regular (not italic) font.
+#  	level3=0.01, # FDR cutoff to print in large bold font.
+#  	txtsize=1.2,    # decrease to fit more on one page, or increase (after rescaling the plot so the tree fits the text) for better "word cloud" effect
+#  	treeHeight=0.5, # height of the hierarchical clustering tree
+#  	#colors=c(color, color, color, color, color)
+#  colors=c("dodgerblue2","firebrick1","skyblue2","lightcoral") # these are default colors, un-remar and change if needed
+#  )
+# mtext(paste(module, "-", goDivisions[j], sep=""), side = 3, line = .25, adj = 0, col=color) #module
+#  # manually rescale the plot so the tree matches the text 
+#  # if there are too many categories displayed, try make it more stringent with level1=0.05,level2=0.01,level3=0.001.  
+#  
+#  # text representation of results, with actual adjusted p-values
+#  print(results[[1]])
+# 
+# 
+# # ------- extracting representative GOs
+# # this module chooses GO terms that best represent *independent* groups of significant GO terms
+# 
+# pcut=1e-2 # adjusted pvalue cutoff for representative GO
+# hcut=0.9 # height at which cut the GO terms tree to get "independent groups". 
+# 
+# # plotting the GO tree with the cut level (un-remark the next two lines to plot)
+# # plot(results[[2]],cex=0.6)
+# # abline(h=hcut,col="red")
+# 
+# # cutting
+# ct=cutree(results[[2]],h=hcut)
+# annots=c();ci=1
+# for (ci in unique(ct)) {
+#   message(ci)
+# 	rn=names(ct)[ct==ci]
+# 	obs=grep("obsolete",rn)
+# 	if(length(obs)>0) { rn=rn[-obs] }
+# 	if (length(rn)==0) {next}
+# 	rr=results[[1]][rn,]
+# 	bestrr=rr[which(rr$pval==min(rr$pval)),]
+# 	best=1
+# 	if(nrow(bestrr)>1) {
+# 		nns=sub(" .+","",row.names(bestrr))
+# 		fr=c()
+# 		for (i in 1:length(nns)) { fr=c(fr,eval(parse(text=nns[i]))) }
+# 		best=which(fr==max(fr))
+# 	}
+# 	if (bestrr$pval[best]<=pcut) { annots=c(annots,sub("\\d+\\/\\d+ ","",row.names(bestrr)[best]))}
+# }
+# 
+# mwus=read.table(paste("MWU",goDivisions[j],input,sep="_"),header=T)
+# bestGOs=mwus[mwus$name %in% annots,]
+# print(bestGOs)
+# 
+# # Save best go terms to list for use outside of function
+# best_GO[[paste(contrast, goDivisions[j], sep="_")]] <<- bestGOs 
+# },
+# error=function(e){cat("ERROR:", conditionMessage(e), "\n")})
+# }
+# }
 ```
 
 # pH-associated modules 
@@ -292,12 +303,12 @@ cbind(moduleTraitCor %>% as.data.frame(), moduleTraitPvalue %>% as.data.frame())
 DOWNREGULATED
 
 ```{r}
-# Line plot 
+# # Line plot 
 module.lineplots[[1]] # <--- NEED TO REMAKE WITH JUST DEGS
-
-#go.mwu.wgcna(file=paste("WGCNA-module_", modules[[1]], ".csv", sep=""), module = modules[[1]], color = modules[[1]])
-#go.mwu.wgcna(file=paste("WGCNA-module_", modules[[1]], "_DEGs.csv", sep=""), module = modules[[1]], color = modules[[1]]) # genes in module that are DEGs 
-go.mwu.wgcna(file=paste("WGCNA-module_", modules[[1]], "_GS05.csv", sep=""), module = modules[[1]], color = modules[[1]]) # genes in module with p.GS<0.05 
+# 
+# #go.mwu.wgcna(file=paste("WGCNA-module_", modules[[1]], ".csv", sep=""), module = modules[[1]], color = modules[[1]])
+# #go.mwu.wgcna(file=paste("WGCNA-module_", modules[[1]], "_DEGs.csv", sep=""), module = modules[[1]], color = modules[[1]]) # genes in module that are DEGs 
+# go.mwu.wgcna(file=paste("WGCNA-module_", modules[[1]], "_GS05.csv", sep=""), module = modules[[1]], color = modules[[1]]) # genes in module with p.GS<0.05 
 ```
 
 ## Background for DAVID 
@@ -317,7 +328,7 @@ z <- c(degs,
 
 # Copy Uniprot IDs to clipboard for DAVID
 geneInfo.mwu %>% filter(moduleColor == modules[[1]]) %>% 
-  filter(id %in% z) %>%
+#  filter(id %in% z) %>%
   dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
 ```
 
@@ -328,9 +339,10 @@ DOWNREGULATED
 module.lineplots[[2]]
 
 #go.mwu.wgcna(file=paste("WGCNA-module_", modules[[2]], ".csv", sep=""), module = modules[[2]], color = modules[[2]]) # all genes in module
-#go.mwu.wgcna(file=paste("WGCNA-module_", modules[[2]], "_DEGs.csv", sep=""), module = modules[[2]], color = modules[[2]]) # genes in module that are DEGs 
-go.mwu.wgcna(file=paste("WGCNA-module_", modules[[2]], "_GS05.csv", sep=""), module = modules[[2]], color = modules[[2]]) # genes in module with p.GS<0.05 
+#go.mwu.wgcna(file=paste("WGCNA-module_", modules[[2]], "_DEGs.csv", sep=""), module = modules[[2]], color = modules[[2]]) # genes in module that are DEGs
+#go.mwu.wgcna(file=paste("WGCNA-module_", modules[[2]], "_GS05.csv", sep=""), module = modules[[2]], color = modules[[2]]) # genes in module with p.GS<0.05
 ```
+
 # Test using DAVID - same results? 
 
 ```{r}
@@ -340,7 +352,7 @@ z <- c(degs,
 
 # Copy Uniprot IDs to clipboard for DAVID
 geneInfo.mwu %>% filter(moduleColor == modules[[2]]) %>% 
-  filter(id %in% z) %>%
+#  filter(id %in% z) %>%
   dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
 ```
 
@@ -353,7 +365,7 @@ module.lineplots[[3]]
 
 #go.mwu.wgcna(file=paste("WGCNA-module_", modules[[3]], ".csv", sep=""), module = modules[[3]], color = modules[[3]]) # all genes in module
 #go.mwu.wgcna(file=paste("WGCNA-module_", modules[[3]], "_DEGs.csv", sep=""), module = modules[[3]], color = modules[[3]]) # genes in module that are DEGs 
-go.mwu.wgcna(file=paste("WGCNA-module_", modules[[3]], "_GS05.csv", sep=""), module = modules[[3]], color = modules[[3]]) # genes in module with p.GS<0.05 
+#go.mwu.wgcna(file=paste("WGCNA-module_", modules[[3]], "_GS05.csv", sep=""), module = modules[[3]], color = modules[[3]]) # genes in module with p.GS<0.05 
 ```
 
 ```{r}
@@ -363,7 +375,7 @@ z <- c(degs,
 
 # Copy Uniprot IDs to clipboard for DAVID
 geneInfo.mwu %>% filter(moduleColor == modules[[3]]) %>% 
-  filter(id %in% z) %>%
+#  filter(id %in% z) %>%
   dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
 ```
 
@@ -375,7 +387,7 @@ module.lineplots[[4]]
 
 #go.mwu.wgcna(file=paste("WGCNA-module_", modules[[4]], ".csv", sep=""), module = modules[[4]], color = modules[[4]]) # all genes in module
 #go.mwu.wgcna(file=paste("WGCNA-module_", modules[[4]], "_DEGs.csv", sep=""), module = modules[[4]], color = modules[[4]]) # genes in module that are DEGs 
-go.mwu.wgcna(file=paste("WGCNA-module_", modules[[4]], "_GS05.csv", sep=""), module = modules[[4]], color = modules[[4]]) # genes in module with p.GS<0.05 
+#go.mwu.wgcna(file=paste("WGCNA-module_", modules[[4]], "_GS05.csv", sep=""), module = modules[[4]], color = modules[[4]]) # genes in module with p.GS<0.05 
 ```
 
 ```{r}
@@ -384,8 +396,8 @@ z <- c(degs,
        (geneInfo.mwu %>% filter(moduleColor == modules[[4]]) %>% filter(p.GS.pco2<0.05))$id)
 
 # Copy Uniprot IDs to clipboard for DAVID
-geneInfo.mwu %>% filter(moduleColor == modules[[4]]) %>% 
-  filter(id %in% z) %>%
+#geneInfo.mwu %>% filter(moduleColor == modules[[4]]) %>% 
+#  filter(id %in% z) %>%
   dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
 ```
 
@@ -398,7 +410,7 @@ module.lineplots[[5]]
 
 #go.mwu.wgcna(file=paste("WGCNA-module_", modules[[5]], ".csv", sep=""), module = modules[[5]], color = modules[[5]]) # all genes in module
 #go.mwu.wgcna(file=paste("WGCNA-module_", modules[[5]], "_DEGs.csv", sep=""), module = modules[[5]], color = modules[[5]]) # genes in module that are DEGs 
-go.mwu.wgcna(file=paste("WGCNA-module_", modules[[5]], "_GS05.csv", sep=""), module = modules[[5]], color = modules[[5]]) # genes in module with p.GS<0.05 
+#go.mwu.wgcna(file=paste("WGCNA-module_", modules[[5]], "_GS05.csv", sep=""), module = modules[[5]], color = modules[[5]]) # genes in module with p.GS<0.05 
 ```
 
 ```{r}
@@ -408,7 +420,7 @@ z <- c(degs,
 
 # Copy Uniprot IDs to clipboard for DAVID
 geneInfo.mwu %>% filter(moduleColor == modules[[5]]) %>% 
-  filter(id %in% z) %>%
+#  filter(id %in% z) %>%
   dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
 ```
 
@@ -421,7 +433,7 @@ module.lineplots[[6]]
 
 #go.mwu.wgcna(file=paste("WGCNA-module_", modules[[6]], ".csv", sep=""), module = modules[[6]], color = modules[[6]]) # all genes in module
 #go.mwu.wgcna(file=paste("WGCNA-module_", modules[[6]], "_DEGs.csv", sep=""), module = modules[[6]], color = modules[[6]]) # genes in module that are DEGs 
-go.mwu.wgcna(file=paste("WGCNA-module_", modules[[6]], "_GS05.csv", sep=""), module = modules[[6]], color = modules[[6]]) # genes in module with p.GS<0.05 
+#go.mwu.wgcna(file=paste("WGCNA-module_", modules[[6]], "_GS05.csv", sep=""), module = modules[[6]], color = modules[[6]]) # genes in module with p.GS<0.05 
 ```
 
 ```{r}
@@ -430,8 +442,8 @@ z <- c(degs,
        (geneInfo.mwu %>% filter(moduleColor == modules[[6]]) %>% filter(p.GS.pco2<0.05))$id)
 
 # Copy Uniprot IDs to clipboard for DAVID
-geneInfo.mwu %>% filter(moduleColor == modules[[6]]) %>% 
-  filter(id %in% z) %>%
+#geneInfo.mwu %>% filter(moduleColor == modules[[6]]) %>% 
+#  filter(id %in% z) %>%
   dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
 ```
 
@@ -443,7 +455,7 @@ module.lineplots[[7]]
 
 #go.mwu.wgcna(file=paste("WGCNA-module_", modules[[7]], ".csv", sep=""), module = modules[[7]], color = modules[[7]]) # all genes in module
 #go.mwu.wgcna(file=paste("WGCNA-module_", modules[[7]], "_DEGs.csv", sep=""), module = modules[[7]], color = modules[[7]]) # genes in module that are DEGs 
-go.mwu.wgcna(file=paste("WGCNA-module_", modules[[7]], "_GS05.csv", sep=""), module = modules[[7]], color = modules[[7]]) # genes in module with p.GS<0.05 
+#go.mwu.wgcna(file=paste("WGCNA-module_", modules[[7]], "_GS05.csv", sep=""), module = modules[[7]], color = modules[[7]]) # genes in module with p.GS<0.05 
 ```
 
 ```{r}
@@ -453,7 +465,7 @@ z <- c(degs,
 
 # Copy Uniprot IDs to clipboard for DAVID
 geneInfo.mwu %>% filter(moduleColor == modules[[7]]) %>% 
-  filter(id %in% z) %>%
+#  filter(id %in% z) %>%
   dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
 ```
 
@@ -464,7 +476,7 @@ DOWNREGULATED
 module.lineplots[[8]]
 
 #go.mwu.wgcna(file=paste("WGCNA-module_", modules[[8]], ".csv", sep=""), module = modules[[8]], color = modules[[8]]) # all genes in module
-go.mwu.wgcna(file=paste("WGCNA-module_", modules[[8]], "_DEGs.csv", sep=""), module = modules[[8]], color = modules[[8]]) # genes in module that are DEGs 
+#go.mwu.wgcna(file=paste("WGCNA-module_", modules[[8]], "_DEGs.csv", sep=""), module = modules[[8]], color = modules[[8]]) # genes in module that are DEGs 
 #go.mwu.wgcna(file=paste("WGCNA-module_", modules[[8]], "_GS05.csv", sep=""), module = modules[[8]], color = modules[[8]]) # genes in module with p.GS<0.05 
 ```
 
@@ -475,7 +487,7 @@ z <- c(degs,
 
 # Copy Uniprot IDs to clipboard for DAVID
 geneInfo.mwu %>% filter(moduleColor == modules[[8]]) %>% 
-  filter(id %in% z) %>%
+#  filter(id %in% z) %>%
   dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
 ```
 
@@ -488,7 +500,7 @@ module.lineplots[[9]]
 
 #go.mwu.wgcna(file=paste("WGCNA-module_", modules[[9]], ".csv", sep=""), module = modules[[9]], color = modules[[9]]) # all genes in module
 #go.mwu.wgcna(file=paste("WGCNA-module_", modules[[9]], "_DEGs.csv", sep=""), module = modules[[9]], color = modules[[9]]) # genes in module that are DEGs 
-go.mwu.wgcna(file=paste("WGCNA-module_", modules[[9]], "_GS05.csv", sep=""), module = modules[[9]], color = modules[[9]]) # genes in module with p.GS<0.05 
+#go.mwu.wgcna(file=paste("WGCNA-module_", modules[[9]], "_GS05.csv", sep=""), module = modules[[9]], color = modules[[9]]) # genes in module with p.GS<0.05 
 ```
 
 ```{r}
@@ -498,7 +510,7 @@ z <- c(degs,
 
 # Copy Uniprot IDs to clipboard for DAVID
 geneInfo.mwu %>% filter(moduleColor == modules[[9]]) %>% 
-  filter(id %in% z) %>%
+#  filter(id %in% z) %>%
   dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
 ```
 
@@ -511,7 +523,7 @@ module.lineplots[[10]]
 
 #go.mwu.wgcna(file=paste("WGCNA-module_", modules[[10]], ".csv", sep=""), module = modules[[10]], color = modules[[10]]) # all genes in module
 #go.mwu.wgcna(file=paste("WGCNA-module_", modules[[10]], "_DEGs.csv", sep=""), module = modules[[10]], color = modules[[10]]) # genes in module that are DEGs 
-go.mwu.wgcna(file=paste("WGCNA-module_", modules[[10]], "_GS05.csv", sep=""), module = modules[[10]], color = modules[[10]]) # genes in module with p.GS<0.05 
+#go.mwu.wgcna(file=paste("WGCNA-module_", modules[[10]], "_GS05.csv", sep=""), module = modules[[10]], color = modules[[10]]) # genes in module with p.GS<0.05 
 ```
 
 ```{r}
@@ -521,7 +533,7 @@ z <- c(degs,
 
 # Copy Uniprot IDs to clipboard for DAVID
 geneInfo.mwu %>% filter(moduleColor == modules[[10]]) %>% 
-  filter(id %in% z) %>%
+#  filter(id %in% z) %>%
   dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
 ```
 
@@ -534,7 +546,7 @@ module.lineplots[[11]]
 
 #go.mwu.wgcna(file=paste("WGCNA-module_", modules[[11]], ".csv", sep=""), module = modules[[11]], color = modules[[11]]) # all genes in module
 #go.mwu.wgcna(file=paste("WGCNA-module_", modules[[11]], "_DEGs.csv", sep=""), module = modules[[11]], color = modules[[11]]) # genes in module that are DEGs 
-go.mwu.wgcna(file=paste("WGCNA-module_", modules[[11]], "_GS05.csv", sep=""), module = modules[[11]], color = modules[[11]]) # genes in module with p.GS<0.05 
+#go.mwu.wgcna(file=paste("WGCNA-module_", modules[[11]], "_GS05.csv", sep=""), module = modules[[11]], color = modules[[11]]) # genes in module with p.GS<0.05 
 ```
 
 ```{r}
@@ -544,7 +556,7 @@ z <- c(degs,
 
 # Copy Uniprot IDs to clipboard for DAVID
 geneInfo.mwu %>% filter(moduleColor == modules[[11]]) %>% 
-  filter(id %in% z) %>%
+#  filter(id %in% z) %>%
   dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
 ```
 
@@ -557,7 +569,7 @@ module.lineplots[[12]]
 
 #go.mwu.wgcna(file=paste("WGCNA-module_", modules[[12]], ".csv", sep=""), module = modules[[12]], color = modules[[12]]) # all genes in module
 #go.mwu.wgcna(file=paste("WGCNA-module_", modules[[12]], "_DEGs.csv", sep=""), module = modules[[12]], color = modules[[12]]) # genes in module that are DEGs 
-go.mwu.wgcna(file=paste("WGCNA-module_", modules[[12]], "_GS05.csv", sep=""), module = modules[[12]], color = modules[[12]]) # genes in module with p.GS<0.05 
+#go.mwu.wgcna(file=paste("WGCNA-module_", modules[[12]], "_GS05.csv", sep=""), module = modules[[12]], color = modules[[12]]) # genes in module with p.GS<0.05 
 ```
 
 ```{r}
@@ -567,7 +579,7 @@ z <- c(degs,
 
 # Copy Uniprot IDs to clipboard for DAVID
 geneInfo.mwu %>% filter(moduleColor == modules[[12]]) %>% 
-  filter(id %in% z) %>%
+#  filter(id %in% z) %>%
   dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
 ```
 
@@ -580,7 +592,7 @@ module.lineplots[[13]]
 
 #go.mwu.wgcna(file=paste("WGCNA-module_", modules[[13]], ".csv", sep=""), module = modules[[13]], color = modules[[13]]) # all genes in module
 #go.mwu.wgcna(file=paste("WGCNA-module_", modules[[13]], "_DEGs.csv", sep=""), module = modules[[13]], color = modules[[13]]) # genes in module that are DEGs 
-go.mwu.wgcna(file=paste("WGCNA-module_", modules[[13]], "_GS05.csv", sep=""), module = modules[[13]], color = modules[[13]]) # genes in module with p.GS<0.05 
+#go.mwu.wgcna(file=paste("WGCNA-module_", modules[[13]], "_GS05.csv", sep=""), module = modules[[13]], color = modules[[13]]) # genes in module with p.GS<0.05 
 ```
 
 ```{r}
@@ -590,7 +602,7 @@ z <- c(degs,
 
 # Copy Uniprot IDs to clipboard for DAVID
 geneInfo.mwu %>% filter(moduleColor == modules[[13]]) %>% 
-  filter(id %in% z) %>%
+#  filter(id %in% z) %>%
   dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
 ```
 
@@ -603,7 +615,7 @@ module.lineplots[[14]]
 
 #go.mwu.wgcna(file=paste("WGCNA-module_", modules[[14]], ".csv", sep=""), module = modules[[14]], color = modules[[14]]) # all genes in module
 #go.mwu.wgcna(file=paste("WGCNA-module_", modules[[14]], "_DEGs.csv", sep=""), module = modules[[14]], color = modules[[14]]) # genes in module that are DEGs 
-go.mwu.wgcna(file=paste("WGCNA-module_", modules[[14]], "_GS05.csv", sep=""), module = modules[[14]], color = modules[[14]]) # genes in module with p.GS<0.05 
+#go.mwu.wgcna(file=paste("WGCNA-module_", modules[[14]], "_GS05.csv", sep=""), module = modules[[14]], color = modules[[14]]) # genes in module with p.GS<0.05 
 ```
 
 ```{r}
@@ -613,29 +625,137 @@ z <- c(degs,
 
 # Copy Uniprot IDs to clipboard for DAVID
 geneInfo.mwu %>% filter(moduleColor == modules[[14]]) %>% 
+#  filter(id %in% z) %>%
+  dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
+```
+
+# Modules of interest - those that aren't sign. correlated woth pCO2 but are DOWN UP DOWN, i.e. higher only in moderate OA 
+
+Modules of interest - those that contain a substantial portion of DEG 
+c("darkseagreen4", "lightcyan1","black", "lightsteelblue", "tan", "sienna", "navajowhite2", "skyblue3")
+
+```{r}
+modules.all.lineplots[["darkseagreen4"]]
+```
+
+```{r}
+# Create vector of genes that is either a DEG or is associated with pCO2 in this module
+z <- c(degs,
+       (geneInfo.mwu %>% filter(moduleColor == "darkseagreen4") %>% filter(p.GS.pco2<0.05))$id)
+
+# Copy Uniprot IDs to clipboard for DAVID
+geneInfo.mwu %>% filter(moduleColor == "darkseagreen4") %>% 
   filter(id %in% z) %>%
   dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
 ```
 
-## Modules of interest - those that aren't sign. correlated woth pCO2 but are DOWN UP DOWN, i.e. higher only in moderate OA 
+```{r}
+modules.all.lineplots[["lightcyan1"]]
+```
 
-`modules.interest`
+```{r}
+# Create vector of genes that is either a DEG or is associated with pCO2 in this module
+z <- c(degs,
+       (geneInfo.mwu %>% filter(moduleColor == "lightcyan1") %>% filter(p.GS.pco2<0.05))$id)
+
+# Copy Uniprot IDs to clipboard for DAVID
+geneInfo.mwu %>% filter(moduleColor == "lightcyan1") %>% 
+  filter(id %in% z) %>%
+  dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
+```
+
+c("darkseagreen4", "lightcyan1","black", "lightsteelblue", "tan", "sienna", "navajowhite2", "skyblue3")
+
+```{r}
+modules.all.lineplots[["black"]]
+```
+
+```{r}
+# Create vector of genes that is either a DEG or is associated with pCO2 in this module
+z <- c(degs,
+       (geneInfo.mwu %>% filter(moduleColor == "black") %>% filter(p.GS.pco2<0.05))$id)
+
+# Copy Uniprot IDs to clipboard for DAVID
+geneInfo.mwu %>% filter(moduleColor == "black") %>% 
+  filter(id %in% z) %>%
+  dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
+```
 
 ```{r}
 modules.all.lineplots[["lightsteelblue"]]
-go.mwu.wgcna(module="lightsteelblue", color="lightsteelblue")
 ```
 
 ```{r}
-modules.all.lineplots[["mediumpurple2"]]
-go.mwu.wgcna(module="mediumpurple2", color="mediumpurple2")
+# Create vector of genes that is either a DEG or is associated with pCO2 in this module
+z <- c(degs,
+       (geneInfo.mwu %>% filter(moduleColor == "lightsteelblue") %>% filter(p.GS.pco2<0.05))$id)
+
+# Copy Uniprot IDs to clipboard for DAVID
+geneInfo.mwu %>% filter(moduleColor == "lightsteelblue") %>% 
+  filter(id %in% z) %>%
+  dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
+```
+
+
+```{r}
+modules.all.lineplots[["tan"]]
 ```
 
 ```{r}
-modules.all.lineplots[["coral2"]]
-go.mwu.wgcna(module="coral2", color="coral2")
+# Create vector of genes that is either a DEG or is associated with pCO2 in this module
+z <- c(degs,
+       (geneInfo.mwu %>% filter(moduleColor == "tan") %>% filter(p.GS.pco2<0.05))$id)
+
+# Copy Uniprot IDs to clipboard for DAVID
+geneInfo.mwu %>% filter(moduleColor == "tan") %>% 
+  filter(id %in% z) %>%
+  dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
 ```
 
+```{r}
+modules.all.lineplots[["sienna3"]]
+```
+
+```{r}
+# Create vector of genes that is either a DEG or is associated with pCO2 in this module
+z <- c(degs,
+       (geneInfo.mwu %>% filter(moduleColor == "sienna3") %>% filter(p.GS.pco2<0.05))$id)
+
+# Copy Uniprot IDs to clipboard for DAVID
+geneInfo.mwu %>% filter(moduleColor == "sienna3") %>% 
+  filter(id %in% z) %>%
+  dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
+```
+
+```{r}
+modules.all.lineplots[["navajowhite2"]]
+```
+
+```{r}
+# Create vector of genes that is either a DEG or is associated with pCO2 in this module
+z <- c(degs,
+       (geneInfo.mwu %>% filter(moduleColor == "navajowhite2") %>% filter(p.GS.pco2<0.05))$id)
+
+# Copy Uniprot IDs to clipboard for DAVID
+geneInfo.mwu %>% filter(moduleColor == "navajowhite2") %>% 
+  filter(id %in% z) %>%
+  dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
+```
+
+```{r}
+modules.all.lineplots[["skyblue3"]]
+```
+
+```{r}
+# Create vector of genes that is either a DEG or is associated with pCO2 in this module
+z <- c(degs,
+       (geneInfo.mwu %>% filter(moduleColor == "skyblue3") %>% filter(p.GS.pco2<0.05))$id)
+
+# Copy Uniprot IDs to clipboard for DAVID
+geneInfo.mwu %>% filter(moduleColor == "skyblue3") %>% 
+  filter(id %in% z) %>%
+  dplyr::select(SPID) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
+```
 
 ## REALLY HELPFUL/CRITICAL STEP - for understanding which genes are super influential in determining the GO enrichment results
 
@@ -651,126 +771,1317 @@ Green module:
 "nervous system development"
 "system development"
 
+
 ```{r}
-level <- "BP" #select BP, MF, or CC
-MOD <- "pink"
-GO <- "negative regulation of cell proliferation"
-GO <- "immune|cytotoxicity|pattern recognition"
-GO <- "viral"
-GO <- "immune"
-
-
-# GO MWU 
-read_delim(file = paste(level, "_WGCNA-module_", MOD, ".csv", sep=""), delim = "\t") %>% #filter(name==GO) %>% 
-filter(., grepl(GO,name)) %>% 
-  left_join(geneInfo.mwu, by = c("seq"="id")) %>% filter(moduleColor == MOD)%>% 
-  select(seq, SPID, protein_names) %>% unique() %>% View()
-
-  # If interested- further filter to only retain genes that were differentially expressed 
-  filter(seq %in% unique(c(rownames(diffex.AM),rownames(diffex.AL), rownames(diffex.ML)))) %>%
-  View()
-
+read_delim(file = paste("DAVID_green_DEGs-or-GS.txt", sep=""), delim = "\t") %>%  separate(Term, into = c("GO", "name"), sep = "~") %>% View()
+filter(., grepl("intracellular protein transport",name)) %>% View()
 
 # DAVID 
-z <- c(degs,
-       (geneInfo.mwu %>% filter(moduleColor == MOD) %>%
-          filter(p.GS.pco2<0.05))$id)
+level <- "BP" #select BP, MF, or CC
+MOD <- "pink"
 
-read_delim(file = paste("DAVID_", MOD, "_DEGs-or-GS.txt", sep=""), delim = "\t") %>% 
-  separate(Term, into = c("GO", "name"), sep = "~") %>% 
+# magenta
+c("response to virus", "interaction with symbiont")
+
+# pink
+"positive regulation of microglial cell activation|proteolysis|response to xenobiotic stimulus"
+#"viral entry into host cell|virion assembly|viral genome integration into host DNA"
+#"proteolysis"
+#"positive regulation of microglial cell activation|response to xenobiotic stimulus"
+
+# coral1
+"activation of innate immune response"
+
+# plum1
+"chaperone mediated protein folding requiring cofactor"
+
+
+# get list of degs or genes with p.GS < 0.05
+z <- unique(c(degs,
+       (geneInfo.mwu %>% filter(moduleColor %in% c("magenta", "pink", "plum1")) %>%
+          filter(p.GS.pco2<0.05))$id))
+
+# get list of uniprot ids contributing to enriched GO term 
+
+# MAGENTA
+h <- read_delim(file = paste("DAVID_magenta_DEGs-or-GS.txt", sep=""), delim = "\t") %>%  separate(Term, into = c("GO", "name"), sep = "~") %>% 
+filter(., grepl("response to virus",name)) %>%
+select(Genes) %>% noquote() %>% 
+cSplit(., 'Genes', ',') %>%
+pivot_longer(cols = everything()) %>% select(value) %>% unlist() %>% as.vector()
+
+# PINK
+j <- read_delim(file = paste("DAVID_pink_DEGs-or-GS.txt", sep=""), delim = "\t") %>%  separate(Term, into = c("GO", "name"), sep = "~") %>% 
 filter(., grepl("positive regulation of microglial cell activation",name)) %>%
-  select(Genes) %>% noquote() %>% separate(Genes, sep = ",", into=c("a","b","c","d")) %>%
-  pivot_longer(cols = everything()) %>%
-  left_join(geneInfo.mwu %>% filter(moduleColor == MOD) %>% filter(id %in% z) %>% select(id, SPID),
-            by=c("value"="SPID"))
+select(Genes) %>% noquote() %>% 
+cSplit(., 'Genes', ',') %>%
+pivot_longer(cols = everything()) %>% select(value) %>% unlist() %>% as.vector()
+
+# CORAL1
+k <- read_delim(file = paste("DAVID_coral1_DEGs-or-GS.txt", sep=""), delim = "\t") %>%  separate(Term, into = c("GO", "name"), sep = "~") %>% 
+filter(., grepl("activation of innate immune response",name)) %>%
+select(Genes) %>% noquote() %>% 
+cSplit(., 'Genes', ',') %>%
+pivot_longer(cols = everything()) %>% select(value) %>% unlist() %>% as.vector()
+
+# Find gene ids 
+q <- geneInfo.mwu %>% filter(moduleColor %in% c("magenta", "pink", "coral1")) %>% filter(id %in% z) %>% 
+  filter(SPID %in% c(h,j,k)) #%>%
+#  mutate(process="immune-response")
+
+
+# CORAL1
+m <- read_delim(file = paste("DAVID_plum1_DEGs-or-GS.txt", sep=""), delim = "\t") %>%  separate(Term, into = c("GO", "name"), sep = "~") %>% 
+filter(., grepl("chaperone mediated protein folding requiring cofactor",name)) %>%
+select(Genes) %>% noquote() %>% 
+cSplit(., 'Genes', ',') %>%
+pivot_longer(cols = everything()) %>% select(value) %>% unlist() %>% as.vector()
+
+n <- read_delim(file = paste("DAVID_green_DEGs-or-GS.txt", sep=""), delim = "\t") %>%  separate(Term, into = c("GO", "name"), sep = "~") %>% 
+filter(., grepl("signal transduction",name)) %>%
+select(Genes) %>% noquote() %>% 
+cSplit(., 'Genes', ',') %>%
+pivot_longer(cols = everything()) %>% select(value) %>% unlist() %>% as.vector()
+
+r <- rbind(geneInfo.mwu %>% filter(moduleColor %in% c("ivory", "green", "lightgreen")) %>% filter(., grepl("Octopamine|tyramine receptor|mitogen-activated protein kinase|Orcokinin", protein_names)),
+           geneInfo.mwu %>% filter(moduleColor %in% c("plum1", "green")) %>% filter(SPID %in% m)) # c(m,n)))
+  
+genes.stats %>% filter(gene %in% c(q$id, r$id)) %>% 
+  left_join(rbind(q,r) %>% select(id, moduleColor), by=c("gene"="id")) %>%
+  mutate(moduleColor = as.factor(moduleColor)) %>%
+  mutate(process=case_when(
+    moduleColor %in% unique(q$moduleColor) ~ "immune-response",
+    moduleColor %in% unique(r$moduleColor) ~ "stress-response")) %>%
+
+  #ggplot(aes(x=Treatment, y=median, colour=Treatment)) + geom_boxplot(outlier.shape = NA) + geom_jitter(size=2, width = 0.25) + 
+  mutate(pco2=Treatment) %>%
+  mutate_at("pco2", function(x) {
+    case_when(
+      x == "Ambient" ~ 371,
+      x == "Moderate" ~ 704,
+      x == "Low" ~ 1424)}) %>%
+  # mutate(pH=Treatment) %>%
+  # mutate_at("pH", function(x) {
+  #   case_when(
+  #     x == "Ambient" ~ 8.0,
+  #     x == "Moderate" ~ 7.8,
+  #     x == "Low" ~ 7.6)}) %>%
+  ggplot(aes(x=pco2, y=mean, group=gene, color=moduleColor)) + geom_line(size=.01) +geom_point() + 
+  scale_x_continuous(name ="pCO2 treatment", 
+                    limits=c(350, 1450),
+                   breaks=c(370, 700, 1425)) +
+                   #  limits=c(7.56, 8.04),
+                   # breaks=c(7.6, 7.8, 8.0)) +
+  # geom_errorbar(aes(ymin=median-sd, ymax=median+sd), width=.2,
+  #                position=position_dodge(0.05)) +
+  theme_minimal() +
+  theme(legend.position = "right") +
+  facet_wrap(~process) + 
+  scale_color_manual(values = c("magenta" = "magenta2",
+                                "pink"="pink3",
+                                "coral1"="coral1",
+                                "ivory"="green",
+                                "green"="green",
+                                "lightgreen"="green",
+                                "plum1"="blue"), 
+                     name = "Enriched function", 
+                     labels = c("magenta"="response to virus", 
+                                "pink"="positive regulation of microglial cell activation", 
+                                "coral1"="activation of innate immune response",
+                                "plum1"="chaperone mediated protein folding",
+                                #"green"="Signal transduction",
+                                "lightgreen"="Octopamine & tyromine receptors")) + # "ivory"=NA, "lightgreen"=NA
+  ggtitle("Expression of immune-response genes") + ylab("median count\n(variance-stabilized transformed)") + xlab("pCO2 concentration")
 
   
-
-
-
-    
+# Individual genes
+for (i in 1:length(q$id)) {
+a <-  plotCounts(dds.DESeq.pH, gene=q$id[i], intgroup=c("Treatment"), returnData = TRUE) %>% 
+  mutate(Treatment=factor(Treatment, levels=c("Ambient", "Moderate", "Low")))
   
-geneInfo.mwu %>% filter(grepl("Cuticle", protein_names)) %>% #View()
-  filter(id %in% unique(c(rownames(diffex.AM),rownames(diffex.AL), rownames(diffex.ML)))) %>% View()
+print(ggplot(a %>% rownames_to_column("sample"),
+       aes(x=Treatment, y=count, color=Treatment, label=sample)) +
+  #geom_boxplot(outlier.shape = NA) +
+  geom_point(size=2, position=position_jitter(w = 0.15,h = 0)) +
+    #geom_text(size=2) +
+    theme_bw() +
+    ggtitle(paste(gsub("\\(.*","",q$protein_names[i]), "\n", q$SPID[i], " (", q$id[i], ")")) +
+    theme(axis.title.x = element_blank(), plot.title = element_text(hjust = 0.5, size=10), legend.position = "none"))
+}
 
 
-read_delim(file = paste(level, "_WGCNA-module_", MOD, ".csv", sep=""), delim = "\t") %>% 
-  left_join(geneInfo.mwu, by = c("seq"="id")) %>% View()
 
-geneInfo.mwu %>% filter(grepl("Mannosyltransferase", protein_names)) %>% #View()
-  filter(id %in% rownames(diffex.AL)) %>% dplyr::select(id, SPID, protein_names, moduleColor, GS.pco2, p.GS.pco2) %>%
-  left_join(diffex.AL %>% as.data.frame() %>% rownames_to_column("id"))
-           #unique(c(rownames(diffex.AM),rownames(diffex.AL), rownames(diffex.ML))))
-
-
-geneInfo.mwu %>% filter(moduleColor =="lightcyan") %>%
-  left_join(P.camt.blast.GO[,c("gene_id","gene_ontology_i_ds")], by = c("id"="gene_id")) %>%
-  filter(grepl("Cuticle", protein_names)) %>% select(id) %>% unlist() %>% as.vector()
-
-Term("GO:0032197")
-
-geneInfo.mwu.mods[["magenta"]] %>% filter(sign!=0) %>% left_join(P.camt.blast.GO[c("gene_id", "spid", "evalue", "protein_names", "gene_ontology_biological_process", "gene_ontology_i_ds")], by=c("id"="gene_id")) %>% 
-  filter(grepl("transposon|LINE-1|retrotransposable|transposable element|mobile element jockey", protein_names)) %>% View() 
+c("orcokinin", )
+c("g74523")
 ```
-# Calculate % of genes that are transposable elements in each module, and in the background 
+
+
+## Individual genes 
 
 ```{r}
-te.perc <- data.frame(module= character(0), te.perc= numeric(0), te.n= integer(0))
+a <-  plotCounts(dds.DESeq.pH, gene="g21591", intgroup=c("Treatment"), returnData = TRUE) %>% 
+  mutate(Treatment=factor(Treatment, levels=c("Ambient", "Moderate", "Low")))
+  
+ggplotly(ggplot(a %>% rownames_to_column("sample"),
+       aes(x=Treatment, y=count, color=Treatment, label=sample)) +
+  #geom_boxplot(outlier.shape = NA) +
+  geom_point(size=2, position=position_jitter(w = 0.15,h = 0)) +
+    #geom_text(size=2) +
+    theme_bw() +
+    #ggtitle(paste(gsub("\\(.*","",q$protein_names[i]), "\n", q$SPID[i], " (", q$id[i], ")")) +
+    theme(axis.title.x = element_blank(), plot.title = element_text(hjust = 0.5, size=10), legend.position = "none"))
+```
 
-# add row with %TEs in all genes (fyi could use any module color for this first step, they all have all genes)
-te.perc[1,1] <- "background"
-te.perc[1,2] <- (geneInfo.mwu.mods[["purple"]] %>% left_join(P.camt.blast.GO[c("gene_id", "protein_names", "gene_ontology_biological_process", "gene_ontology_i_ds")], by=c("id"="gene_id")) %>% 
-  filter(grepl("transposon|LINE-1|retrotransposable element|transposable element|mobile element jockey", protein_names)) %>% nrow()) / (geneInfo.mwu.mods[["purple"]] %>% nrow)
-te.perc[1,3] <- geneInfo.mwu.mods[["purple"]] %>% left_join(P.camt.blast.GO[c("gene_id", "protein_names", "gene_ontology_biological_process", "gene_ontology_i_ds")], by=c("id"="gene_id")) %>% 
-  filter(grepl("transposon|LINE-1|retrotransposable element|transposable element|mobile element jockey", protein_names)) %>% nrow()
+# POTENTIAL PLOTS FOR PAPER 
+
+## Use DAVID enrichment results to make functional line plots 
+
+```{r}
+# # Check out enriched biological processes as per DAVID 
+# read_delim(file = paste("DAVID_AL-UP_FC0.5.txt", sep=""), delim = "\t") %>%
+#   filter(PValue<0.05) %>% filter(Category=="GOTERM_BP_DIRECT") %>% View()
+# 
+# read_delim(file = paste("DAVID_AL-DOWN_FC0.5.txt", sep=""), delim = "\t") %>%
+#   filter(PValue<0.05) %>% filter(Category=="GOTERM_BP_DIRECT") %>% View()
+# 
+# read_delim(file = paste("DAVID_AM-UP_FC0.5.txt", sep=""), delim = "\t") %>%
+#   filter(PValue<0.05) %>% filter(Category=="GOTERM_BP_DIRECT") %>% View()
+# 
+# read_delim(file = paste("DAVID_AM-DOWN_FC0.5.txt", sep=""), delim = "\t") %>%
+#   filter(PValue<0.05) %>% filter(Category=="GOTERM_BP_DIRECT") %>% View()
+# 
+# read_delim(file = paste("DAVID_ML-UP_FC0.5.txt", sep=""), delim = "\t") %>%
+#   filter(PValue<0.05) %>% filter(Category=="GOTERM_BP_DIRECT") %>% View()
+# 
+# read_delim(file = paste("DAVID_ML-DOWN_FC0.5.txt", sep=""), delim = "\t") %>%
+#   filter(PValue<0.05) %>% filter(Category=="GOTERM_BP_DIRECT") %>% View()
+# 
+# # pco2-correlated modules
+# 
+# # negative correlated with pco2 
+# 
+# #Protein biosynthesis
+# read_delim(file = paste("DAVID_magenta_DEGs-or-GS.txt", sep=""), delim = "\t") %>%
+#   filter(Category=="UP_KW_BIOLOGICAL_PROCESS") %>% 
+#   filter(PValue<0.05) %>% View()
+# 
+# #Tricarboxylic acid cycle
+# read_delim(file = paste("DAVID_lightcyan_DEGs-or-GS.txt", sep=""), delim = "\t") %>%
+#   filter(Category=="UP_KW_BIOLOGICAL_PROCESS") %>% 
+#   filter(PValue<0.05) %>% View()
+# 
+# #Steroid metabolism
+# read_delim(file = paste("DAVID_firebrick4_DEGs-or-GS.txt", sep=""), delim = "\t") %>%
+#   filter(Category=="UP_KW_BIOLOGICAL_PROCESS") %>% 
+#   filter(PValue<0.05) %>% View()
+# 
+# #Cell adhesion
+# read_delim(file = paste("DAVID_darkviolet_DEGs-or-GS.txt", sep=""), delim = "\t") %>%
+#   filter(Category=="UP_KW_BIOLOGICAL_PROCESS") %>% 
+#   filter(PValue<0.05) %>% View()
+# 
+# #Antiviral defense
+# read_delim(file = paste("DAVID_coral1_DEGs-or-GS.txt", sep=""), delim = "\t") %>%
+#   filter(Category=="UP_KW_BIOLOGICAL_PROCESS") %>% 
+#   filter(PValue<0.05) %>% View()
+# 
+# #Stress response
+# read_delim(file = paste("DAVID_plum1_DEGs-or-GS.txt", sep=""), delim = "\t") %>%
+#   filter(Category=="UP_KW_BIOLOGICAL_PROCESS") %>% 
+#   filter(PValue<0.05) %>% View()
+# 
+# #DNA integration
+# read_delim(file = paste("DAVID_pink_DEGs-or-GS.txt", sep=""), delim = "\t") %>%
+#   filter(Category=="UP_KW_BIOLOGICAL_PROCESS") %>% 
+#   filter(PValue<0.05) %>% View()
+# 
+# # positive correlated with pco2
+# read_delim(file = paste("DAVID_green_DEGs-or-GS.txt", sep=""), delim = "\t") %>%
+#   filter(Category=="UP_KW_BIOLOGICAL_PROCESS") %>% 
+#   filter(PValue<0.05) %>% View()
+# 
+# #Transcription regulation
+# read_delim(file = paste("DAVID_green_DEGs-or-GS.txt", sep=""), delim = "\t") %>%
+#   filter(Category=="UP_KW_BIOLOGICAL_PROCESS") %>% 
+#   filter(PValue<0.05) %>% View()
+# 
+# #DNA recombination
+# read_delim(file = paste("DAVID_purple_DEGs-or-GS.txt", sep=""), delim = "\t") %>%
+#   filter(Category=="UP_KW_BIOLOGICAL_PROCESS") %>% 
+#   filter(PValue<0.05) %>% View()
+# 
+# #Transcription regulation
+# read_delim(file = paste("DAVID_lightgreen_DEGs-or-GS.txt", sep=""), delim = "\t") %>%
+#   filter(Category=="UP_KW_BIOLOGICAL_PROCESS") %>% 
+#   filter(PValue<0.05) %>% View()
+# 
+# #cGMP biosynthesis
+# read_delim(file = paste("DAVID_ivory_DEGs-or-GS.txt", sep=""), delim = "\t") %>%
+#   filter(Category=="UP_KW_BIOLOGICAL_PROCESS") %>% 
+#   filter(PValue<0.05) %>% View()
+```
+
+
+```{r}
+# # Set the max number of genes to show in each line plot (too many = too busy)
+# ngenes <- 10
+# 
+# translation <- left_join(read_delim(file = paste("DAVID_AL-DOWN_FC0.5.txt", sep=""), delim = "\t") %>%
+#       filter(Category=="GOTERM_BP_DIRECT") %>% filter(PValue<0.05) %>%
+#       filter(grepl("~translation", Term)) %>% select(Genes) %>%
+#       mutate(Genes = strsplit(as.character(Genes), ", ")) %>% unnest(Genes),
+#     P.camt.blast.GO %>% dplyr::select(gene_id, spid, protein_names, gene_ontology_biological_process) %>% 
+#       filter(gene_id %in% rownames(diffex.AL)),
+#   by=c("Genes"="spid")) %>%
+#   mutate(funct="Translation", change="Downregulated")
+# translation <- translation %>% filter(gene_id %in% 
+#     (diffex.AL %>% as.data.frame() %>% rownames_to_column("gene_id") %>%
+#   filter(gene_id %in% translation$gene_id) %>% arrange(pvalue) %>% 
+#   head(n=ngenes))$gene_id)
+#                                         
+# 
+# TCA <- left_join(read_delim(file = paste("DAVID_AL-DOWN_FC0.5.txt", sep=""), delim = "\t") %>%
+#       filter(Category=="GOTERM_BP_DIRECT") %>% filter(PValue<0.05) %>%
+#       filter(grepl("tricarboxylic acid cycle", Term)) %>% select(Genes) %>%
+#       mutate(Genes = strsplit(as.character(Genes), ", ")) %>% unnest(Genes),
+#     P.camt.blast.GO %>% dplyr::select(gene_id, spid, protein_names, gene_ontology_biological_process) %>% 
+#       filter(gene_id %in% rownames(diffex.AL)),
+#   by=c("Genes"="spid")) %>%
+#   mutate(funct="TCA Cycle", change="Downregulated")
+# TCA <- TCA %>% filter(gene_id %in% 
+#     (diffex.AL %>% as.data.frame() %>% rownames_to_column("gene_id") %>%
+#   filter(gene_id %in% TCA$gene_id) %>% arrange(pvalue) %>% 
+#   head(n=ngenes))$gene_id)
+# 
+# 
+# aerobic <- left_join(read_delim(file = paste("DAVID_AL-DOWN_FC0.5.txt", sep=""), delim = "\t") %>%
+#       filter(Category=="GOTERM_BP_DIRECT") %>% filter(PValue<0.05) %>%
+#       filter(grepl("aerobic respiration", Term)) %>% select(Genes) %>%
+#       mutate(Genes = strsplit(as.character(Genes), ", ")) %>% unnest(Genes),
+#     P.camt.blast.GO %>% dplyr::select(gene_id, spid, protein_names, gene_ontology_biological_process) %>% 
+#       filter(gene_id %in% rownames(diffex.AL)),
+#   by=c("Genes"="spid")) %>%
+#   mutate(funct="Aerobic Respiration", change="Downregulated")
+# 
+# carb.metabolism <- left_join(read_delim(file = paste("DAVID_AL-DOWN_FC0.5.txt", sep=""), delim = "\t") %>%
+#       filter(Category=="GOTERM_BP_DIRECT") %>% filter(PValue<0.05) %>%
+#       filter(grepl("carbohydrate metabolic process", Term)) %>% select(Genes) %>%
+#       mutate(Genes = strsplit(as.character(Genes), ", ")) %>% unnest(Genes),
+#     P.camt.blast.GO %>% dplyr::select(gene_id, spid, protein_names, gene_ontology_biological_process) %>% 
+#       filter(gene_id %in% rownames(diffex.AL)),
+#   by=c("Genes"="spid")) %>%
+#   mutate(funct="Carbohydrate Metabolism", change="Downregulated")
+# carb.metabolism <- carb.metabolism %>% filter(gene_id %in% 
+#     (diffex.AL %>% as.data.frame() %>% rownames_to_column("gene_id") %>%
+#   filter(gene_id %in% carb.metabolism$gene_id) %>% arrange(pvalue) %>% 
+#   head(n=ngenes))$gene_id)
+# 
+# 
+# 
+# immune <- left_join(read_delim(file = paste("DAVID_AL-DOWN_FC0.5.txt", sep=""), delim = "\t") %>%
+#       filter(Category=="GOTERM_BP_DIRECT") %>% filter(PValue<0.05) %>%
+#       filter(grepl("T cell mediated cytotoxicity|positive regulation of microglial cell activation", Term)) %>% select(Genes) %>%
+#       mutate(Genes = strsplit(as.character(Genes), ", ")) %>% unnest(Genes),
+#     P.camt.blast.GO %>% dplyr::select(gene_id, spid, protein_names, gene_ontology_biological_process) %>% 
+#       filter(gene_id %in% rownames(diffex.AL)),
+#   by=c("Genes"="spid")) %>%
+#   mutate(funct="Immune System", change="Downregulated")
+# 
+# 
+# growth.reg <- left_join(read_delim(file = paste("DAVID_AM-UP_FC0.5.txt", sep=""), delim = "\t") %>%
+#       filter(Category=="GOTERM_BP_DIRECT") %>% filter(PValue<0.05) %>%
+#       filter(grepl("cell growth|cell proliferation", Term)) %>% select(Genes) %>%
+#       mutate(Genes = strsplit(as.character(Genes), ", ")) %>% unnest(Genes),
+#     P.camt.blast.GO %>% dplyr::select(gene_id, spid, protein_names, gene_ontology_biological_process) %>% 
+#       filter(gene_id %in% c(rownames(diffex.AL), rownames(diffex.AM))),
+#   by=c("Genes"="spid")) %>%
+#   mutate(funct="Growth suppression", change="Upregulated")
+#          
+# 
+# folding <- left_join(read_delim(file = paste("DAVID_AM-UP_FC0.5.txt", sep=""), delim = "\t") %>%
+#       filter(Category=="GOTERM_BP_DIRECT") %>% filter(PValue<0.05) %>%
+#       filter(grepl("protein folding", Term)) %>% select(Genes) %>%
+#       mutate(Genes = strsplit(as.character(Genes), ", ")) %>% unnest(Genes),
+#     P.camt.blast.GO %>% dplyr::select(gene_id, spid, protein_names, gene_ontology_biological_process) %>% 
+#       filter(gene_id %in% c(rownames(diffex.AL), rownames(diffex.AM))),
+#   by=c("Genes"="spid")) %>%
+#   mutate(funct="Protein refolding\n(stress-response)", change="Upregulated")
+# 
+# transposition <- left_join(read_delim(file = paste("DAVID_AL-UP_FC0.5.txt", sep=""), delim = "\t") %>%
+#       filter(Category=="GOTERM_BP_DIRECT") %>% filter(PValue<0.05) %>%
+#       filter(grepl("transposition|DNA integration", Term)) %>% select(Genes) %>%
+#       mutate(Genes = strsplit(as.character(Genes), ", ")) %>% unnest(Genes),
+#     P.camt.blast.GO %>% dplyr::select(gene_id, spid, protein_names, gene_ontology_biological_process) %>% 
+#       filter(gene_id %in% rownames(diffex.AL)),
+#   by=c("Genes"="spid")) %>%
+#   mutate(funct="Transposition", change="Upregulated")
+# transposition <- transposition %>% filter(gene_id %in% 
+#     (diffex.AL %>% as.data.frame() %>% rownames_to_column("gene_id") %>%
+#        filter(log2FoldChange < 0) %>%
+#   filter(gene_id %in% transposition$gene_id) %>% arrange(pvalue) %>% 
+#   head(n=ngenes))$gene_id)
+# 
+# ## Enrichment of axonogenesis is not signficant, pval~0.09. 
+# # axonogenesis <- left_join(read_delim(file = paste("DAVID_AL-UP_FC0.5.txt", sep=""), delim = "\t") %>%
+# #       filter(Category=="GOTERM_BP_DIRECT") %>% filter(PValue<0.05) %>%
+# #       filter(grepl("axonogenesis", Term)) %>% select(Genes) %>%
+# #       mutate(Genes = strsplit(as.character(Genes), ", ")) %>% unnest(Genes),
+# #     P.camt.blast.GO %>% dplyr::select(gene_id, spid, protein_names, gene_ontology_biological_process) %>% 
+# #       filter(gene_id %in% rownames(diffex.AL)),
+# #   by=c("Genes"="spid")) %>%
+# #   mutate(funct="Axonogenesis", change="Upregulated")
+# 
+# regulation <- left_join(read_delim(file = paste("DAVID_AL-UP_FC0.5.txt", sep=""), delim = "\t") %>%
+#       filter(Category=="GOTERM_BP_DIRECT") %>% 
+#       filter(grepl("regulation of transcription", Term)) %>% select(Genes) %>%
+#       mutate(Genes = strsplit(as.character(Genes), ", ")) %>% unnest(Genes),
+#     P.camt.blast.GO %>% dplyr::select(gene_id, spid, protein_names, gene_ontology_biological_process) %>% 
+#       filter(gene_id %in% rownames(diffex.AL)),
+#   by=c("Genes"="spid")) %>%
+#   mutate(funct="Transcription\nregulation", change="Upregulated")
+# regulation <- regulation %>% filter(gene_id %in% 
+#     (diffex.AL %>% as.data.frame() %>% rownames_to_column("gene_id") %>%
+#        filter(log2FoldChange < 0) %>%
+#   filter(gene_id %in% regulation$gene_id) %>% arrange(pvalue) %>% 
+#   head(n=ngenes))$gene_id)
+
+
+```
+
+
+```{r}
+# genes.stats %>% select(-change) %>% filter(gene %in% 
+#                          c(translation$gene_id,
+#                            TCA$gene_id,
+#                            aerobic$gene_id,
+#                            carb.metabolism$gene_id,
+#                            immune$gene_id,
+#                            growth.reg$gene_id,
+#                            folding$gene_id,
+#                            transposition$gene_id,
+#                            #axonogenesis$gene_id,
+#                            regulation$gene_id)) %>% 
+#   left_join(rbind(
+#     translation,
+#     TCA, 
+#     aerobic, 
+#     immune, 
+#     growth.reg, 
+#     folding,
+#     transposition, 
+#     #axonogenesis, 
+#     regulation
+#     ) %>% select(gene_id, funct, change), 
+#             by=c("gene"="gene_id")) %>%
+#   mutate(funct = as.factor(funct), change = as.factor(change)) %>%
+#   #ggplot(aes(x=Treatment, y=median, colour=Treatment)) + geom_boxplot(outlier.shape = NA) + geom_jitter(size=2, width = 0.25) + 
+#  mutate(pco2=Treatment) %>%
+#  mutate_at("pco2", function(x) {
+#   case_when(
+#     x == "Ambient" ~ 371,
+#     x == "Moderate" ~ 704,
+#     x == "Low" ~ 1424)}) %>%
+#   # mutate(pH=Treatment) %>%
+#   # mutate_at("pH", function(x) {
+#   #   case_when(
+#   #     x == "Ambient" ~ 8.0,
+#   #     x == "Moderate" ~ 7.8,
+#   #     x == "Low" ~ 7.6)}) %>%
+#   
+#   filter(change=="Downregulated") %>%
+#   #filter(change=="Upregulated") %>%
+# 
+#   ggplot(aes(x=pco2, y=mean, group=gene)) + geom_line(size=.01, color="forestgreen") +geom_point(color="forestgreen") +  #firebrick3
+#   scale_x_continuous(name ="pCO2 treatment", 
+#                     limits=c(350, 1450),
+#                    breaks=c(370, 700, 1425)) +
+#                    #  limits=c(7.56, 8.04),
+#                    # breaks=c(7.6, 7.8, 8.0)) +
+#   # geom_errorbar(aes(ymin=median-sd, ymax=median+sd), width=.2,
+#   #                position=position_dodge(0.05)) +
+#   theme_minimal() +
+#   theme(legend.position = "right") +
+#   facet_wrap(~funct, scales = "free", ncol = 2) + 
+#   # scale_color_manual(values = c("magenta" = "magenta2",
+#   #                               "pink"="pink3",
+#   #                               "coral1"="coral1",
+#   #                               "ivory"="green",
+#   #                               "green"="green",
+#   #                               "lightgreen"="green",
+#   #                               "plum1"="blue"), 
+#   #                    name = "Enriched function", 
+#   #                    labels = c("magenta"="response to virus", 
+#   #                               "pink"="positive regulation of microglial cell activation", 
+#   #                               "coral1"="activation of innate immune response",
+#   #                               "plum1"="chaperone mediated protein folding",
+#   #                               #"green"="Signal transduction",
+#   #                               "lightgreen"="Octopamine & tyromine receptors")) + # "ivory"=NA, "lightgreen"=NA
+#   ggtitle("Expression of downregulated functions") + 
+#   ylab("median count\n(variance-stabilized transformed)") + xlab("pCO2 treatment")
+```
+
+# WGCNA enrichment results 
+
+MODULES FROM WGCNA WITH HIGH CORRELATION COEFFICIENT (>=0.5)
+
+```{r}
+#(geneInfo %>% filter(moduleColor=="magenta"))$id
+```
+
+
+```{r}
+# Set the max number of genes to show in each line plot (too many = too busy)
+ngenes <- 10
+
+### GENES MODULES DOWNREGULATED IN OA 
+
+# magenta
+read_delim(file = paste("DAVID_magenta_DEGs-or-GS.txt", sep=""), delim = "\t") %>%
+      filter(Category=="GOTERM_BP_DIRECT") %>% filter(PValue<0.01) %>% View()
+
+magenta <- left_join(read_delim(file = paste("DAVID_magenta_DEGs-or-GS.txt", sep=""), delim = "\t") %>%
+      filter(Category=="GOTERM_BP_DIRECT") %>% filter(PValue<0.05) %>%
+      filter(grepl("~translation", Term)) %>% select(Genes) %>%
+      mutate(Genes = strsplit(as.character(Genes), ", ")) %>% unnest(Genes),
+    P.camt.blast.GO %>% dplyr::select(gene_id, spid, protein_names, gene_ontology_biological_process) %>% 
+      filter(gene_id %in% c(rownames(diffex.AL), rownames(diffex.AM), rownames(diffex.ML))),
+  by=c("Genes"="spid")) %>%
+  filter(gene_id %in% (geneInfo %>% filter(moduleColor=="magenta"))$id) %>%
+  mutate(funct="Translation", change="Downregulated")
+(magenta <- magenta %>% filter(gene_id %in% 
+    (diffex.AL %>% as.data.frame() %>% rownames_to_column("gene_id") %>%
+  filter(gene_id %in% magenta$gene_id) %>% arrange(pvalue) %>% 
+  head(n=ngenes))$gene_id))
+
+
+# lightcyan
+# TCA cycle
+read_delim(file = paste("DAVID_lightcyan_DEGs-or-GS.txt", sep=""), delim = "\t") %>%
+      filter(Category=="GOTERM_BP_DIRECT") %>% filter(PValue<0.01) %>% View()
+
+lightcyan <- left_join(read_delim(file = paste("DAVID_lightcyan_DEGs-or-GS.txt", sep=""), delim = "\t") %>%
+      filter(Category=="GOTERM_BP_DIRECT") %>% filter(PValue<0.05) %>%
+      filter(grepl("~tricarboxylic acid cycle", Term)) %>% select(Genes) %>%
+      mutate(Genes = strsplit(as.character(Genes), ", ")) %>% unnest(Genes),
+    P.camt.blast.GO %>% dplyr::select(gene_id, spid, protein_names, gene_ontology_biological_process) %>% 
+      filter(gene_id %in% c(rownames(diffex.AL), rownames(diffex.AM), rownames(diffex.ML))),
+  by=c("Genes"="spid")) %>%
+  filter(gene_id %in% (geneInfo %>% filter(moduleColor=="lightcyan"))$id) %>%
+  mutate(funct="Energy production", change="Downregulated")
+(lightcyan <- lightcyan %>% filter(gene_id %in% 
+    (diffex.AL %>% as.data.frame() %>% rownames_to_column("gene_id") %>%
+  filter(gene_id %in% lightcyan$gene_id) %>% arrange(pvalue) %>% 
+  head(n=ngenes))$gene_id))
+
+
+# firebrick4
+# glycoprotein catabolic process (carbohydrate metabolic processes)
+read_delim(file = paste("DAVID_firebrick4_DEGs-or-GS.txt", sep=""), delim = "\t") %>%
+      filter(Category=="GOTERM_BP_DIRECT") %>% filter(PValue<0.01) %>% View()
+
+(firebrick4 <- left_join(read_delim(file = paste("DAVID_firebrick4_DEGs-or-GS.txt", sep=""), delim = "\t") %>%
+      filter(Category=="GOTERM_BP_DIRECT") %>% filter(PValue<0.05) %>%
+      filter(grepl("~glycoprotein catabolic process|vesicle transport along actin filament", Term)) %>% select(Genes) %>%
+      mutate(Genes = strsplit(as.character(Genes), ", ")) %>% unnest(Genes),
+    P.camt.blast.GO %>% dplyr::select(gene_id, spid, protein_names, gene_ontology_biological_process) %>% 
+      filter(gene_id %in% c(rownames(diffex.AL), rownames(diffex.AM), rownames(diffex.ML))),
+  by=c("Genes"="spid")) %>%
+  filter(gene_id %in% (geneInfo %>% filter(moduleColor=="firebrick4"))$id) %>%
+  mutate(funct="Carbohydrate metabolism,\nvesicle transport", change="Downregulated"))
+
+
+# darkviolet
+# tissue development
+read_delim(file = paste("DAVID_darkviolet_DEGs-or-GS.txt", sep=""), delim = "\t") %>%
+      filter(Category=="GOTERM_BP_DIRECT") %>% filter(PValue<0.01) %>% View()
+
+(darkviolet <- left_join(read_delim(file = paste("DAVID_darkviolet_DEGs-or-GS.txt", sep=""), delim = "\t") %>%
+      filter(Category=="GOTERM_BP_DIRECT") %>% filter(PValue<0.01) %>%
+      filter(grepl("~tissue development", Term)) %>% select(Genes) %>%
+      mutate(Genes = strsplit(as.character(Genes), ", ")) %>% unnest(Genes),
+    P.camt.blast.GO %>% dplyr::select(gene_id, spid, protein_names, gene_ontology_biological_process) %>% 
+      filter(gene_id %in% c(rownames(diffex.AL), rownames(diffex.AM), rownames(diffex.ML))),
+  by=c("Genes"="spid")) %>%
+  filter(gene_id %in% (geneInfo %>% filter(moduleColor=="darkviolet"))$id) %>% #filter for only genes in that module 
+  mutate(funct="Tissue development", change="Downregulated"))
+
+
+# royalblue
+# sarcomere organization (striated muscle cell development)
+read_delim(file = paste("DAVID_royalblue_DEGs-or-GS.txt", sep=""), delim = "\t") %>%
+      filter(Category=="GOTERM_BP_DIRECT") %>% filter(PValue<0.01) %>% View()
+
+royalblue <- left_join(read_delim(file = paste("DAVID_royalblue_DEGs-or-GS.txt", sep=""), delim = "\t") %>%
+      filter(Category=="GOTERM_BP_DIRECT") %>% filter(PValue<0.01) %>%
+      filter(grepl("~sarcomere organization", Term)) %>% select(Genes) %>%
+      mutate(Genes = strsplit(as.character(Genes), ", ")) %>% unnest(Genes),
+    P.camt.blast.GO %>% dplyr::select(gene_id, spid, protein_names, gene_ontology_biological_process) %>% 
+      filter(gene_id %in% c(rownames(diffex.AL), rownames(diffex.AM), rownames(diffex.ML))),
+  by=c("Genes"="spid")) %>%
+  filter(gene_id %in% (geneInfo %>% filter(moduleColor=="royalblue"))$id) %>% #filter for only genes in that module 
+  mutate(funct="Muscle development\nand activity", change="Downregulated")
+(royalblue <- royalblue %>% filter(gene_id %in% 
+    (diffex.AL %>% as.data.frame() %>% rownames_to_column("gene_id") %>%
+  filter(gene_id %in% royalblue$gene_id) %>% arrange(pvalue) %>% 
+  head(n=ngenes))$gene_id))
+
+
+# coral1
+# chromatin silencing by small RNA
+read_delim(file = paste("DAVID_coral1_DEGs-or-GS.txt", sep=""), delim = "\t") %>%
+      filter(Category=="GOTERM_BP_DIRECT") %>% filter(PValue<0.01) %>% View()
+
+(coral1 <- left_join(read_delim(file = paste("DAVID_coral1_DEGs-or-GS.txt", sep=""), delim = "\t") %>%
+      filter(Category=="GOTERM_BP_DIRECT") %>% filter(PValue<0.01) %>%
+      filter(grepl("~chromatin silencing by small RNA", Term)) %>% select(Genes) %>%
+      mutate(Genes = strsplit(as.character(Genes), ", ")) %>% unnest(Genes),
+    P.camt.blast.GO %>% dplyr::select(gene_id, spid, protein_names, gene_ontology_biological_process) %>% 
+      filter(gene_id %in% c(rownames(diffex.AL), rownames(diffex.AM), rownames(diffex.ML))),
+  by=c("Genes"="spid")) %>%
+  filter(gene_id %in% (geneInfo %>% filter(moduleColor=="coral1"))$id) %>% #filter for only genes in that module 
+  mutate(funct="Immune response", change="Downregulated"))
+
+
+# plum1
+# chaperone mediated protein folding requiring cofactor
+read_delim(file = paste("DAVID_plum1_DEGs-or-GS.txt", sep=""), delim = "\t") %>%
+      filter(Category=="GOTERM_BP_DIRECT") %>% filter(PValue<0.01) %>% View()
+
+(plum1 <- left_join(read_delim(file = paste("DAVID_plum1_DEGs-or-GS.txt", sep=""), delim = "\t") %>%
+      filter(Category=="GOTERM_BP_DIRECT") %>% filter(PValue<0.01) %>%
+      filter(grepl("protein", Term)) %>% select(Genes) %>%
+      mutate(Genes = strsplit(as.character(Genes), ", ")) %>% unnest(Genes),
+    P.camt.blast.GO %>% dplyr::select(gene_id, spid, protein_names, gene_ontology_biological_process) %>% 
+      filter(gene_id %in% c(rownames(diffex.AL), rownames(diffex.AM), rownames(diffex.ML))),
+  by=c("Genes"="spid")) %>%
+  filter(gene_id %in% (geneInfo %>% filter(moduleColor=="plum1"))$id) %>% #filter for only genes in that module 
+  mutate(funct="Protein folding\n(stress response)", change="Downregulated"))
+
+
+
+# pink
+read_delim(file = paste("DAVID_pink_DEGs-or-GS.txt", sep=""), delim = "\t") %>%
+      filter(Category=="GOTERM_BP_DIRECT") %>% filter(PValue<0.01) %>% View()
+pink <- left_join(read_delim(file = paste("DAVID_pink_DEGs-or-GS.txt", sep=""), delim = "\t") %>%
+      filter(Category=="GOTERM_BP_DIRECT") %>% filter(PValue<0.01) %>%
+      filter(grepl("metabolic process|fatty acid|positive regulation of microglial cell activation|T cell mediated cytotoxicity", Term)) %>% select(Genes) %>%
+      mutate(Genes = strsplit(as.character(Genes), ", ")) %>% unnest(Genes),
+    P.camt.blast.GO %>% dplyr::select(gene_id, spid, protein_names, gene_ontology_biological_process) %>% 
+      filter(gene_id %in% c(rownames(diffex.AL), rownames(diffex.AM), rownames(diffex.ML))),
+  by=c("Genes"="spid")) %>%
+  filter(gene_id %in% (geneInfo %>% filter(moduleColor=="pink"))$id) %>% #filter for only genes in that module 
+  mutate(funct="Lipid & carbohydrate metabolic processes\n,immune function", change="Downregulated")
+(pink <- pink %>% filter(gene_id %in% 
+    (diffex.AL %>% as.data.frame() %>% rownames_to_column("gene_id") %>%
+  filter(gene_id %in% pink$gene_id) %>% arrange(pvalue) %>% 
+  head(n=ngenes))$gene_id))
+
+
+### GENES MODULES DOWNREGULATED IN OA 
+
+
+# blue2 -  no enriched biological processes
+read_delim(file = paste("DAVID_blue2_DEGs-or-GS.txt", sep=""), delim = "\t") %>%
+      filter(Category=="GOTERM_BP_DIRECT") %>% filter(PValue<0.01) %>% View()
+
+
+# lightsteelblue1
+read_delim(file = paste("DAVID_lightsteelblue1_DEGs-or-GS.txt", sep=""), delim = "\t") %>%
+      filter(Category=="GOTERM_BP_DIRECT") %>% filter(PValue<0.05) %>% View()
+
+(lightsteelblue1 <- left_join(
+  read_delim(file = paste("DAVID_lightsteelblue1_DEGs-or-GS.txt", sep=""), delim = "\t") %>%
+      filter(Category=="GOTERM_BP_DIRECT") %>% filter(PValue<0.05) %>%
+      filter(grepl("transcription ", Term)) %>% select(Genes) %>%
+      mutate(Genes = strsplit(as.character(Genes), ", ")) %>% unnest(Genes),
+    P.camt.blast.GO %>% dplyr::select(gene_id, spid, protein_names, gene_ontology_biological_process), #%>% 
+      #filter(gene_id %in% c(rownames(diffex.AL), rownames(diffex.AM), rownames(diffex.ML))),
+  by=c("Genes"="spid")) %>%
+  filter(gene_id %in% (geneInfo %>% filter(moduleColor=="lightsteelblue1"))$id) %>% #filter for only genes in that module 
+  mutate(funct="Transcription regulation", change="Upregulated"))
+
+
+# ivory
+read_delim(file = paste("DAVID_ivory_DEGs-or-GS.txt", sep=""), delim = "\t") %>%
+      filter(Category=="GOTERM_BP_DIRECT") %>% filter(PValue<0.01) %>% View()
+
+(ivory <- left_join(read_delim(file = paste("DAVID_ivory_DEGs-or-GS.txt", sep=""), delim = "\t") %>%
+      filter(Category=="GOTERM_BP_DIRECT") %>% filter(PValue<0.05) %>%
+      filter(grepl("insulin secretion|neuron|signaling|cGMP", Term)) %>% select(Genes) %>%
+      mutate(Genes = strsplit(as.character(Genes), ", ")) %>% unnest(Genes),
+    P.camt.blast.GO %>% dplyr::select(gene_id, spid, protein_names, gene_ontology_biological_process) %>% 
+      filter(gene_id %in% c(rownames(diffex.AL), rownames(diffex.AM), rownames(diffex.ML))),
+  by=c("Genes"="spid")) %>%
+  filter(gene_id %in% (geneInfo %>% filter(moduleColor=="ivory"))$id) %>% #filter for only genes in that module 
+  mutate(funct="Signaling", change="Upregulated"))
+
+
+# lightgreen
+read_delim(file = paste("DAVID_lightgreen_DEGs-or-GS.txt", sep=""), delim = "\t") %>%
+      filter(Category=="GOTERM_BP_DIRECT") %>% filter(PValue<0.01) %>% View()
+
+lightgreen <- left_join(read_delim(file = paste("DAVID_lightgreen_DEGs-or-GS.txt", sep=""), delim = "\t") %>%
+      filter(Category=="GOTERM_BP_DIRECT") %>% filter(PValue<0.01) %>%
+      filter(grepl("transcription|DNA methlation|imprinting", Term)) %>% select(Genes) %>%
+      mutate(Genes = strsplit(as.character(Genes), ", ")) %>% unnest(Genes),
+    P.camt.blast.GO %>% dplyr::select(gene_id, spid, protein_names, gene_ontology_biological_process) %>% 
+      filter(gene_id %in% c(rownames(diffex.AL), rownames(diffex.AM), rownames(diffex.ML))),
+  by=c("Genes"="spid")) %>%
+  filter(gene_id %in% (geneInfo %>% filter(moduleColor=="lightgreen"))$id) %>% #filter for only genes in that module 
+  mutate(funct="Transcription regulation)", change="Upregulated")
+(lightgreen <- lightgreen %>% filter(gene_id %in% 
+    (diffex.AL %>% as.data.frame() %>% rownames_to_column("gene_id") %>%
+  filter(gene_id %in% lightgreen$gene_id) %>% arrange(pvalue) %>% 
+  head(n=ngenes))$gene_id))
+
+
+
+# purple
+read_delim(file = paste("DAVID_purple_DEGs-or-GS.txt", sep=""), delim = "\t") %>%
+      filter(Category=="GOTERM_BP_DIRECT") %>% filter(PValue<0.01) %>% View()
+
+purple <- left_join(read_delim(file = paste("DAVID_purple_DEGs-or-GS.txt", sep=""), delim = "\t") %>%
+      filter(Category=="GOTERM_BP_DIRECT") %>% filter(PValue<0.01) %>%
+      filter(grepl("transcription", Term)) %>% select(Genes) %>%
+      mutate(Genes = strsplit(as.character(Genes), ", ")) %>% unnest(Genes),
+    P.camt.blast.GO %>% dplyr::select(gene_id, spid, protein_names, gene_ontology_biological_process) %>% 
+      filter(gene_id %in% c(rownames(diffex.AL), rownames(diffex.AM), rownames(diffex.ML))),
+  by=c("Genes"="spid")) %>%
+  filter(gene_id %in% (geneInfo %>% filter(moduleColor=="purple"))$id) %>% #filter for only genes in that module 
+  mutate(funct="Transcription regulation", change="Upregulated")
+(purple <- purple %>% filter(gene_id %in% 
+    (diffex.AL %>% as.data.frame() %>% rownames_to_column("gene_id") %>%
+  filter(gene_id %in% purple$gene_id) %>% arrange(pvalue) %>% 
+  head(n=ngenes))$gene_id))
+
+
+
+
+# green
+read_delim(file = paste("DAVID_green_DEGs-or-GS.txt", sep=""), delim = "\t") %>%
+      filter(Category=="GOTERM_BP_DIRECT") %>% filter(PValue<0.01) %>% View()
+
+green <- left_join(read_delim(file = paste("DAVID_green_DEGs-or-GS.txt", sep=""), delim = "\t") %>%
+      filter(Category=="GOTERM_BP_DIRECT") %>% filter(PValue<0.01) %>%
+      filter(grepl("Transcription regulation|signal transduction", Term)) %>% select(Genes) %>%
+      mutate(Genes = strsplit(as.character(Genes), ", ")) %>% unnest(Genes),
+    P.camt.blast.GO %>% dplyr::select(gene_id, spid, protein_names, gene_ontology_biological_process) %>% 
+      filter(gene_id %in% c(rownames(diffex.AL), rownames(diffex.AM), rownames(diffex.ML))),
+  by=c("Genes"="spid")) %>%
+  filter(gene_id %in% (geneInfo %>% filter(moduleColor=="green"))$id) %>% #filter for only genes in that module 
+  mutate(funct="Transcription regulation\nsignal transduction", change="Upregulated")
+(green <- green %>% filter(gene_id %in% 
+    (diffex.AL %>% as.data.frame() %>% rownames_to_column("gene_id") %>%
+  filter(gene_id %in% green$gene_id) %>% arrange(pvalue) %>% 
+  head(n=ngenes))$gene_id))
+
+```
+
+## Create a master spreadsheet of all enriched biological functions in modules 
+
+```{r}
+enriched.bp.modules <- vector(mode = "list", length = length(modules))
+names(enriched.bp.modules) <- modules
 
 
 for (i in 1:length(modules)) {
-  te.perc[i+1,1] <- modules[i]
-  te.perc[i+1,2] <- (geneInfo.mwu.mods[[modules[i]]] %>% filter(sign!=0) %>%
-                     left_join(P.camt.blast.GO[c("gene_id", "protein_names",
-                                                 "gene_ontology_biological_process",
-                                                 "gene_ontology_i_ds")], by=c("id"="gene_id")) %>%
-                     filter(grepl("transposon|LINE-1|retrotransposable element|transposable element|mobile element jockey", protein_names)) %>% 
-                     nrow()) / (geneInfo.mwu.mods[[modules[i]]] %>% filter(sign!=0) %>% nrow)
-    te.perc[i+1,3] <- geneInfo.mwu.mods[[modules[i]]] %>% filter(sign!=0) %>%
-                     left_join(P.camt.blast.GO[c("gene_id", "protein_names",
-                                                 "gene_ontology_biological_process",
-                                                 "gene_ontology_i_ds")], by=c("id"="gene_id")) %>%
-                     filter(grepl("transposon|LINE-1|retrotransposable element|transposable element|mobile element jockey", protein_names)) %>% 
-                     nrow()
-
+  enriched.bp.modules[[i]] <- read_delim(file = paste("DAVID_", modules[i], "_DEGs-or-GS.txt", sep=""), delim = "\t") %>%
+      filter(Category=="GOTERM_BP_DIRECT") %>% filter(PValue<0.05)
 }
 
+enriched.bp.modules <- bind_rows(enriched.bp.modules, .id = "module") %>% 
+  separate(Term, into = c("GO", "process"), sep = "~") %>%
+  clean_names() %>% 
+  select(module, go, process, count, percent, p_value, fold_enrichment, fdr) 
+
+enriched.bp.modules %>% write_clip() #copy to clipboard to paste into google spreadsheet 
+
+enriched.bp.modules %>% filter(fdr<0.1) %>% group_by(module) %>% tally()
+
+```
+
+Save WGCNA enrichment results (BP, MF, CC) for supplemental tables 
+
+```{r}
+enriched.modules <- vector(mode = "list", length = length(modules))
+names(enriched.modules) <- modules
+
+for (i in 1:length(modules)) {
+  enriched.modules[[i]] <- read_delim(file = paste("DAVID_", modules[i], "_DEGs-or-GS.txt", sep=""), delim = "\t") %>%
+      filter(Category %in% c("GOTERM_BP_DIRECT", "GOTERM_MF_DIRECT", "GOTERM_CC_DIRECT"))
+}
+
+# Create one master spreadsheet with all enrichment results, reformat, save to .csv
+bind_rows(enriched.modules, .id = "Module") %>% 
+  separate(Term, into = c("GO", "process"), sep = "~") %>%
+    mutate(`OA Effect`=Module) %>%
+  mutate(`OA Effect`=case_when(
+    `OA Effect`%in% c("magenta", "lightcyan", "firebrick4", "darkviolet", 
+                      "royalblue", "coral1", "plum1", "pink") ~ "Downregulated", 
+    TRUE ~ "Upregulated")) %>%
+
+  mutate(Module=case_when(
+    Module=="magenta" ~ "a (magenta)",
+    Module=="lightcyan" ~ "b (lightcyan)",
+    Module=="firebrick4" ~ "c (firebrick4)",
+    Module=="darkviolet" ~ "d (darkviolet)",
+    Module=="royalblue" ~ "e (royalblue)",
+    Module=="coral1" ~ "f (coral1)",
+    Module=="plum1" ~ "g (plum1)",
+    Module=="pink" ~ "h (pink)",
+    Module=="blue2" ~ "i (blue2)",
+    Module=="lightsteelblue1" ~ "j (lightsteelblue1)",
+    Module=="ivory" ~ "k (ivory)",
+    Module=="lightgreen" ~ "l (lightgreen)",
+    Module=="purple" ~ "m (purple)",
+    Module=="green" ~ "n (green)")) %>%
+
+  mutate(Category=case_when(
+    Category=="GOTERM_BP_DIRECT" ~ "Biological Process",
+    Category=="GOTERM_MF_DIRECT" ~ "Molecular Function",
+    Category=="GOTERM_CC_DIRECT" ~ "Cellular Component")) %>%
+  dplyr::rename(Term=process, `Number of Genes` = Count, 
+                `P-Value`=PValue, `Genes (Uniprot IDs)`=Genes) %>%
+  mutate(`Fold Enrichment`=round(`Fold Enrichment`, digits = 1),
+    `P-Value`=as.numeric(formatC(`P-Value`, format = "e", digits = 2)),
+    FDR=as.numeric(formatC(FDR, format = "e", digits = 2))) %>%
+  select(Module, `OA Effect`, Category, GO, Term, `Number of Genes`, `Genes (Uniprot IDs)`, `Fold Enrichment`, `P-Value`, FDR) %>%
+  arrange(Category, Module, `OA Effect`, `P-Value`) %>%
+  filter(`P-Value`<0.05) %>%
+  write_csv(file = "../Supplemental-Table-3_WGCNA-Enrichment-Results.csv", col_names = TRUE)
+```
+
+USING UNIPROT KEYWORDS to plot representative functions 
+
+```{r}
+# ## UNIPROT KEYWORDS
+# read_delim(file = paste("DAVID_AL-UP_FC0.5.txt", sep=""), delim = "\t") %>%
+#   filter(Category=="UP_KW_BIOLOGICAL_PROCESS") %>% 
+#   filter(PValue<0.05) %>% View()
+# 
+# read_delim(file = paste("DAVID_AL-DOWN_FC0.5.txt", sep=""), delim = "\t") %>%
+#   filter(Category=="UP_KW_BIOLOGICAL_PROCESS") %>% 
+#   filter(PValue<0.05) %>% View()
+# 
+# read_delim(file = paste("DAVID_AM-UP_FC0.5.txt", sep=""), delim = "\t") %>%
+#   filter(Category=="UP_KW_BIOLOGICAL_PROCESS") %>% 
+#   filter(PValue<0.05) %>% View()
+# 
+# read_delim(file = paste("DAVID_AM-DOWN_FC0.5.txt", sep=""), delim = "\t") %>%
+#   filter(Category=="UP_KW_BIOLOGICAL_PROCESS") %>% 
+#   filter(PValue<0.05) %>% View()
+# 
+# read_delim(file = paste("DAVID_ML-UP_FC0.5.txt", sep=""), delim = "\t") %>%
+#   filter(Category=="UP_KW_BIOLOGICAL_PROCESS") %>% 
+#   filter(PValue<0.05) %>% View()
+# 
+# read_delim(file = paste("DAVID_ML-DOWN_FC0.5.txt", sep=""), delim = "\t") %>%
+#   filter(Category=="UP_KW_BIOLOGICAL_PROCESS") %>% 
+#   filter(PValue<0.05) %>% View()
+# 
+# # GREEN & MAGENTA MODULES
+# read_delim(file = paste("DAVID_magenta_DEGs-or-GS.txt", sep=""), delim = "\t") %>%
+#   filter(Category=="UP_KW_BIOLOGICAL_PROCESS") %>% 
+#   filter(PValue<0.05) %>% View()
+# 
+# read_delim(file = paste("DAVID_green_DEGs-or-GS.txt", sep=""), delim = "\t") %>%
+#   filter(Category=="UP_KW_BIOLOGICAL_PROCESS") %>% 
+#   filter(PValue<0.05) %>% View()
+```
+
+```{r}
+# ngenes <- 10
+# 
+# # Upregulated processes in OA compared to ambient 
+# 
+# transposition <- left_join(
+#   read_delim(file = paste("DAVID_AL-UP_FC0.5.txt", sep=""), delim = "\t") %>%
+#       filter(Category=="UP_KW_BIOLOGICAL_PROCESS") %>% filter(PValue<0.05) %>%
+#       filter(grepl("DNA", Term)) %>% select(Genes) %>%
+#       mutate(Genes = strsplit(as.character(Genes), ", ")) %>% unnest(Genes),
+#     P.camt.blast.GO %>% dplyr::select(gene_id, spid, protein_names, gene_ontology_biological_process) %>% 
+#       filter(gene_id %in% rownames(diffex.AL)),
+#   by=c("Genes"="spid")) %>%
+#   mutate(funct="Transposition", change="Upregulated")
+# transposition <- transposition %>% filter(gene_id %in% 
+#     (diffex.AL %>% as.data.frame() %>% rownames_to_column("gene_id") %>%
+#   filter(gene_id %in% transposition$gene_id) %>% arrange(pvalue) %>% 
+#   filter(log2FoldChange < 0) %>%
+#   head(n=ngenes))$gene_id)
+#                           
+# transc.reg <- left_join(
+#   rbind(
+#   read_delim(file = paste("DAVID_AL-UP_FC0.5.txt", sep=""), delim = "\t") %>%
+#       filter(Category=="UP_KW_BIOLOGICAL_PROCESS") %>% filter(PValue<0.05) %>%
+#       filter(grepl("Transcription regulation", Term)) %>% select(Genes), 
+#   read_delim(file = paste("DAVID_AM-UP_FC0.5.txt", sep=""), delim = "\t") %>%
+#       filter(Category=="UP_KW_BIOLOGICAL_PROCESS") %>% filter(PValue<0.05) %>%
+#       filter(grepl("Transcription regulation", Term)) %>% select(Genes))  %>%
+#       mutate(Genes = strsplit(as.character(Genes), ", ")) %>% unnest(Genes) %>% distinct(Genes),
+#     P.camt.blast.GO %>% dplyr::select(gene_id, spid, protein_names, gene_ontology_biological_process) %>% 
+#       filter(gene_id %in% rownames(diffex.AL)),
+#   by=c("Genes"="spid")) %>%
+#   mutate(funct="Transcription\nregulation", change="Upregulated")
+# transc.reg <- transc.reg %>% filter(gene_id %in% 
+#     (rbind(diffex.AL %>% as.data.frame() %>% rownames_to_column("gene_id") %>% filter(gene_id %in% transc.reg$gene_id),
+#            diffex.AM %>% as.data.frame() %>% rownames_to_column("gene_id") %>% filter(gene_id %in% transc.reg$gene_id)) %>% arrange(pvalue) %>% head(n=ngenes))$gene_id)
+# 
+# differentiation <- left_join(read_delim(file = paste("DAVID_green_DEGs-or-GS.txt", sep=""), delim = "\t") %>%
+#       filter(Category=="UP_KW_BIOLOGICAL_PROCESS") %>% filter(PValue<0.05) %>%
+#       filter(grepl("Differentiation", Term)) %>% select(Genes) %>%
+#       mutate(Genes = strsplit(as.character(Genes), ", ")) %>% unnest(Genes),
+#     P.camt.blast.GO %>% dplyr::select(gene_id, spid, protein_names, gene_ontology_biological_process) %>% 
+#       filter(gene_id %in% c(rownames(diffex.AL), rownames(diffex.AM))),
+#   by=c("Genes"="spid")) %>%
+#   mutate(funct="Differentiation", change="Upregulated")
+# differentiation <- differentiation %>% filter(gene_id %in% 
+#     (rbind(diffex.AL %>% as.data.frame() %>% rownames_to_column("gene_id") %>% filter(gene_id %in% differentiation$gene_id),
+#            diffex.AM %>% as.data.frame() %>% rownames_to_column("gene_id") %>% filter(gene_id %in% differentiation$gene_id)) %>% 
+#        arrange(pvalue) %>% head(n=ngenes))$gene_id)
+# 
+# neurogenesis <- left_join(read_delim(file = paste("DAVID_green_DEGs-or-GS.txt", sep=""), delim = "\t") %>%
+#       filter(Category=="UP_KW_BIOLOGICAL_PROCESS") %>% filter(PValue<0.05) %>%
+#       filter(grepl("Neurogenesis", Term)) %>% select(Genes) %>%
+#       mutate(Genes = strsplit(as.character(Genes), ", ")) %>% unnest(Genes),
+#     P.camt.blast.GO %>% dplyr::select(gene_id, spid, protein_names, gene_ontology_biological_process) %>% 
+#       filter(gene_id %in% c(rownames(diffex.AL), rownames(diffex.AM))),
+#   by=c("Genes"="spid")) %>%
+#   mutate(funct="Neurogenesis", change="Upregulated")
+# 
+# stress <- left_join(read_delim(file = paste("DAVID_AM-UP_FC0.5.txt", sep=""), delim = "\t") %>%
+#       filter(Category=="UP_KW_BIOLOGICAL_PROCESS") %>% filter(PValue<0.05) %>%
+#       filter(grepl("Stress response", Term)) %>% select(Genes) %>%
+#       mutate(Genes = strsplit(as.character(Genes), ", ")) %>% unnest(Genes),
+#     P.camt.blast.GO %>% dplyr::select(gene_id, spid, protein_names, gene_ontology_biological_process) %>% 
+#       filter(gene_id %in% c(rownames(diffex.AL), rownames(diffex.AM))),
+#   by=c("Genes"="spid")) %>%
+#   mutate(funct="Stress-response\n(Heat shock proteins)", change="Upregulated")
+# 
+# growth <- left_join(read_delim(file = paste("DAVID_AM-UP_FC0.5.txt", sep=""), delim = "\t") %>% 
+#       filter(Category=="GOTERM_BP_DIRECT") %>% filter(PValue<0.05) %>%
+#       filter(grepl("cell growth|cell proliferation", Term)) %>% select(Genes) %>%
+#       mutate(Genes = strsplit(as.character(Genes), ", ")) %>% unnest(Genes),
+#     P.camt.blast.GO %>% dplyr::select(gene_id, spid, protein_names, gene_ontology_biological_process) %>% 
+#       filter(gene_id %in% c(rownames(diffex.AL), rownames(diffex.AM))),
+#   by=c("Genes"="spid")) %>%
+#   mutate(funct="Growth control", change="Upregulated")
+# 
+# 
+# # DOWNREGULATED IN OA 
+# 
+# TCA <- left_join(read_delim(file = paste("DAVID_AL-DOWN_FC0.5.txt", sep=""), delim = "\t") %>%
+#       filter(Category=="UP_KW_BIOLOGICAL_PROCESS") %>% filter(PValue<0.05) %>%
+#       filter(grepl("Tricarboxylic acid cycle", Term)) %>% select(Genes) %>%
+#       mutate(Genes = strsplit(as.character(Genes), ", ")) %>% unnest(Genes),
+#     P.camt.blast.GO %>% dplyr::select(gene_id, spid, protein_names, gene_ontology_biological_process) %>% 
+#       filter(gene_id %in% c(rownames(diffex.AL), rownames(diffex.AM))),
+#   by=c("Genes"="spid")) %>%
+#   mutate(funct="TCA Cycle", change="Downregulated")
+# TCA <- TCA %>% filter(gene_id %in% 
+#     (rbind(diffex.AL %>% as.data.frame() %>% rownames_to_column("gene_id") %>% filter(gene_id %in% TCA$gene_id),
+#            diffex.AM %>% as.data.frame() %>% rownames_to_column("gene_id") %>% filter(gene_id %in% TCA$gene_id)) %>% 
+#        arrange(pvalue) %>% head(n=ngenes))$gene_id)
+# 
+# carb.metabolism <- left_join(read_delim(file = paste("DAVID_AL-DOWN_FC0.5.txt", sep=""), delim = "\t") %>%
+#       filter(Category=="UP_KW_BIOLOGICAL_PROCESS") %>% filter(PValue<0.05) %>%
+#       filter(grepl("Carbohydrate metabolism", Term)) %>% select(Genes) %>%
+#       mutate(Genes = strsplit(as.character(Genes), ", ")) %>% unnest(Genes),
+#     P.camt.blast.GO %>% dplyr::select(gene_id, spid, protein_names, gene_ontology_biological_process) %>% 
+#       filter(gene_id %in% c(rownames(diffex.AL), rownames(diffex.AM))),
+#   by=c("Genes"="spid")) %>%
+#   mutate(funct="Carbohydrate\nmetabolism", change="Downregulated")
+# carb.metabolism <- carb.metabolism %>% filter(gene_id %in% 
+#     (rbind(diffex.AL %>% as.data.frame() %>% rownames_to_column("gene_id") %>% filter(gene_id %in% carb.metabolism$gene_id),
+#            diffex.AM %>% as.data.frame() %>% rownames_to_column("gene_id") %>% filter(gene_id %in% carb.metabolism$gene_id)) %>% 
+#        arrange(pvalue) %>% head(n=ngenes))$gene_id)
+# 
+# DNA.replication <- left_join(read_delim(file = paste("DAVID_AL-DOWN_FC0.5.txt", sep=""), delim = "\t") %>%
+#       filter(Category=="UP_KW_BIOLOGICAL_PROCESS") %>% filter(PValue<0.05) %>%
+#       filter(grepl("DNA replication", Term)) %>% select(Genes) %>%
+#       mutate(Genes = strsplit(as.character(Genes), ", ")) %>% unnest(Genes),
+#     P.camt.blast.GO %>% dplyr::select(gene_id, spid, protein_names, gene_ontology_biological_process) %>% 
+#       filter(gene_id %in% c(rownames(diffex.AL), rownames(diffex.AM))),
+#   by=c("Genes"="spid")) %>%
+#   mutate(funct="DNA replication", change="Downregulated")
+# DNA.replication <- DNA.replication %>% filter(gene_id %in% 
+#     (rbind(diffex.AL %>% as.data.frame() %>% rownames_to_column("gene_id") %>% filter(gene_id %in% DNA.replication$gene_id),
+#            diffex.AM %>% as.data.frame() %>% rownames_to_column("gene_id") %>% filter(gene_id %in% DNA.replication$gene_id)) %>% 
+#        arrange(pvalue) %>% head(n=ngenes))$gene_id)
+# 
+# ATP <- left_join(read_delim(file = paste("DAVID_AL-DOWN_FC0.5.txt", sep=""), delim = "\t") %>%
+#       filter(Category=="UP_KW_BIOLOGICAL_PROCESS") %>% filter(PValue<0.05) %>%
+#       filter(grepl("ATP synthesis", Term)) %>% select(Genes) %>%
+#       mutate(Genes = strsplit(as.character(Genes), ", ")) %>% unnest(Genes),
+#     P.camt.blast.GO %>% dplyr::select(gene_id, spid, protein_names, gene_ontology_biological_process) %>% 
+#       filter(gene_id %in% c(rownames(diffex.AL), rownames(diffex.AM))),
+#   by=c("Genes"="spid")) %>%
+#   mutate(funct="ATP synthesis", change="Downregulated")
+# 
+# lipid <- left_join(read_delim(file = paste("DAVID_AL-DOWN_FC0.5.txt", sep=""), delim = "\t") %>%
+#       filter(Category=="UP_KW_BIOLOGICAL_PROCESS") %>% filter(PValue<0.05) %>%
+#       filter(grepl("Lipid metabolism", Term)) %>% select(Genes) %>%
+#       mutate(Genes = strsplit(as.character(Genes), ", ")) %>% unnest(Genes),
+#     P.camt.blast.GO %>% dplyr::select(gene_id, spid, protein_names, gene_ontology_biological_process) %>% 
+#       filter(gene_id %in% c(rownames(diffex.AL), rownames(diffex.AM))),
+#   by=c("Genes"="spid")) %>%
+#   mutate(funct="Lipid\nmetabolism", change="Downregulated")
+# lipid <- lipid %>% filter(gene_id %in% 
+#     (rbind(diffex.AL %>% as.data.frame() %>% rownames_to_column("gene_id") %>% filter(gene_id %in% lipid$gene_id),
+#            diffex.AM %>% as.data.frame() %>% rownames_to_column("gene_id") %>% filter(gene_id %in% lipid$gene_id)) %>% 
+#        arrange(pvalue) %>% head(n=ngenes))$gene_id)
+# 
+# protein.biosyn <- left_join(read_delim(file = paste("DAVID_magenta_DEGs-or-GS.txt", sep=""), delim = "\t") %>%
+#       filter(Category=="UP_KW_BIOLOGICAL_PROCESS") %>% filter(PValue<0.05) %>%
+#       filter(grepl("Protein biosynthesis", Term)) %>% select(Genes) %>%
+#       mutate(Genes = strsplit(as.character(Genes), ", ")) %>% unnest(Genes),
+#     P.camt.blast.GO %>% dplyr::select(gene_id, spid, protein_names, gene_ontology_biological_process) %>% 
+#       filter(gene_id %in% c(rownames(diffex.AL), rownames(diffex.AM))),
+#   by=c("Genes"="spid")) %>%
+#   mutate(funct="Protein\nbiosynthesis", change="Downregulated")
+# protein.biosyn <- protein.biosyn %>% filter(gene_id %in% 
+#     (rbind(diffex.AL %>% as.data.frame() %>% rownames_to_column("gene_id") %>% filter(gene_id %in% protein.biosyn$gene_id),
+#            diffex.AM %>% as.data.frame() %>% rownames_to_column("gene_id") %>% filter(gene_id %in% protein.biosyn$gene_id)) %>% 
+#        arrange(pvalue) %>% head(n=ngenes))$gene_id)
+```
+
+```{r}
+# # MAKE LINE PLOTS
+# genes.stats %>% select(-change) %>% filter(gene %in% 
+#                          c(transposition$gene_id,
+#                            transc.reg$gene_id,
+#                            stress$gene_id,
+#                            differentiation$gene_id,
+#                            neurogenesis$gene_id,
+#                            growth$gene_id,
+#                            TCA$gene_id,
+#                            carb.metabolism$gene_id,
+#                            DNA.replication$gene_id,
+#                            ATP$gene_id,
+#                            lipid$gene_id,
+#                            protein.biosyn$gene_id)) %>% 
+#   left_join(rbind(
+#     transposition,
+#     transc.reg,
+#     stress,
+#     differentiation,
+#     neurogenesis,
+#     growth,
+#     TCA,
+#     carb.metabolism,
+#     DNA.replication,
+#     ATP,
+#     lipid,
+#     protein.biosyn) %>% select(gene_id, funct, change), 
+#             by=c("gene"="gene_id")) %>%
+#   mutate(funct = as.factor(funct), change = as.factor(change)) %>%
+#   #ggplot(aes(x=Treatment, y=median, colour=Treatment)) + geom_boxplot(outlier.shape = NA) + geom_jitter(size=2, width = 0.25) + 
+#  # mutate(pco2=Treatment) %>%
+#  # mutate_at("pco2", function(x) {
+#  #  case_when(
+#  #    x == "Ambient" ~ 371,
+#  #    x == "Moderate" ~ 704,
+#  #    x == "Low" ~ 1424)}) %>%
+#   mutate(pH=Treatment) %>%
+#   mutate_at("pH", function(x) {
+#     case_when(
+#       x == "Ambient" ~ 8.0,
+#       x == "Moderate" ~ 7.8,
+#       x == "Low" ~ 7.6)}) %>%
+#   
+#   filter(change=="Downregulated") %>%
+#   #filter(change=="Upregulated") %>%
+# 
+#   ggplot(aes(x=pH, y=mean, group=gene)) + 
+#   # geom_line(size=.01, color="forestgreen") +
+#   # geom_point(color="forestgreen") +  #upregulated
+#   geom_line(size=.01, color="firebrick3") +
+#   geom_point(color="firebrick3") +  #downregulated
+#   scale_x_continuous(name ="pH treatment", 
+#                    #  limits=c(350, 1450),
+#                    # breaks=c(370, 700, 1425)) +
+#                     limits=c(7.56, 8.04),
+#                    breaks=c(7.6, 7.8, 8.0)) +
+#   # geom_errorbar(aes(ymin=median-sd, ymax=median+sd), width=.2,
+#   #                position=position_dodge(0.05)) +
+#   theme_minimal() +
+#   theme(legend.position = "right") +
+#   facet_wrap(~funct, scales = "free", ncol = 2) + 
+#   # scale_color_manual(values = c("magenta" = "magenta2",
+#   #                               "pink"="pink3",
+#   #                               "coral1"="coral1",
+#   #                               "ivory"="green",
+#   #                               "green"="green",
+#   #                               "lightgreen"="green",
+#   #                               "plum1"="blue"), 
+#   #                    name = "Enriched function", 
+#   #                    labels = c("magenta"="response to virus", 
+#   #                               "pink"="positive regulation of microglial cell activation", 
+#   #                               "coral1"="activation of innate immune response",
+#   #                               "plum1"="chaperone mediated protein folding",
+#   #                               #"green"="Signal transduction",
+#   #                               "lightgreen"="Octopamine & tyromine receptors")) + # "ivory"=NA, "lightgreen"=NA
+#   #ggtitle("Upregulated Processes") + 
+#   ggtitle("Downregulated Processes") + 
+#   ylab("median count\n(variance-stabilized transformed)") #+ xlab(bquote(~pCO[2]~'Treatment'))
+# ```
+# 
+# 
+# MODULES FROM WGCNA WITH HIGH CORRELATION COEFFICIENT (>=0.5)
+# 
+# ```{r}
+# # Check out enriched biological processes as per DAVID - MAGENTA, filtered for genes that are either DEGs or are correlated with pCO2 on an individual basis
+# read_delim(file = paste("DAVID_magenta_DEGs-or-GS.txt", sep=""), delim = "\t") %>%
+#       filter(Category=="GOTERM_BP_DIRECT") %>% filter(PValue<0.05) %>% View()
+# 
+# # Check out enriched biological processes as per DAVID - GREEN, filtered for genes that are either DEGs or are correlated with pCO2 on an individual basis
+# read_delim(file = paste("DAVID_green_DEGs-or-GS.txt", sep=""), delim = "\t") %>%
+#       filter(Category=="GOTERM_BP_DIRECT") %>% 
+#   filter(PValue<0.05) %>% View()
+# 
+# # Check out enriched UNIPROT KEYWORDS as per DAVID - MAGENTA, filtered for genes that are either DEGs or are correlated with pCO2 on an individual basis
+# read_delim(file = paste("DAVID_magenta_DEGs-or-GS.txt", sep=""), delim = "\t") %>%
+#   filter(Category=="UP_KW_BIOLOGICAL_PROCESS") %>% 
+#   filter(PValue<0.05) %>% View()
+# 
+# # Check out enriched biological processes as per DAVID - GREEN, filtered for genes that are either DEGs or are correlated with pCO2 on an individual basis
+# read_delim(file = paste("DAVID_green_DEGs-or-GS.txt", sep=""), delim = "\t") %>%
+#   filter(Category=="UP_KW_BIOLOGICAL_PROCESS") %>% 
+#   filter(PValue<0.05) %>% View()
+```
+CRITICAL GENES:  LOW-CV Upregulated Gene DAVID results! 
+
+```{r}
+# # CRITICAL IN SEVERE OA 
+# read_delim(file = paste("DAVID_lowCV-upreg-low.txt", sep=""), delim = "\t") %>%
+#       filter(Category=="GOTERM_BP_DIRECT") %>% filter(PValue<0.05, Count>2) %>% View()
+# 
+# read_delim(file = paste("DAVID_lowCV-upreg-low.txt", sep=""), delim = "\t") %>%
+#       filter(Category=="GOTERM_CC_DIRECT") %>% filter(PValue<0.05, Count>2) %>% View()
+# 
+# # CRITICAL IN MODERATE OA
+# read_delim(file = paste("DAVID_lowCV-upreg-moderate.txt", sep=""), delim = "\t") %>%
+#       filter(Category=="GOTERM_BP_DIRECT") %>% filter(PValue<0.05, Count>2) %>% View()
+# 
+# # CRITICAL IN MODERATE OA
+# read_delim(file = paste("DAVID_lowCV-upreg-moderate.txt", sep=""), delim = "\t") %>%
+#       filter(Category=="GOTERM_CC_DIRECT") %>% filter(PValue<0.05, Count>2) %>% View()
+# 
+# # CRITICAL IN AMBIENT 
+# read_delim(file = paste("DAVID_lowCV-upreg-ambient.txt", sep=""), delim = "\t") %>%
+#   filter(Category=="GOTERM_BP_DIRECT") %>%  filter(PValue<0.05, Count>2) %>% View()
+# 
+# read_delim(file = paste("DAVID_lowCV-upreg-ambient.txt", sep=""), delim = "\t") %>%
+#   filter(Category=="GOTERM_CC_DIRECT") %>%  filter(PValue<0.05, Count>2) %>% View()
+# 
+# 
+# # CRITICAL IN SEVERE OA 
+# read_delim(file = paste("DAVID_lowCV-upreg-low.txt", sep=""), delim = "\t") %>%
+#       filter(Category=="UP_KW_BIOLOGICAL_PROCESS") %>% filter(PValue<0.05, Count>2) 
+# 
+# # CRITICAL IN MODERATE OA
+# read_delim(file = paste("DAVID_lowCV-upreg-moderate.txt", sep=""), delim = "\t") %>%
+#       filter(Category=="UP_KW_BIOLOGICAL_PROCESS") %>% filter(PValue<0.05, Count>2)
+# 
+# # CRITICAL IN AMBIENT 
+# read_delim(file = paste("DAVID_lowCV-upreg-ambient.txt", sep=""), delim = "\t") %>%
+#   filter(Category=="UP_KW_BIOLOGICAL_PROCESS") %>% 
+#   filter(PValue<0.05, Count>2)
+
+```
+
+```{r}
+# level <- "BP" #select BP, MF, or CC
+# MOD <- "pink"
+# # GO <- "negative regulation of cell proliferation"
+# # GO <- "immune|cytotoxicity|pattern recognition"
+# # GO <- "viral"
+# GO <- "immune"
+# 
+# 
+# # GO MWU 
+# q <- read_delim(file = paste(level, "_WGCNA-module_", MOD, ".csv", sep=""), delim = "\t") %>% #filter(name==GO) %>% 
+# filter(., grepl(GO,name)) %>% 
+#   left_join(geneInfo.mwu, by = c("seq"="id")) %>% filter(moduleColor == MOD)%>% 
+#   select(seq, SPID, protein_names) %>% unique()
+# 
+#   # # If interested- further filter to only retain genes that were differentially expressed 
+#   # filter(seq %in% unique(c(rownames(diffex.AM),rownames(diffex.AL), rownames(diffex.ML)))) %>%
+# #  View()
+# 
+# # plot genes contributing to enriched GO term of interest 
+# for (i in 1:length(q$seq)) {
+# a <-  plotCounts(dds.DESeq.pH, gene=q$seq[i], intgroup=c("Treatment"), returnData = TRUE) %>% 
+#   mutate(Treatment=factor(Treatment, levels=c("Ambient", "Moderate", "Low")))
+#   
+# print(ggplot(a %>% rownames_to_column("sample"),
+#        aes(x=Treatment, y=count, color=Treatment, label=sample)) +
+#   #geom_boxplot(outlier.shape = NA) +
+#   geom_point(size=2, position=position_jitter(w = 0.15,h = 0)) +
+#     #geom_text(size=2) +
+#     theme_bw() +
+#     ggtitle(paste(gsub("\\(.*","",q$protein_names[i]), "\n", q$SPID[i], " (", q$seq[i], ")")) +
+#     theme(axis.title.x = element_blank(), plot.title = element_text(hjust = 0.5, size=10), legend.position = "none"))
+# }
+# 
+# genes.stats %>% filter(gene %in% q$seq) %>% 
+# ggplot(aes(x=Treatment, y=median, colour=Treatment)) + geom_boxplot(outlier.shape = NA) + geom_jitter(size=2, width = 0.25) + theme_minimal() +
+#   ggtitle("Immune-response gene counts")
+# 
+# 
+# # 
+# genes.stats %>% filter(., grepl(GO, gene_ontology_biological_process)) %>% filter(gene %in% degs) %>% filter(change=="Down-regulated") %>%
+#   mutate(pco2=Treatment) %>%
+#   mutate_at("pco2", function(x) {
+#     case_when(
+#       x == "Ambient" ~ 371,
+#       x == "Moderate" ~ 704,
+#       x == "Low" ~ 1424)}) %>%
+#   ggplot(aes(x=pco2, y=mean, group=gene)) + geom_point() + geom_line(size=.01) +
+#   #ggplot(aes(x=Treatment, y=median, colour=Treatment)) + geom_violin(outlier.shape = NA) + geom_jitter(size=2, width = 0.25) + 
+#   theme_minimal() +
+#   ggtitle("Immune-response gene counts - degs")
+#   
+#   
+#   
+# 
+# 
+# 
+# 
+# 
+# 
+# geneInfo.mwu %>% filter(grepl("Cuticle", protein_names)) %>% #View()
+#   filter(id %in% unique(c(rownames(diffex.AM),rownames(diffex.AL), rownames(diffex.ML)))) %>% View()
+# 
+# 
+# read_delim(file = paste(level, "_WGCNA-module_", MOD, ".csv", sep=""), delim = "\t") %>% 
+#   left_join(geneInfo.mwu, by = c("seq"="id")) %>% View()
+# 
+# geneInfo.mwu %>% filter(grepl("Mannosyltransferase", protein_names)) %>% #View()
+#   filter(id %in% rownames(diffex.AL)) %>% dplyr::select(id, SPID, protein_names, moduleColor, GS.pco2, p.GS.pco2) %>%
+#   left_join(diffex.AL %>% as.data.frame() %>% rownames_to_column("id"))
+#            #unique(c(rownames(diffex.AM),rownames(diffex.AL), rownames(diffex.ML))))
+# 
+# 
+# geneInfo.mwu %>% filter(moduleColor =="lightcyan") %>%
+#   left_join(P.camt.blast.GO[,c("gene_id","gene_ontology_i_ds")], by = c("id"="gene_id")) %>%
+#   filter(grepl("Cuticle", protein_names)) %>% select(id) %>% unlist() %>% as.vector()
+# 
+# Term("GO:0032197")
+# 
+# geneInfo.mwu.mods[["magenta"]] %>% filter(sign!=0) %>% left_join(P.camt.blast.GO[c("gene_id", "spid", "evalue", "protein_names", "gene_ontology_biological_process", "gene_ontology_i_ds")], by=c("id"="gene_id")) %>% 
+#   filter(grepl("transposon|LINE-1|retrotransposable|transposable element|mobile element jockey", protein_names)) %>% View() 
+```
+
+# Calculate % of genes that are transposable elements in each module, and in the background, ALSO include % in DEGs, and low CV 
+
+```{r}
+getwd()
+load(file="../wgcna/geneInfo")
+TE.genes <-  ("transposon|transposable|LINE|retrotransposable element|transposable element|mobile element jockey|Pol polyprotein")
+
+# To view TEs 
+geneInfo %>% dplyr::select(SPID, protein_names) %>% unique() %>% filter(str_detect(protein_names, TE.genes)) %>% View()
+
+te.perc <- data.frame(module= character(0), te.perc= numeric(0), te.n= integer(0), n= integer(0), type=integer(0))
+
+# add row with %TEs in all genes 
+te.perc[1,1] <- "background"
+te.perc[1,2] <- geneInfo %>% filter(str_detect(protein_names, TE.genes)) %>% nrow() / geneInfo %>% filter(!is.na(SPID)) %>% nrow()
+te.perc[1,3] <- geneInfo %>% filter(str_detect(protein_names, TE.genes)) %>% nrow()
+te.perc[1,4] <- geneInfo %>% filter(!is.na(SPID)) %>% nrow() #number of genes total 
+te.perc[1,5] <- "Co-expression module"
+
+for (i in 1:length(modules)) {
+  te.perc[i+1,1] <- modules[[i]]
+  te.perc[i+1,2] <- geneInfo %>% filter(moduleColor == modules[[i]], str_detect(protein_names, TE.genes)) %>% nrow() / 
+                        geneInfo %>% filter(moduleColor == modules[[i]], !is.na(SPID)) %>% nrow()
+  te.perc[i+1,3] <- geneInfo %>% filter(moduleColor == modules[[i]], str_detect(protein_names, TE.genes)) %>% nrow()
+  te.perc[i+1,4] <- geneInfo %>% filter(moduleColor == modules[[i]], !is.na(SPID)) %>% nrow()
+  te.perc[i+1,5] <- "Co-expression module"
+}
+modules
 # Assign factor to each module indicating if it contains upreg/downreg/up-then-down genes 
 te.perc <- te.perc %>% mutate(change = 
                      as.factor(case_when(
                        module=="background" ~ "Background",
-                       module %in% modules.down ~ "Downregulated", 
-                       module %in% modules.up ~ "Upregulated", 
-                       module %in% modules.roof ~ "Up-then-down"
-                     )))
+                       module %in% c("magenta","lightcyan","firebrick4","darkviolet","royalblue","coral1","plum1","pink") ~ "Downregulated", 
+                       module %in% c("blue2", "lightsteelblue1", "ivory", "lightgreen", "purple","green") ~ "Upregulated")))
+
+# Add differential expression results 
+cont <- c("z_AM", "z_AL", "z_ML")
+diffex <- list(diffex.AM.annot, diffex.AL.annot, diffex.ML.annot)
+colors <- c(Ambient="#2c7bb6", Moderate="#fdae61", Low="#d7191c")
+
+for (i in c(1,2,3)) {
+# Upregulated
+te.perc[i+15,1] <- cont[i]
+te.perc[i+15,2] <- diffex[[i]] %>% filter(log2FoldChange<0, str_detect(protein_names, TE.genes)) %>% nrow() / 
+                                    diffex[[i]] %>% filter(log2FoldChange<0, !is.na(spid)) %>% nrow()
+te.perc[i+15,3] <- diffex[[i]] %>% filter(log2FoldChange<0, str_detect(protein_names, TE.genes)) %>% nrow()
+te.perc[i+15,4] <- diffex[[i]] %>% filter(log2FoldChange<0, !is.na(spid)) %>% nrow()
+te.perc[i+15,5] <- "DEGs"
+te.perc[i+15,6] <- "Upregulated"
+}
+
+for (i in c(1,2,3)) {
+# Downregulated
+te.perc[i+18,1] <- cont[i]
+te.perc[i+18,2] <- diffex[[i]] %>% filter(log2FoldChange>0, str_detect(protein_names, TE.genes)) %>% nrow() / 
+                                    diffex[[i]] %>% filter(log2FoldChange>0, !is.na(spid)) %>% nrow()
+te.perc[i+18,3] <- diffex[[i]] %>% filter(log2FoldChange>0, str_detect(protein_names, TE.genes)) %>% nrow()
+te.perc[i+18,4] <- diffex[[i]] %>% filter(log2FoldChange>0, !is.na(spid)) %>% nrow()
+te.perc[i+18,5] <- "DEGs"
+te.perc[i+18,6] <- "Downregulated"
+}
 
 te.perc %>% 
-  filter(change == "Upregulated") %>% droplevels() %>%
+  filter(module %in% modules, change == "Upregulated") %>% droplevels() %>%
   summarize(mean=mean(te.perc))
 
 te.perc %>% 
-  filter(change != "Upregulated") %>% filter(change != "Background") %>% droplevels() %>%
+  filter(module %in% modules, change == "Downregulated") %>% droplevels() %>%
   summarize(mean=mean(te.perc))
 
-# Boxplot
+
+# Boxplot of the percent of each gene set that are TEs 
+jpeg(file = "../Figure7.jpeg", width = 550, height = 850, res = 150)
 te.perc %>%
-  filter(change != "Background") %>%
-  ggplot(aes(x=change, y=te.perc)) + 
+#  filter(module %in% modules) %>%
+  filter(module != "background") %>%
+  filter(module != "z_ML") %>%
+  mutate(module=str_replace(module, "ivory", "khaki")) %>%
+  mutate(gene_set = case_when(
+    (module == "z_AM" & change == "Upregulated") ~ "Moderate",
+    (module == "z_AL" & change == "Upregulated") ~ "Severe",
+    (module == "z_ML" & change == "Upregulated") ~ "Severe",
+    (module == "z_AM" & change == "Downregulated") ~ "Ambient",
+    (module == "z_AL" & change == "Downregulated") ~ "Ambient",
+    (module == "z_ML" & change == "Downregulated") ~ "Moderate",
+    TRUE ~ "modules")) %>%
+  mutate(gene_set=factor(gene_set, levels=c("modules", "Severe", "Moderate", "Ambient"))) %>%
+  ggplot(aes(x=change, y=100*te.perc)) + 
   geom_boxplot(outlier.size = NA) + 
-  #geom_jitter(position=position_jitter(seed=10), aes(color=module)) + 
-  geom_text(position=position_jitter(width = .2,seed = 9), 
-            aes(color=module, label=paste(100*round(te.perc, digits = 2), "%", sep=""))) + 
+  #geom_jitter(position=position_jitter(seed=10), aes(fill=type, size=n, shape=gene_set)) + 
+  geom_jitter(position=position_jitter(seed=4, width = 0.18), aes(fill=type, shape=type), size=6) +  #simplified figure
+  # geom_text(position=position_jitter(width = .2,seed = 10),
+  #           aes(color=module, label=paste(100*round(te.perc, digits = 2), "%", sep=""))) +
   theme_minimal() + 
-  scale_colour_manual(name = "Module", values = sort(modules) %>% gsub("ivory", "wheat", .)) +
-  ylab("Percent TEs") + xlab(NULL) + ggtitle("Percent of genes that are TEs by module") +
-  geom_hline(yintercept = te.perc[te.perc$module=="background",]$te.perc, linetype="dashed", color="gray20")
+  theme(axis.title=element_text(size=13), axis.text=element_text(size=12), 
+        legend.position="bottom", legend.text=element_text(size=10), legend.spacing.y = unit(.01, 'cm')) +
+  scale_fill_manual(name = "Gene set", values = c("gray65", "gray30") , guide="none") +     
+  # scale_shape_manual(name = "Gene set", values = c(21, 22, 23, 24), 
+  #                    labels=c("Co-expression module", "Upregulated in Severe OA", "Upregulated in Moderate OA", "Downregulated in OA")) +
+  scale_shape_manual(name = NULL, values = c(21, 22), 
+                     labels=c("Co-expressed gene modules", "Differentially expressed genes")) +
+  # guides(shape = guide_legend(order=1, override.aes = list(size=4.25, fill=c("gray65", "gray30", "gray30", "gray30"))),
+  #        size = guide_legend(order=0, override.aes = list(fill="white", shape=21))) +
+  guides(shape = guide_legend(nrow=2,byrow=TRUE, order=1, override.aes = list(size=4.25, fill=c("gray65", "gray30"))),
+         size = guide_legend(order=0, override.aes = list(fill="white", shape=21))) +
+#  scale_size(range = c(3,9), name = "Number of genes in set") +
+  ylab("Percent Transposable Elements") + xlab(NULL) + ggtitle(NULL) + #ggtitle("Percent of genes that are TEs\nby gene set") +
+  geom_hline(yintercept = 100*te.perc[te.perc$module=="background",]$te.perc, linetype="dashed", color="gray20") 
+dev.off()
+
 ```
 
 ## Visualize GO Enrichment Results using Bubble Plots 
@@ -1864,10 +3175,11 @@ down.go <- DAVID_mods_degs %>% filter(category %in% c("GOTERM_BP_DIRECT", "GOTER
 # Check out BP and CC in upregulated, downreulgated, and up-then-down regulated genes. While doing so, remove terms that are based on the same exact genes, selecting the KW that has lowest p-value 
 
 # Upregulated Biological processes
-up.go %>% filter(category %in% "GOTERM_BP_DIRECT") %>% group_by(gene_set, category, nseqs, Genes) %>%
-summarise(pval=min(pval)) %>% distinct() %>% ungroup() %>% #for rows with duplicate grouping variabes, select one with lowest p-value
-left_join(up.go %>% select(gene_set, term, ID, Genes, pval, p.adj, percent, Fold.Enrichment, OA.response)) %>% 
-  filter(pval<0.05) %>% View() #re-add data
+up.go %>% filter(category %in% "GOTERM_BP_DIRECT") %>% 
+  group_by(gene_set, category, nseqs, Genes) %>%
+  summarise(pval=min(pval)) %>% distinct() %>% ungroup() %>% #for rows with duplicate grouping variabes, select one with lowest p-value
+  left_join(up.go %>% select(gene_set, term, ID, Genes, pval, p.adj, percent, Fold.Enrichment, OA.response)) %>%  #re-add data
+  filter(pval<0.05) %>% View()
 
 # Upregulated cellular componenets
 up.go %>% filter(category %in% "GOTERM_CC_DIRECT") %>% group_by(gene_set, category, nseqs, Genes) %>%
@@ -2012,6 +3324,13 @@ left_join(down.kw %>% select(gene_set, term, ID, Genes, pval, p.adj, percent, Fo
 
 ```
 
+### DAVID enrich results from DEGs with FC>0.5 - how many enriched GO terms with p-val < 0.05? 
+```{r}
+DAVID_degs_fc0.5 %>% filter(category %in% c("GOTERM_BP_DIRECT", "GOTERM_MF_DIRECT", "GOTERM_CC_DIRECT")) %>%
+  filter(pval<0.05) %>%
+  group_by(gene_set, category, OA.response) %>% tally()
+```
+
 ## DAVID results using gene modules, but filtering to retain those that are also DEGS OR have Gene Significance p-values < 0.05. 
 
 ```{r}
@@ -2036,6 +3355,8 @@ for (i in 1:nrow(filenames)) {
                                    gene_set %in% modules.down ~ "Downregulated",
                                    gene_set %in% modules.roof ~ "Up-then-Down"))))
 save(DAVID_mods_degs_GS, file = "DAVID_mods_degs_GS")
+
+View(DAVID_mods_degs_GS)
 ```
 
 

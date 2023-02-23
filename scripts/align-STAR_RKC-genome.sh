@@ -39,6 +39,7 @@ done
 # Max number of multiple alignments is 10, if exceeded read is considered unmapped --outFilterMultimapNmax 10
 # Min numer of bp overlap to assign read to a gene is 1nt
 # Also ... count number of reads per gene while mapping, using --quantMode GeneCounts
+# I'd like to use DEXSeq for differential exon usage (i.e. splice differences) analysis. So, instead of outputting sorted bam files, I output SAM files
 
 SAMPLES=$(ls ${IN}/*.trimmed.R1.v2.fastq.gz | \
 	awk -F "/" '{print $NF}' | \
@@ -54,7 +55,7 @@ STAR \
 --readFilesCommand gunzip -c \
 --outFilterMultimapNmax 50 \
 --outFileNamePrefix ${OUT}/${sample}. \
---outSAMtype BAM SortedByCoordinate \
+#--outSAMtype BAM SortedByCoordinate \
 --quantMode GeneCounts \
 &> ${OUT}/star-rkc.${sample}.log
 done

@@ -275,6 +275,9 @@ plot(geneTree, xlab="", sub="", main = "Gene clustering on TOM-based dissimilari
 # dynamicMods.50 = cutreeDynamic(dendro = geneTree, distM = dissTOM,
 #                 deepSplit = 2, pamRespectsDendro = FALSE,
 #                 minClusterSize = 50);
+dynamicMods.75 = cutreeDynamic(dendro = geneTree, distM = dissTOM,
+                deepSplit = 2, pamRespectsDendro = FALSE,
+                minClusterSize = 75);
 
 #load(file = "../results/wgcna/dynamicMods")
 #load(file = "../results/wgcna/dynamicMods.50")
@@ -414,6 +417,8 @@ labeledHeatmap(Matrix = moduleTraitCor,
                zlim = c(-1,1),
                main = paste("Module-pCO2 relationships"))
 #dev.off()
+
+modules %>% length()
 ```
 
 
@@ -660,8 +665,6 @@ geneInfo %>%
   left_join(genes.stats, by = c("id"="gene"))
 ```
 
-
-
 Summary of modules significantly associated with pCO2 
 ```{r}
 moduleTraitCor %>% nrow()
@@ -814,7 +817,7 @@ geneInfo %>%
 # replace "modules" filter with  c(modules, "lightsteelblue") to include peak/valley module with lots of DEGs
 
 # ANSWER: 
-# 92.8% of the DEGs were assigned to a pH-associated module. 
+# 92.8% of the DEGs were assigned to a pCO2-associated module. 
 # 83.7% of the DEGs were both assigned to a pH-associated module, AND those genes are sign. associated with pH (p.GS.pH<0.05)
 ```
 
@@ -1174,6 +1177,77 @@ for (i in 1:length(modules.interest)) {
     dplyr::select(id,sign) %>% remove_rownames()
   write.csv(geneInfo.mwu.mods.interest[[i]], paste("../results/GO_MWU/WGCNA-module_",modules.interest[[i]],".csv", sep = ""), quote = F,row.names = F)
 }
+```
+
+## Extract module eigengenes (first principal componenet) to relate to pCO2 treatment 
+
+```{r}
+#green$funct %>% unique()
+
+module.functions <- list(
+  'magenta'="(a) Protein production",
+  'lightcyan'="(b) Energy production",
+  'firebrick4'="(c) Carbohydrate metabolism,\nvesicle transport",
+  'darkviolet'="\n(d) Tissue development",
+  'royalblue'="(e) Muscle development\nand activity",
+  'coral1'="\n(f) Immune function",
+  'plum1'="(g) Protein folding\n(stress response)",
+  'pink'="(h) Lipid & carbohydrate\nmetabolism, immune function",
+  'blue2'="(i) No enriched functions",
+  'lightsteelblue1'="(j) Transcription regulation",
+  'ivory'="(k) Signaling",
+  'lightgreen'="(l) Transcription regulation",
+  'purple'="\n(m) Transcription regulation",
+  'green'="(n) Transcription regulation,\nsignal transduction"
+)
+
+#pdf(file="results/wgcna/Enriched-BP_WGCNA.pdf", height = 8, width = 4.5)
+tiff(file="../results/wgcna/Enriched-BP_WGCNA.tiff", height = 800, width = 425, res = 100)
+MEs %>% 
+  rownames_to_column("Sample") %>% 
+  pivot_longer(cols = -Sample, names_to = "module") %>%
+  mutate(module=as.factor(gsub("^ME", "", module))) %>%
+  filter(module %in% modules) %>%
+  left_join(sample.info %>% dplyr::select(Sample, Treatment)) %>%
+  group_by(Treatment, module) %>%
+  summarise(mean=mean(value), sd=sd(value)) %>%
+   mutate(pco2=Treatment) %>%
+   mutate_at("pco2", function(x) {
+    case_when(
+      x == "Ambient" ~ 371,
+      x == "Moderate" ~ 704,
+      x == "Low" ~ 1424)}) %>%
+# Add module pco2 correlation info
+  left_join(
+  cbind(moduleTraitCor %>% as.data.frame(), moduleTraitPvalue %>% as.data.frame()) %>% 
+    dplyr::rename(corr=1, pvalue=2) %>% filter(pvalue<0.05) %>% 
+    rownames_to_column("module") %>% 
+    mutate(module=gsub("^ME", "", module))) %>% 
+  mutate(change=corr) %>%
+   mutate_at("change", function(x) {
+    case_when(
+      x < 0 ~ "Downregulated",
+      x > 0 ~ "Upregulated")}) %>%
+  mutate(change=as.factor(change)) %>%
+  ungroup() %>%
+  mutate(module=fct_relevel(module,modules)) %>%
+  mutate(module=factor(module, labels=module.functions)) %>%
+
+  #plot   
+  ggplot(aes(x=pco2, y=mean, colour=change)) +
+  geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd), width=.1) +
+  geom_line() + geom_point() + 
+  scale_color_manual(values=c("slateblue3", "springgreen4")) + 
+  scale_y_continuous(limits = c(-0.3, 0.3), breaks = c(-0.3, -0.1, 0.1, 0.3)) +
+  scale_x_continuous(limits = c(350, 1475), breaks = c(370, 700, 1400)) +
+  xlab(NULL) + ylab(NULL) +
+  theme_minimal() + 
+  theme(legend.position = "none", strip.text = element_text(size = 10),
+        panel.spacing.y = unit(-.1, "lines"),
+        axis.text.y = element_text(size=9),
+        axis.text.x = element_text(size=11)) +
+  facet_wrap( ~module, ncol = 2, labeller = labeller(module=module.functions))
+dev.off()  
 ```
 
 

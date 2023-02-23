@@ -13,7 +13,18 @@
 # Run on RStudio Version 3.6.3 using RStudio Cloud
 #===========================================================================#
 
-list.of.packages <- c("tidyveres", "stringr", "ggplot2", "igraph", "scales", "taxize", "seqinr", "reshape2", "zoo", "traits", "RColorBrewer", "RCurl", "ape", "reshape", "lazyeval", "dplyr", "magrittr", "readr", "tidyverse")
+## Tricky installs 
+# phangorn <- "https://cran.r-project.org/src/contrib/Archive/phangorn/phangorn_2.5.5.tar.gz"
+# install.packages(phangorn, repos=NULL, type="source") ## version 1.3 is the only version compatible with the code below
+# install.packages("taxize")
+# 
+# mc <- "https://cran.r-project.org/src/contrib/Archive/metacoder/metacoder_0.1.3.tar.gz"
+# install.packages(mc, repos=NULL, type="source") ## version 1.3 is the only version compatible with the code below
+
+# # Install BiocManager if needed
+# if(!requireNamespace("BiocManager", quietly = TRUE)) install.packages("BiocManager")
+
+list.of.packages <- c("tidyveres", "stringr", "ggplot2", "igraph", "scales", "taxize", "seqinr", "reshape2", "zoo", "traits", "RColorBrewer", "RCurl", "ape", "reshape", "lazyeval", "dplyr", "magrittr", "readr", "tidyverse", "metacoder")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[, "Package"])]
 # Install all new packages
 if(length(new.packages)) install.packages(new.packages)
@@ -23,56 +34,15 @@ lapply(all.packages, FUN = function(X) {
   do.call("require", list(X))
 })
 
-phangorn <- "https://cran.r-project.org/src/contrib/Archive/phangorn/phangorn_2.5.5.tar.gz"
-install.packages(phangorn, repos=NULL, type="source") ## version 1.3 is the only version compatible with the code below
-install.packages("taxize")
-
-mc <- "https://cran.r-project.org/src/contrib/Archive/metacoder/metacoder_0.1.3.tar.gz"
-install.packages(mc, repos=NULL, type="source") ## version 1.3 is the only version compatible with the code below
-
-# Install BiocManager if needed
-if(!requireNamespace("BiocManager", quietly = TRUE)) install.packages("BiocManager")
-
 bioconductor.packages <- c("GO.db", "org.Hs.eg.db", "airway", "AnnotationDbi")
 new.bioc.packages <- bioconductor.packages[!(bioconductor.packages %in% installed.packages()[, "Package"])]
 if(length(new.bioc.packages)) BiocManager::install(new.bioc.packages)
 
-library(GO.db)
-library(org.Hs.eg.db)
-library(airway)
-library(AnnotationDbi)
-library(metacoder)
-
-## Custom function to create transparent colors
-## Transparent colors
-## Mark Gardener 2015
-## www.dataanalytics.org.uk
-
-t_col <- function(color, percent = 50, name = NULL) {
-  #      color = color name
-  #    percent = % transparency
-  #       name = an optional name for the color
-  
-  ## Get RGB values for named color
-  rgb.val <- col2rgb(color)
-  
-  ## Make new color using input color as base and alpha set by transparency
-  t.col <- rgb(rgb.val[1], rgb.val[2], rgb.val[3],
-               max = 255,
-               alpha = (100 - percent) * 255 / 100,
-               names = name)
-  
-  ## Save the color
-  invisible(t.col)
-}
-## END
-
-
-
-# set module of interest
-module <- "orange" # lightsteelblue1  orange  paleturquoise
-
-setwd("/Users/Avril/Desktop/")
+# library(GO.db)
+# library(org.Hs.eg.db)
+# library(airway)
+# library(AnnotationDbi)
+# library(metacoder)
 
 ##### READ IN ALL MODULE GENE:GO INFORMATION #####
 ## get list of all GO IDs and corresponding terms
@@ -103,22 +73,21 @@ load(file = "MF.metacoder")
 load(file = "CC.metacoder")
 
 
-
 # Ambient vs. Moderate
-uni.terms <- BP.metacoder %>% filter(p.adj<0.05) %>% filter(gene_set == "amb-mod") %>% filter(delta.rank>0) %>% arrange(pval) #UPREGULATED
+#uni.terms <- BP.metacoder %>% filter(p.adj<0.05) %>% filter(gene_set == "amb-mod") %>% filter(delta.rank>0) %>% arrange(pval) #UPREGULATED
 #uni.terms <- BP.metacoder %>% filter(p.adj<0.05) %>% filter(gene_set == "amb-mod") %>% filter(delta.rank<0) %>% arrange(pval) #DOWNREGULATED
 
 #Ambient vs. Low
-uni.terms <- BP.metacoder %>% filter(p.adj<0.05) %>% filter(gene_set == "amb-low") %>% filter(delta.rank>0) %>% arrange(pval) #UPREGULATED IN OA
+#uni.terms <- BP.metacoder %>% filter(p.adj<0.05) %>% filter(gene_set == "amb-low") %>% filter(delta.rank>0) %>% arrange(pval) #UPREGULATED IN OA
 #uni.terms <- BP.metacoder %>% filter(p.adj<0.05) %>% filter(gene_set == "amb-low") %>% filter(delta.rank<0) %>% arrange(pval) #DOWNREGULATED IN OA
 
 # Don't specify upreg/downreg here, do so in the network 
-uni.terms <- BP.metacoder %>% filter(p.adj<0.01) %>% filter(gene_set == "amb-mod") %>% arrange(pval) #UPREGULATED IN OA
-uni.terms <- BP.metacoder %>% filter(p.adj<0.01) %>% filter(gene_set == "amb-low") %>% arrange(pval) #UPREGULATED IN OA
+#uni.terms <- BP.metacoder %>% filter(p.adj<0.01) %>% filter(gene_set == "amb-mod") %>% arrange(pval) #UPREGULATED IN OA
+#uni.terms <- BP.metacoder %>% filter(p.adj<0.01) %>% filter(gene_set == "amb-low") %>% arrange(pval) #UPREGULATED IN OA
 
 # Don't specify upreg/downreg here, do so in the network 
-uni.terms <- MF.metacoder %>% filter(p.adj<0.01) %>% filter(gene_set == "amb-mod") %>% arrange(pval) #UPREGULATED IN OA
-uni.terms <- MF.metacoder %>% filter(p.adj<0.01) %>% filter(gene_set == "amb-low") %>% arrange(pval) #UPREGULATED IN OA
+#uni.terms <- MF.metacoder %>% filter(p.adj<0.01) %>% filter(gene_set == "amb-mod") %>% arrange(pval) #UPREGULATED IN OA
+#uni.terms <- MF.metacoder %>% filter(p.adj<0.01) %>% filter(gene_set == "amb-low") %>% arrange(pval) #UPREGULATED IN OA
 
 # #Moderate vs. Low
 # uni.terms <- BP.metacoder %>% filter(p.adj<0.05) %>% filter(gene_set == "mod-low") %>% filter(delta.rank>0) %>% arrange(pval) #UPREGULATED IN OA

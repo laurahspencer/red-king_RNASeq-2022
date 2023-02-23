@@ -18,6 +18,7 @@ lapply(list.of.packages, FUN = function(X) {
   do.call("require", list(X)) 
 })
 ```
+
 Generate tab-separated file that lists file names 
 
 ```{bash}
