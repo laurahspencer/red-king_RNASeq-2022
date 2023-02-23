@@ -2087,6 +2087,7 @@ dev.off()
 geneInfo %>% dplyr::select(SPID, protein_names) %>% unique() %>% filter(str_detect(protein_names, TE.genes)) %>% rownames_to_column("geneID") %>%
   left_join(P.camt.blast %>% select(geneID, SeqID, Start, End, species, evalue, gene.Uni)) %>%
   select(geneID, SeqID, Start, End, evalue, SPID, species, gene.Uni, protein_names) %>%
+  mutate(evalue=as.numeric(formatC(evalue, format = "e", digits = 2))) %>%
   write_csv(file = "../Supplemental-Table-6_Transposons.csv", col_names = TRUE)
 ```
 
