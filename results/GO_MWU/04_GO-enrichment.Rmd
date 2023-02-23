@@ -1979,9 +1979,6 @@ getwd()
 load(file="../wgcna/geneInfo")
 TE.genes <-  ("transposon|transposable|LINE|retrotransposable element|transposable element|mobile element jockey|Pol polyprotein")
 
-# To view TEs 
-geneInfo %>% dplyr::select(SPID, protein_names) %>% unique() %>% filter(str_detect(protein_names, TE.genes)) %>% View()
-
 te.perc <- data.frame(module= character(0), te.perc= numeric(0), te.n= integer(0), n= integer(0), type=integer(0))
 
 # add row with %TEs in all genes 
@@ -2082,6 +2079,15 @@ te.perc %>%
   geom_hline(yintercept = 100*te.perc[te.perc$module=="background",]$te.perc, linetype="dashed", color="gray20") 
 dev.off()
 
+```
+
+## Save list of unique TEs identified in data for supplemental tables 
+
+```{r}
+geneInfo %>% dplyr::select(SPID, protein_names) %>% unique() %>% filter(str_detect(protein_names, TE.genes)) %>% rownames_to_column("geneID") %>%
+  left_join(P.camt.blast %>% select(geneID, SeqID, Start, End, species, evalue, gene.Uni)) %>%
+  select(geneID, SeqID, Start, End, evalue, SPID, species, gene.Uni, protein_names) %>%
+  write_csv(file = "../Supplemental-Table-6_Transposons.csv", col_names = TRUE)
 ```
 
 ## Visualize GO Enrichment Results using Bubble Plots 

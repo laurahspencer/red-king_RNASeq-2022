@@ -1804,6 +1804,43 @@ f %>% filter(change_in_treatment=="Up-regulated")
 f %>% filter(!is.na(spid)) %>% filter(DEG == "DEG") %>% View()
 ```
 
+Save Low-CV enrichment results (BP, MF, CC) for supplemental tables 
+
+```{r}
+# Read in results, create one table with all low CV genes 
+enriched.lowcv <- vector(mode = "list", length = 3)
+names(enriched.lowcv) <- c("ambient", "moderate", "low")
+
+for (i in 1:3) {
+  enriched.lowcv[[i]] <- read_delim(file = paste("../results/GO_MWU/DAVID_lowCV-upreg-", names(enriched.lowcv)[i], ".txt", sep=""), delim = "\t") %>%
+      filter(Category %in% c("GOTERM_BP_DIRECT", "GOTERM_MF_DIRECT", "GOTERM_CC_DIRECT"))
+}
+
+# Create one master spreadsheet with all enrichment results, reformat, save to .csv
+bind_rows(enriched.lowcv, .id = "Treatment") %>% 
+  separate(Term, into = c("GO", "process"), sep = "~") %>%
+
+  mutate(Treatment=case_when(
+    Treatment=="low" ~ "severe OA",
+    Treatment=="moderate" ~ "moderate OA",
+    TRUE ~ "ambient")) %>%
+
+  mutate(Category=case_when(
+    Category=="GOTERM_BP_DIRECT" ~ "Biological Process",
+    Category=="GOTERM_MF_DIRECT" ~ "Molecular Function",
+    Category=="GOTERM_CC_DIRECT" ~ "Cellular Component")) %>%
+  
+  dplyr::rename(Term=process, `Number of Genes` = Count, 
+                `P-Value`=PValue, `Genes (Uniprot IDs)`=Genes) %>%
+  mutate(`Fold Enrichment`=round(`Fold Enrichment`, digits = 1),
+    `P-Value`=as.numeric(formatC(`P-Value`, format = "e", digits = 2)),
+    FDR=as.numeric(formatC(FDR, format = "e", digits = 2))) %>%
+  select(Treatment, Category, GO, Term, `Number of Genes`, `Genes (Uniprot IDs)`, `Fold Enrichment`, `P-Value`, FDR) %>%
+  arrange(Category, Treatment, `P-Value`) %>%
+  filter(`P-Value`<0.05) %>%
+  write_csv(file = "../results/Supplemental-Table-5_Upregulated-Low-CV-Enrichment-Results.csv", col_names = TRUE)
+```
+
 
 <!-- How many don't have GO terms? -->
 <!-- ```{r} -->
