@@ -977,34 +977,34 @@ res.pco2.AM %>% as.data.frame() %>% rownames_to_column("gene") %>%
 
 # -------
 # DEGs between Ambient & Moderate - DOWNREGULATED IN MODERATE OA VS. AMBIENT
-res.pco2.AM %>% as.data.frame() %>% rownames_to_column("gene") %>% filter(padj<0.05) %>% filter(log2FoldChange>0) %>% 
+res.pco2.AM %>% as.data.frame() %>% rownames_to_column("gene") %>% filter(padj<0.05) %>% filter(log2FoldChange>0.05) %>% 
   left_join(P.camt.blast.GO %>% dplyr::select(gene_id, gene_ontology_i_ds, spid), by = c("gene"="gene_id")) %>% 
   dplyr::select(spid) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
 
 # DEGs between Ambient & Moderate - UPREGULATED IN MODERATE OA VS. AMBIENT
-res.pco2.AM %>% as.data.frame() %>% rownames_to_column("gene") %>% filter(padj<0.05) %>% filter(log2FoldChange<(0)) %>% 
+res.pco2.AM %>% as.data.frame() %>% rownames_to_column("gene") %>% filter(padj<0.05) %>% filter(log2FoldChange<(-0.05)) %>% 
   left_join(P.camt.blast.GO %>% dplyr::select(gene_id, gene_ontology_i_ds, spid), by = c("gene"="gene_id")) %>% 
   dplyr::select(spid) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
 
 # -------
 # DEGs between Ambient & Low - DOWNREGULATED IN SEVERE OA VS. AMBIENT
-res.pco2.AL %>% as.data.frame() %>% rownames_to_column("gene") %>% filter(padj<0.05) %>% filter(log2FoldChange>0) %>% 
+res.pco2.AL %>% as.data.frame() %>% rownames_to_column("gene") %>% filter(padj<0.05) %>% filter(log2FoldChange>0.5) %>% 
   left_join(P.camt.blast.GO %>% dplyr::select(gene_id, gene_ontology_i_ds, spid), by = c("gene"="gene_id")) %>% 
   dplyr::select(spid) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
 
 # DEGs between Ambient & Low - UPREGUALTED IN SEVERE OA VS. AMBIENT
-res.pco2.AL %>% as.data.frame() %>% rownames_to_column("gene") %>% filter(padj<0.05) %>% filter(log2FoldChange<(0)) %>% 
+res.pco2.AL %>% as.data.frame() %>% rownames_to_column("gene") %>% filter(padj<0.05) %>% filter(log2FoldChange<(-0.05)) %>% 
   left_join(P.camt.blast.GO %>% dplyr::select(gene_id, gene_ontology_i_ds, spid), by = c("gene"="gene_id")) %>% 
   dplyr::select(spid) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
 
 # -------
 # DEGs between Moderate & Low - DOWNREGULATED IN SEVERE OA VS MODERATE OA 
-res.pco2.ML %>% as.data.frame() %>% rownames_to_column("gene") %>% filter(padj<0.05) %>% filter(log2FoldChange>0) %>% 
+res.pco2.ML %>% as.data.frame() %>% rownames_to_column("gene") %>% filter(padj<0.05) %>% filter(log2FoldChange>0.05) %>% 
   left_join(P.camt.blast.GO %>% dplyr::select(gene_id, gene_ontology_i_ds, spid), by = c("gene"="gene_id")) %>% 
   dplyr::select(spid) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
 
 # DEGs between Moderate & Low - UPREGUALTED IN SEVERE OA VS MODERATE OA
-res.pco2.ML %>% as.data.frame() %>% rownames_to_column("gene") %>% filter(padj<0.05) %>% filter(log2FoldChange<(0)) %>% 
+res.pco2.ML %>% as.data.frame() %>% rownames_to_column("gene") %>% filter(padj<0.05) %>% filter(log2FoldChange<(-0.05)) %>% 
   left_join(P.camt.blast.GO %>% dplyr::select(gene_id, gene_ontology_i_ds, spid), by = c("gene"="gene_id")) %>% 
   dplyr::select(spid) %>%  na.omit() %>% unlist() %>% as.vector() %>% write_clip()
 ```
@@ -1034,6 +1034,24 @@ enriched.bp.degs %>% filter(p_value<0.05) %>% group_by(deg_set) %>% tally()
 
 # How many enriched BP at FDR<0.1?
 enriched.bp.degs %>% filter(fdr<0.1) %>% group_by(deg_set) %>% tally()
+```
+
+```{r}
+enriched.keywords.degs <- vector(mode = "list", length = 6)
+names(enriched.keywords.degs) <- c("AL-UP", "AL-DOWN", "AM-UP", "AM-DOWN", "ML-UP", "ML-DOWN")
+
+for (i in 1:6) {
+  enriched.keywords.degs[[i]] <- 
+    read_delim(file = paste("../results/GO_MWU/DAVID_", names(enriched.keywords.degs)[i], "_FC0.5.txt", sep=""), 
+               delim = "\t") %>%
+      filter(Category=="UP_KW_BIOLOGICAL_PROCESS")
+}
+
+enriched.keywords.degs <- bind_rows(enriched.keywords.degs, .id = "deg_set") %>%
+  separate(Term, into = c("go", "process"), sep = "~") %>%
+  clean_names() #%>% 
+  #select(deg_set, go, process, count, percent, p_value, fold_enrichment, fdr) 
+
 ```
 
 Save DEG enrichment results (BP, MF, CC) for supplemental tables 
@@ -1129,9 +1147,9 @@ ggplot(aes(y = process, x=contrast, col=up.treatment)) +
   ggtitle(NULL) +
   annotate("text", x = 1, y = -.45, label = "Ambient vs.\nModerate OA", size=2, col="gray15") +
   annotate("text", x = 2, y = -.45, label = "Ambient vs.\nSevere OA", size=2, col="gray15") +
-  annotate("text", x = 3, y = -.45, label = "Moderate OA\nvs. Severe OA", size=2, col="gray15") +
-coord_cartesian(clip = "off", ylim = c(-.7, 43.25))
-# oord_cartesian(clip = "off", ylim = c(-0.6, 20))
+  annotate("text", x = 3, y = -.45, label = "Moderate OA\nvs. Severe OA", size=2, col="gray15")
+#coord_cartesian(clip = "off", ylim = c(-.7, 43.25))
+#coord_cartesian(clip = "off", ylim = c(-0.6, 20))
 dev.off()
 ```
 
@@ -1152,13 +1170,20 @@ res.pco2.AL %>% as.data.frame() %>% rownames_to_column("gene") %>%
 
 test <- diffex.AM %>% as.data.frame() %>% filter(log2FoldChange<0) %>% rownames()
 
-for (i in 1:length(test[1:20])) {
+
+# Check out genes related to chitin degradation
+test <- (diffex.AL %>% as.data.frame() %>% rownames_to_column(var = "geneID") %>%
+  filter(geneID %in%
+           (P.camt.blast %>% 
+              filter(SPID %in% c("P49010", "Q9BZP6", "Q11174", "Q13231")))$geneID))$geneID
+
+for (i in 1:length(test)) {
 a <-  plotCounts(dds.DESeq.pH, gene=test[i], intgroup=c("Treatment"), returnData = TRUE) %>% 
   mutate(Treatment=factor(Treatment, levels=c("Ambient", "Moderate", "Low")))
   
 print(ggplot(a %>% rownames_to_column("sample"),
        aes(x=Treatment, y=count, color=Treatment, label=sample)) +
-  #geom_boxplot(outlier.shape = NA) +
+  geom_boxplot(outlier.shape = NA) +
   geom_point(size=2, position=position_jitter(w = 0.15,h = 0)) +
     #geom_text(size=2) +
     theme_bw() +
@@ -2127,12 +2152,17 @@ res.pco2.ML %>% as.data.frame() %>% rownames_to_column("gene") %>%
 ```{r}
 # Biological Processes DOWNREGULATED in OA compared to Ambient
 
-pdf(file="../results/Figure5-downregulated.pdf", height = 5.35, width = 6)
+pdf(file="../results/Figure6B-downregulated.pdf", height = 5.35, width = 6)
 
-enriched.bp.degs %>% filter(p_value<0.05) %>%
+enriched.bp.degs %>% 
+#enriched.keywords.degs %>%
+  filter(p_value<0.05) %>%
   group_by(deg_set, genes, count) %>%
   summarise(p_value=min(p_value)) %>% distinct() %>% ungroup() %>% #for rows with duplicate grouping variabes, select one with lowest p-value
-  left_join(enriched.bp.degs %>% select(deg_set, category, go, process, count, percent, p_value, fold_enrichment, fdr, genes), by = c("deg_set", "genes", "p_value", "count")) %>%  #re-add data
+  left_join(
+   enriched.bp.degs %>% 
+#    enriched.keywords.degs %>%
+      select(deg_set, category, go, process, count, percent, p_value, fold_enrichment, fdr, genes), by = c("deg_set", "genes", "p_value", "count")) %>%  #re-add data
   ungroup() %>% arrange(deg_set, p_value) %>% group_by(deg_set) %>% dplyr::slice(1:20) %>%
   separate(deg_set, sep = "-", into = c("contrast", "OA.response"), remove = FALSE) %>%
   mutate(up.treatment=deg_set) %>%
@@ -2189,12 +2219,17 @@ dev.off()
 ```{r}
 # Biological Processes UPREGULATED in OA compared to Ambient
 
-pdf(file="../results/Figure5-upregulated.pdf", height =3, width = 5.5)
+pdf(file="../results/Figure6A-upregulated.pdf", height = 4.25, width = 5.5)
 
-enriched.bp.degs %>% filter(p_value<0.05) %>%
+enriched.bp.degs %>% 
+#enriched.keywords.degs %>%
+  filter(p_value<0.05) %>%
   group_by(deg_set, genes, count) %>%
   summarise(p_value=min(p_value)) %>% distinct() %>% ungroup() %>% #for rows with duplicate grouping variabes, select one with lowest p-value
-  left_join(enriched.bp.degs %>% select(deg_set, category, go, process, count, percent, p_value, fold_enrichment, fdr, genes), by = c("deg_set", "genes", "p_value", "count")) %>%  #re-add data
+  left_join(
+    enriched.bp.degs %>% 
+#    enriched.keywords.degs %>%
+      select(deg_set, category, go, process, count, percent, p_value, fold_enrichment, fdr, genes), by = c("deg_set", "genes", "p_value", "count")) %>%  #re-add data
   ungroup() %>% arrange(deg_set, p_value) %>% group_by(deg_set) %>% dplyr::slice(1:20) %>%
   separate(deg_set, sep = "-", into = c("contrast", "OA.response"), remove = FALSE) %>%
   mutate(up.treatment=deg_set) %>%
@@ -2242,8 +2277,6 @@ ggplot(aes(y = process, x=contrast, color=up.treatment)) +
   ggtitle(NULL) +
   annotate("text", x = 1, y = -.35, label = "Moderate OA\n(pH 7.8)", size=2.5, col="gray15") +
   annotate("text", x = 2, y = -.35, label = "Severe OA\n(pH 7.3)", size=2.5, col="gray15") +
-#  annotate("text", x = 3, y = -.45, label = "Moderate OA\nvs. Severe OA", size=2, col="gray15") +
-coord_cartesian(clip = "off", ylim = c(-.7, 13.5))
-# oord_cartesian(clip = "off", ylim = c(-0.6, 20))
+coord_cartesian(clip = "off", ylim = c(-.7, 22.5))
 dev.off()
 ```
