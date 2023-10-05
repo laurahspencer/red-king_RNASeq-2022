@@ -2041,7 +2041,7 @@ te.perc %>%
 
 
 # Boxplot of the percent of each gene set that are TEs 
-jpeg(file = "../Figure7.jpeg", width = 550, height = 850, res = 150)
+pdf(file = "../../manuscript/Figures/Figure7.pdf", width = 3.5, height = 6.25)
 te.perc %>%
 #  filter(module %in% modules) %>%
   filter(module != "background") %>%

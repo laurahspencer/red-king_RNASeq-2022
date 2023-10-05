@@ -317,7 +317,7 @@ shapiro.test(pca.princomp$x) #multivariate normality not met, hmmmm
 tab.expr.annot <- left_join(tab.expr, sample.info, by=c("sample.id"="Sample")) %>% droplevels()
 
 # GGSCATTER with ellipses and stars - PC1 PC2
-ggscatter(tab.expr.annot %>% 
+(fig2 <- ggscatter(tab.expr.annot %>% 
             mutate(Treatment=str_replace(Treatment, "Ambient", "Ambient (pH 8.0)"),
                    Treatment=str_replace(Treatment, "Moderate", "Moderate (pH 7.8)"),
                    Treatment=str_replace(Treatment, "Low", "Severe (pH 7.6)")), 
@@ -331,7 +331,7 @@ ggscatter(tab.expr.annot %>%
   theme(legend.position = "right") + 
   # scale_color_manual(name="pCO2 Treatment", labels=c("8.1", "7.8", "7.6"), values=c("8.1"="#2c7bb6", "7.8"="#fdae61", "7.6"="#d7191c")) +
   # scale_fill_manual(name="pCO2 Treatment", labels=c("8.1", "7.8", "7.6"), values=c("8.1"="#2c7bb6", "7.8"="#fdae61", "7.6"="#d7191c")) +
-  guides(colour = guide_legend(override.aes = list(size=3.5, linetype="blank"))) 
+  guides(colour = guide_legend(override.aes = list(size=3.5, linetype="blank")))) 
 
 # GGSCATTER with ellipses and stars - PC1 PC3
 ggscatter(tab.expr.annot, x="EV1.all", y="EV3.all",
@@ -370,6 +370,13 @@ ggscatter(tab.expr.annot, x="EV3.all", y="EV4.all",
   # scale_fill_manual(name="pCO2 Treatment", labels=c("8.1", "7.8", "7.6"), values=c("8.1"="#2c7bb6", "7.8"="#fdae61", "7.6"="#d7191c")) +
   guides(colour = guide_legend(override.aes = list(size=3.5, linetype="blank"))) 
 
+```
+Save Figure 2
+
+```{r}
+pdf(file = "../manuscript/Figures/Figure2.pdf", width = 7.5, height = 4.75)
+print(fig2)
+dev.off()
 ```
 
 ```{r}
@@ -1034,6 +1041,8 @@ enriched.bp.degs %>% filter(p_value<0.05) %>% group_by(deg_set) %>% tally()
 
 # How many enriched BP at FDR<0.1?
 enriched.bp.degs %>% filter(fdr<0.1) %>% group_by(deg_set) %>% tally()
+
+
 ```
 
 ```{r}
@@ -1092,6 +1101,7 @@ bind_rows(enriched.degs, .id = "deg_set") %>%
   filter(`P-Value`<0.05) %>%
   write_csv(file = "../results/Supplemental-Table-4_DEG-Enrichment-Results.csv", col_names = TRUE)
 ```
+
 
 Bubble plot of enriched Biological Processes 
 
@@ -2147,7 +2157,7 @@ res.pco2.ML %>% as.data.frame() %>% rownames_to_column("gene") %>%
 
 
 # Generating 2 bubble plots for Figure in manuscript - 1) Less Active, 2) More Active 
-
+Figure 6 A and B 
 
 ```{r}
 # Biological Processes DOWNREGULATED in OA compared to Ambient
@@ -2280,3 +2290,8 @@ ggplot(aes(y = process, x=contrast, color=up.treatment)) +
 coord_cartesian(clip = "off", ylim = c(-.7, 22.5))
 dev.off()
 ```
+
+```{r}
+enriched.bp.degs %>% filter(deg_set=="AL-UP", p_value<0.05) %>% arrange(p_value) %>% View()
+```
+

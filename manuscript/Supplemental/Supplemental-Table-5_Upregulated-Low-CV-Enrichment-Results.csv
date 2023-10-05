@@ -1,0 +1,63 @@
+Treatment,Category,GO,Term,Number of Genes,Genes (Uniprot IDs),Fold Enrichment,P-Value,FDR
+ambient,Biological Process,GO:0006412,translation,34,"Q92616, P46791, P29691, B4PEU8, P62083, Q962T1, Q4GXH6, Q7ZV82, Q7ZUB2, Q94613, Q7KF90, P23403, Q4R7Y2, Q8WQI5, Q9NB33, Q9FJA6, Q95V32, Q9XYC2, O13019, Q9YIC0, Q90YV8, P31009, P46782, P55833, Q6QN05, P62282, P36241, Q5REY2, P49149, O16797, Q5R8K6, Q5REU2, A2I3Z2, P48855",10.6,2.14e-25,1.17e-22
+ambient,Biological Process,GO:0002181,cytoplasmic translation,6,"P31009, P47826, P46782, P36241, Q86FP7, O16797",12,1.1e-4,0.03
+ambient,Biological Process,GO:1902600,hydrogen ion transmembrane transport,6,"Q5TTG1, P13607, Q9XW92, Q27331, P31410, Q9W4P5",7,0.00146,0.266
+ambient,Biological Process,GO:0001732,formation of cytoplasmic translation initiation complex,5,"Q17Q06, B4LYI3, A7RWP6, Q1HDZ5, B0WAM5",7.7,0.0036,0.49
+ambient,Biological Process,GO:0006096,glycolytic process,4,"P04764, O61199, P56252, P56649",8,0.0128,1
+ambient,Biological Process,GO:0000354,cis assembly of pre-catalytic spliceosome,2,"O75643, Q9BUQ8",47.9,0.041,1
+ambient,Biological Process,GO:0036376,sodium ion export from cell,2,"Q24048, P13607",47.9,0.041,1
+ambient,Biological Process,GO:0090344,negative regulation of cell aging,2,"Q3KNM2, Q9UM11",47.9,0.041,1
+ambient,Biological Process,GO:0045478,fusome organization,2,"P37276, P13395",47.9,0.041,1
+ambient,Biological Process,GO:0030007,cellular potassium ion homeostasis,2,"Q24048, P13607",47.9,0.041,1
+ambient,Biological Process,GO:0006414,translational elongation,3,"Q9YIC0, P13060, P29691",9,0.0423,1
+ambient,Biological Process,GO:0046034,ATP metabolic process,3,"Q9XW92, Q27331, P31410",8.5,0.0473,1
+moderate OA,Biological Process,GO:0006313,"transposition, DNA-mediated",2,"Q95SX7, Q9NBX4",103.4,0.0178,1
+moderate OA,Biological Process,GO:0006325,chromatin organization,3,"Q9VMJ7, Q80T69, E9Q5F9",12,0.0216,1
+severe OA,Biological Process,GO:0006357,regulation of transcription from RNA polymerase II promoter,24,"A0AVK6, Q9W676, Q9UJN7, Q08ER8, Q13106, Q7T2G1, Q6ZMW2, Q9P255, Q15937, Q7L3S4, Q8NI51, P51522, P17019, P31368, Q9HCG1, Q96N38, Q8BQN6, Q7Z340, Q7KRI2, P17141, P47236, Q98SJ5, Q7Z7L9, A8MQ14",2.8,1.07e-5,0.00768
+severe OA,Biological Process,GO:0006355,"regulation of transcription, DNA-templated",15,"Q13106, Q6ZMW2, Q9P255, Q960X4, Q15937, Q8TF32, P51522, P17019, Q9HCG1, Q96N38, Q7Z340, P17141, Q98SJ5, A8MQ14, P08045",2.4,0.003,1
+severe OA,Biological Process,GO:0015074,DNA integration,6,"Q99315, P04323, P10394, P11369, P31792, Q09575",5.2,0.00562,1
+severe OA,Biological Process,GO:0007275,multicellular organism development,8,"Q9W6H5, Q16832, P17141, O73792, Q98SJ5, Q9QYS1, Q6P1C6, Q15375",3.7,0.00572,1
+severe OA,Biological Process,GO:0007165,signal transduction,10,"Q8MLZ5, Q23356, Q9V477, Q16832, O75325, Q08832, Q01484, Q08499, Q8MQW8, O43639",2.6,0.0135,1
+severe OA,Biological Process,GO:0007399,nervous system development,7,"P62484, Q9W676, Q98SJ5, Q26473, A2ARV4, Q960X4, Q9V4A7",3.3,0.0187,1
+severe OA,Biological Process,GO:0006024,glycosaminoglycan biosynthetic process,3,"Q9QZS6, Q0IHQ9, P29416",12.6,0.0225,1
+severe OA,Biological Process,GO:0086004,regulation of cardiac muscle cell contraction,2,"Q01484, Q08499",58.7,0.0335,1
+severe OA,Biological Process,GO:0030216,keratinocyte differentiation,3,"O95835, Q99816, Q9QYS1",8.8,0.0441,1
+severe OA,Biological Process,GO:0043268,positive regulation of potassium ion transport,2,"Q12959, Q01484",39.1,0.0498,1
+severe OA,Biological Process,GO:0048791,calcium ion-regulated exocytosis of neurotransmitter,2,"Q9UQ26, P21521",39.1,0.0498,1
+ambient,Cellular Component,GO:0005840,ribosome,25,"Q92616, O42248, P62083, Q962T1, Q7ZV82, Q7ZUB2, Q94613, Q7KF90, Q4R7Y2, Q8WQI5, Q9NB33, Q95V32, Q9XYC2, O13019, P46782, O57592, P55833, Q6QN05, P62282, Q5REY2, P49149, O16797, Q5R8K6, Q5REU2, P48855",14.7,5.06e-22,1.11e-19
+ambient,Cellular Component,GO:0022626,cytosolic ribosome,10,"P31009, P62282, P46782, P36241, B4PEU8, O16797, P62083, Q5R8K6, Q9FJA6, Q5REU2",19.6,6.55e-10,7.17e-8
+ambient,Cellular Component,GO:0022627,cytosolic small ribosomal subunit,7,"P31009, P62282, P46782, Q86FP7, P62083, Q9FJA6, A2I3Z2",14.9,4.54e-6,3.32e-4
+ambient,Cellular Component,GO:0015935,small ribosomal subunit,6,"P31009, P46791, P46782, B4PEU8, P23403, Q9FJA6",18.8,9.98e-6,5.46e-4
+ambient,Cellular Component,GO:0022625,cytosolic large ribosomal subunit,7,"P47826, Q7ZV82, P36241, Q4R506, Q4R7Y2, O16797, O57592",12.6,1.31e-5,5.72e-4
+ambient,Cellular Component,GO:0033180,"proton-transporting V-type ATPase, V1 domain",5,"Q5TTG1, Q9XW92, Q2TJ56, Q27331, P31410",26.1,2.22e-5,8.12e-4
+ambient,Cellular Component,GO:1990904,ribonucleoprotein complex,8,"P37276, P46782, P13060, O75564, P29691, P62083, Q5R874, O57592",5.3,7.01e-4,0.0219
+ambient,Cellular Component,GO:0015934,large ribosomal subunit,4,"Q90YV8, Q4GXH6, Q7ZV82, Q5REY2",17.1,0.00135,0.0369
+ambient,Cellular Component,GO:0033290,eukaryotic 48S preinitiation complex,5,"Q17Q06, B4LYI3, A7RWP6, Q1HDZ5, B0WAM5",8.1,0.00302,0.0734
+ambient,Cellular Component,GO:0016282,eukaryotic 43S preinitiation complex,5,"Q17Q06, B4LYI3, A7RWP6, Q1HDZ5, B0WAM5",7.8,0.00343,0.075
+ambient,Cellular Component,GO:0005852,eukaryotic translation initiation factor 3 complex,4,"Q17Q06, B4LYI3, A7RWP6, Q1HDZ5",7.5,0.0151,0.28
+ambient,Cellular Component,GO:0071013,catalytic step 2 spliceosome,6,"Q08473, Q96BP3, O75643, Q9BUQ8, Q14562, Q99PV0",3.9,0.0178,0.28
+ambient,Cellular Component,GO:0045169,fusome,3,"P37276, P54399, P13395",14.1,0.0179,0.28
+ambient,Cellular Component,GO:0005682,U5 snRNP,3,"O75643, Q9BUQ8, Q99PV0",14.1,0.0179,0.28
+ambient,Cellular Component,GO:0000015,phosphopyruvate hydratase complex,2,"P04764, P56252",47,0.0418,0.573
+ambient,Cellular Component,GO:0005890,sodium:potassium-exchanging ATPase complex,2,"Q24048, P13607",47,0.0418,0.573
+severe OA,Cellular Component,GO:0016324,apical plasma membrane,9,"O55164, C9J069, Q9V477, Q16832, Q9V427, Q12959, A2ARV4, Q01484, Q08499",3.7,0.00291,0.314
+severe OA,Cellular Component,GO:0005886,plasma membrane,32,"Q9V477, Q17239, P11346, P29174, P50579, P14599, Q63312, Q80V42, Q96PE1, P21521, Q9VXE5, Q66JG9, Q9W676, C9J069, Q16832, O73792, Q9V427, P35500, Q12959, Q08832, A2ARV4, Q01484, Q08499, O61307, Q6P1C6, O55164, Q9VE46, Q99816, Q13530, P48613, Q9V4A7, Q15375",1.6,0.00353,0.314
+severe OA,Cellular Component,GO:0031594,neuromuscular junction,5,"Q9VV43, Q12959, O61307, P21521, Q15375",5.3,0.0138,0.822
+severe OA,Cellular Component,GO:0043235,receptor complex,4,"Q16832, O73792, A2ARV4, Q15375",5.3,0.0386,1
+ambient,Molecular Function,GO:0003735,structural constituent of ribosome,34,"P46791, B4PEU8, P62083, Q962T1, Q4GXH6, Q7ZV82, Q4R506, Q7ZUB2, Q94613, Q86FP7, Q7KF90, P23403, Q4R7Y2, Q8WQI5, Q9NB33, Q9FJA6, Q95V32, Q9XYC2, O13019, Q90YV8, P31009, P46782, P55833, Q6QN05, P47826, P62282, P36241, Q5REY2, P49149, O16797, Q5R8K6, Q5REU2, A2I3Z2, P48855",13.8,2.05e-29,4.71e-27
+ambient,Molecular Function,GO:0046961,"proton-transporting ATPase activity, rotational mechanism",5,"Q5TTG1, Q9XW92, Q2TJ56, Q27331, Q9W4P5",11.7,7.03e-4,0.0809
+ambient,Molecular Function,GO:0003746,translation elongation factor activity,6,"Q9YIC0, P29693, P13060, P29691, O42820, Q1HPK6",7,0.00142,0.109
+ambient,Molecular Function,GO:0003723,RNA binding,23,"Q08473, Q6NRJ7, Q6GPM1, P04764, Q90YV8, P31009, Q92616, P46791, O75643, P46782, Q8VDM6, Q5R874, O57592, Q99PV0, P36241, Q4R506, Q9BUQ8, P41824, P23403, O16797, Q5REX3, Q9FJA6, Q14562",2,0.00278,0.16
+ambient,Molecular Function,GO:0046933,"proton-transporting ATP synthase activity, rotational mechanism",4,"Q5TTG1, Q9XW92, Q2TJ56, Q27331",11.9,0.00404,0.186
+ambient,Molecular Function,GO:0003964,RNA-directed DNA polymerase activity,6,"P21329, Q95SX7, P21328, P08548, Q9NBX4, P11369",3.8,0.0205,0.785
+ambient,Molecular Function,GO:0003743,translation initiation factor activity,5,"Q17Q06, B4LYI3, A7RWP6, Q1HDZ5, B0WAM5",3.9,0.0375,1
+ambient,Molecular Function,GO:0004634,phosphopyruvate hydratase activity,2,"P04764, P56252",44.6,0.044,1
+ambient,Molecular Function,GO:0008184,glycogen phosphorylase activity,2,"Q9XTL9, P11217",44.6,0.044,1
+moderate OA,Molecular Function,GO:0003964,RNA-directed DNA polymerase activity,5,"P21329, Q95SX7, P21328, Q94HW2, Q9NBX4",30.8,1.16e-5,5.23e-4
+severe OA,Molecular Function,GO:0003964,RNA-directed DNA polymerase activity,11,"Q99315, P04323, P21329, Q95SX7, P21328, P10394, P08548, O00370, Q9NBX4, P11369, P31792",8.3,5.61e-7,1.19e-4
+severe OA,Molecular Function,GO:0000981,"RNA polymerase II transcription factor activity, sequence-specific DNA binding",20,"A0AVK6, Q9UJN7, Q08ER8, Q13106, Q9P255, Q15937, Q7L3S4, Q8TF32, Q8NI51, P51522, P17019, P31368, Q9HCG1, Q96N38, Q8BQN6, Q7Z340, P17141, P47236, Q98SJ5, Q7Z7L9",3.1,1.52e-5,0.00161
+severe OA,Molecular Function,GO:0000978,RNA polymerase II core promoter proximal region sequence-specific DNA binding,17,"A0AVK6, Q08ER8, Q13106, Q7T2G1, Q6ZMW2, Q9P255, Q7L3S4, Q8TF32, Q8NI51, P51522, P17019, P31368, Q9HCG1, Q96N38, Q7Z340, P47236, A8MQ14",2.5,9.83e-4,0.0695
+severe OA,Molecular Function,GO:0046872,metal ion binding,40,"Q5R633, Q8IRW8, Q08ER8, Q9UJN7, Q0V9R3, Q7T2G1, P11346, P50579, Q9P255, P11369, Q15937, Q9VGI8, Q7L3S4, P51522, Q80V42, Q8BQN6, O00370, Q5EAB6, P08045, Q9Z2W1, P08548, P49096, Q13106, Q6ZMW2, A2ARV4, Q960X4, Q9UQ26, Q8TF32, Q8NI51, Q08499, P17019, Q99315, Q9HCG1, Q96N38, Q7Z340, P17141, P18729, Q7Z7L9, A8MQ14, Q2EI21",1.4,0.00929,0.493
+severe OA,Molecular Function,GO:0003676,nucleic acid binding,10,"Q99315, P04323, P0C218, Q6DGV1, P10394, P29174, Q9VGI8, P11369, P31792, Q09575",2.4,0.0205,0.692
+severe OA,Molecular Function,GO:0044325,ion channel binding,4,"Q12959, Q01484, Q9UQ26, Q08499",6.5,0.0223,0.692
+severe OA,Molecular Function,GO:0001227,"transcriptional repressor activity, RNA polymerase II transcription regulatory region sequence-specific binding",6,"A0AVK6, Q8BQN6, Q9UJN7, P17141, Q7T2G1, Q15937",3.7,0.0228,0.692

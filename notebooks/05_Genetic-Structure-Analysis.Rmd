@@ -215,7 +215,7 @@ tab.annot.gen %>% mutate(Treatment=factor(Treatment, levels=c("Ambient", "Modera
 
 ```{r}
 # PC1 X PC2
-(a <- ggplot(tab.annot.gen %>% 
+(fig1 <- ggplot(tab.annot.gen %>% 
             mutate(Treatment=str_replace(Treatment, "Ambient", "Ambient (pH 8.0)"),
                    Treatment=str_replace(Treatment, "Moderate", "Moderate (pH 7.8)"),
                    Treatment=str_replace(Treatment, "Low", "Severe (pH 7.6)")), 
@@ -335,6 +335,15 @@ ggscatter(tab.annot.gen, x="PC3.gen", y="PC2.gen",
   guides(colour = guide_legend(override.aes = list(size=3.5, linetype="blank"))) 
 
 ```
+Save Figure 1 
+
+```{r}
+pdf(file = "../manuscript/Figures/Figure1.pdf", width = 7.5, height = 4.75)
+print(fig1)
+dev.off()
+```
+
+
 ```{r}
 tab.annot.gen %>% pivot_longer(cols=contains(c("PC2.gen", "PC3.gen", "PC4.gen", "PC5.gen")), names_to = "PC.axis", values_to = "PC.loc") %>%
   mutate(PC.axis=factor(PC.axis,
