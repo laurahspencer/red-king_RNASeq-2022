@@ -2080,6 +2080,42 @@ te.perc %>%
 dev.off()
 
 ```
+Statistically test TE composition - chi square test maybe? 
+
+```{r}
+te.perc %>% filter(change !="Background") %>%
+  ggplot() + geom_boxplot(aes(x=change, y=te.perc))
+te.perc %>% filter(change !="Background") %>%
+  ggplot() + geom_boxplot(aes(x=change, y=te.n))
+
+(te.perc %>% filter(change !="Background"))$te.perc %>% hist()
+summary(aov(te.perc ~ change, data=te.perc %>% filter(change !="Background")))
+
+# Use beta-regression, more appropriate for 
+install.packages("betareg")
+install.packages("rcompanion")
+install.packages("emmeans")
+require(betareg)
+require(car)
+library(rcompanion)
+require(emmeans)
+
+model.beta <- betareg(te.perc ~ change, data=te.perc %>% filter(change !="Background"))
+summary(model.beta)
+Anova(model.beta)
+joint_tests(model.beta)
+
+test<-te.perc %>% filter(change !="Background")
+lrtest(betareg(te.perc ~ change, data=test))
+```
+Chi-square test 
+
+```{r}
+
+ %>%
+  pivot_wider(names_from=change, values_from=te.n)
+```
+
 
 ## Save list of unique TEs identified in data for supplemental tables 
 
@@ -3363,9 +3399,18 @@ for (i in 1:nrow(filenames)) {
                                    gene_set %in% modules.roof ~ "Up-then-Down"))))
 save(DAVID_mods_degs_GS, file = "DAVID_mods_degs_GS")
 
-View(DAVID_mods_degs_GS)
+load(file = "DAVID_mods_degs_GS")
 ```
+What Uniprot Keywords were enriched in gene modules? 
 
+```{r}
+DAVID_mods_degs_GS %>% 
+  filter(category=="UP_KW_BIOLOGICAL_PROCESS") %>%
+  filter(pval<0.05) %>%
+  arrange(OA.response, gene_set, pval) %>%
+  select(gene_set, ID, term, Fold.Enrichment, pval, p.adj) %>%
+  mutate(across(c("Fold.Enrichment", "pval", "p.adj"), signif, 2))
+```
 
 
 

@@ -19,15 +19,15 @@ list.of.packages <- c("RCurl", "tidyverse", "vegan", "pheatmap", "pastecs", "fac
 # Add all libraries that are installed using BiocManager here
 bioconductor.packages <- c("DESeq2", "WGCNA")
 
-# # Install BiocManager if needed
-# if(!requireNamespace("BiocManager", quietly = TRUE)) install.packages("BiocManager")
-# 
-# # Get names of all required packages that aren't installed
-# new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[, "Package"])]
-# new.bioc.packages <- bioconductor.packages[!(bioconductor.packages %in% installed.packages()[, "Package"])]
-# # Install all new packages
-# if(length(new.packages)) install.packages(new.packages)
-# if(length(new.bioc.packages)) BiocManager::install(new.bioc.packages)
+# Install BiocManager if needed
+if(!requireNamespace("BiocManager", quietly = TRUE)) install.packages("BiocManager")
+
+# Get names of all required packages that aren't installed
+new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[, "Package"])]
+new.bioc.packages <- bioconductor.packages[!(bioconductor.packages %in% installed.packages()[, "Package"])]
+# Install all new packages
+if(length(new.packages)) install.packages(new.packages)
+if(length(new.bioc.packages)) BiocManager::install(new.bioc.packages)
 
 # Load all required libraries
 all.packages <- c(list.of.packages, bioconductor.packages)
@@ -584,6 +584,9 @@ diffex.ML.counts <- subset(assay(vsd.pH), rownames(dds.DESeq.pH) %in% rownames(d
 
 # Define gradient range, breaks
 my_colours <- rev(c("springgreen4", "gray95", "slateblue4"))
+my_colours <- rev(c("springgreen4", "gray95", "black"))
+my_colours <- rev(c("green4", "gray95", "black"))
+my_colours <- rev(c("red3", "gray95", "mediumblue"))
 my_gradient <- colorRampPalette(my_colours)(length(breaksList))
 
 # NOTE, the row-wise scale produces Z-scores (x-mean/sd)
@@ -656,23 +659,23 @@ with(topT, plot(-1*log2FoldChange, -log10(padj), pch=16, cex=0.45, main="", xlab
 #text(par("usr")[3], x=xtick, labels = xtick, pos = 1, xpd = TRUE, cex = 1)
 axis(side=2, at=ytick, labels=F)
 text(par("usr")[1], ytick, labels = ytick, pos = 2, xpd = TRUE, cex = 1)
-title(main="(A) Ambient vs. Moderate OA", adj=0.01, line=-1.2, font.main=1, cex.main=1.3)
+title(main="(A) Ambient vs. Moderate OA", adj=0.01, line=0.4, font.main=1, cex.main=1.3)
 title(xlab=NA, ylab=bquote(~-log[10]~P-value), line=1.3, cex.lab=1.15)
 
 # plot genes downregulated in OA (i.e. upregulated in ambient)
 # with LFC >1
-with(subset(topT, padj<0.05 & -1*log2FoldChange< -1), points(-1*log2FoldChange, -log10(padj), pch=16, col="#2c7bb6", cex=0.55))
-with(subset(topT, padj<0.05 & -1*log2FoldChange< 0  & -1*log2FoldChange> -1), points(-1*log2FoldChange, -log10(padj), pch=16, col="#d1e5f0", cex=0.55))
+with(subset(topT, padj<0.05 & -1*log2FoldChange< -0.5), points(-1*log2FoldChange, -log10(padj), pch=16, col="#2c7bb6", cex=0.55))
+with(subset(topT, padj<0.05 & -1*log2FoldChange< 0  & -1*log2FoldChange> -0.5), points(-1*log2FoldChange, -log10(padj), pch=16, col="#d1e5f0", cex=0.55))
 
 # plot genes upregulated in moderate OA 
-with(subset(topT, padj<0.05 & -1*log2FoldChange>1), points(-1*log2FoldChange, -log10(padj), pch=16, col="#fdae61", cex=0.55))
-with(subset(topT, padj<0.05 & -1*log2FoldChange>0 & -1*log2FoldChange<1), points(-1*log2FoldChange, -log10(padj), pch=16, col="#fddbc7", cex=0.55))
+with(subset(topT, padj<0.05 & -1*log2FoldChange>0.5), points(-1*log2FoldChange, -log10(padj), pch=16, col="#fdae61", cex=0.55))
+with(subset(topT, padj<0.05 & -1*log2FoldChange>0 & -1*log2FoldChange<0.5), points(-1*log2FoldChange, -log10(padj), pch=16, col="#fddbc7", cex=0.55))
 
 
-#Add lines for absolute FC>2 and P-value cut-off at FDR Q<0.05
+#Add lines for absolute FC>0.5 and P-value cut-off at FDR Q<0.05
 abline(v=0, col="black", lty=3, lwd=1.0)
-abline(v=-1, col="black", lty=4, lwd=2.0)
-abline(v=1, col="black", lty=4, lwd=2.0)
+abline(v=-0.5, col="black", lty=4, lwd=2.0)
+abline(v=0.5, col="black", lty=4, lwd=2.0)
 abline(h=-log10(max(topT$padj[topT$padj<0.05], na.rm=TRUE)), col="black", lty=4, lwd=2.0)
 volcano.am <- recordPlot()
 
@@ -693,22 +696,22 @@ with(topT, plot(-1*log2FoldChange, -log10(padj), pch=16, cex=0.45, main="", xlab
 #text(par("usr")[3], x=xtick, labels = xtick, pos = 1, xpd = TRUE, cex = 1)
 axis(side=2, at=ytick, labels=F)
 text(par("usr")[1], ytick, labels = ytick, pos = 2, xpd = TRUE, cex = 1)
-title(main="(B) Ambient vs. Severe OA", adj=0.01, line=-1.2, font.main=1, cex.main=1.3)
+title(main="(B) Ambient vs. Severe OA", adj=0.01, line=0.4, font.main=1, cex.main=1.3)
 title(xlab=NA, ylab=bquote(~-log[10]~P-value), line=1.3, cex.lab=1.15)
 
 # plot genes upregulated in ambient 
 # with LFC >1
-with(subset(topT, padj<0.05 & -1*log2FoldChange< -1), points(-1*log2FoldChange, -log10(padj), pch=16, col="#2c7bb6", cex=0.55))
-with(subset(topT, padj<0.05 & -1*log2FoldChange< 0  & -1*log2FoldChange> -1), points(-1*log2FoldChange, -log10(padj), pch=16, col="#d1e5f0", cex=0.55))
+with(subset(topT, padj<0.05 & -1*log2FoldChange< -0.5), points(-1*log2FoldChange, -log10(padj), pch=16, col="#2c7bb6", cex=0.55))
+with(subset(topT, padj<0.05 & -1*log2FoldChange< 0  & -1*log2FoldChange> -0.5), points(-1*log2FoldChange, -log10(padj), pch=16, col="#d1e5f0", cex=0.55))
 
 # plot genes upregulated in severe OA 
-with(subset(topT, padj<0.05 & -1*log2FoldChange>1), points(-1*log2FoldChange, -log10(padj), pch=16, col="#d7191c", cex=0.55))
-with(subset(topT, padj<0.05 & -1*log2FoldChange>0 & -1*log2FoldChange<1), points(-1*log2FoldChange, -log10(padj), pch=16, col="pink2", cex=0.55))
+with(subset(topT, padj<0.05 & -1*log2FoldChange>0.5), points(-1*log2FoldChange, -log10(padj), pch=16, col="#d7191c", cex=0.55))
+with(subset(topT, padj<0.05 & -1*log2FoldChange>0 & -1*log2FoldChange<0.5), points(-1*log2FoldChange, -log10(padj), pch=16, col="pink2", cex=0.55))
 
 #Add lines for absolute FC>2 and P-value cut-off at FDR Q<0.05
 abline(v=0, col="black", lty=3, lwd=1.0)
-abline(v=-1, col="black", lty=4, lwd=1.9)
-abline(v=1, col="black", lty=4, lwd=1.9)
+abline(v=-0.5, col="black", lty=4, lwd=1.9)
+abline(v=0.5, col="black", lty=4, lwd=1.9)
 abline(h=-log10(max(topT$padj[topT$padj<0.05], na.rm=TRUE)), col="black", lty=4, lwd=1.9)
 volcano.al <- recordPlot()
 
@@ -729,22 +732,22 @@ axis(side=1, at=xtick, labels=F)
 text(par("usr")[3], x=xtick, labels = xtick, pos = 1, xpd = TRUE, cex = 1)
 axis(side=2, at=ytick, labels=F)
 text(par("usr")[1], ytick, labels = ytick, pos = 2, xpd = TRUE, cex = 1)
-title(main="(C) Moderate OA vs. Severe OA", adj=0.01, line=-1.2, font.main=1, cex.main=1.3)
+title(main="(C) Moderate OA vs. Severe OA", adj=0.01, line=0.4, font.main=1, cex.main=1.3)
 title(xlab=bquote(~Log[2]~fold~change), ylab=bquote(~-log[10]~P-value), line=1.3, cex.lab=1.15)
 # plot genes upregulated in moderate OA 
 # with LFC >1
-with(subset(topT, padj<0.05 & -1*log2FoldChange< -1), points(-1*log2FoldChange, -log10(padj), pch=16, col="#fdae61", cex=0.55))
-with(subset(topT, padj<0.05 & -1*log2FoldChange< 0  & -1*log2FoldChange> -1), points(-1*log2FoldChange, -log10(padj), pch=16, col="#fddbc7", cex=0.55))
+with(subset(topT, padj<0.05 & -1*log2FoldChange< -0.5), points(-1*log2FoldChange, -log10(padj), pch=16, col="#fdae61", cex=0.55))
+with(subset(topT, padj<0.05 & -1*log2FoldChange< 0  & -1*log2FoldChange> -0.5), points(-1*log2FoldChange, -log10(padj), pch=16, col="#fddbc7", cex=0.55))
 
 # plot genes upregulated in severe OA 
-with(subset(topT, padj<0.05 & -1*log2FoldChange>1), points(-1*log2FoldChange, -log10(padj), pch=16, col="#d7191c", cex=0.55))
-with(subset(topT, padj<0.05 & -1*log2FoldChange>0 & -1*log2FoldChange<1), points(-1*log2FoldChange, -log10(padj), pch=16, col="pink2", cex=0.55))
+with(subset(topT, padj<0.05 & -1*log2FoldChange>0.5), points(-1*log2FoldChange, -log10(padj), pch=16, col="#d7191c", cex=0.55))
+with(subset(topT, padj<0.05 & -1*log2FoldChange>0 & -1*log2FoldChange<0.5), points(-1*log2FoldChange, -log10(padj), pch=16, col="pink2", cex=0.55))
 
 
 #Add lines for absolute FC>2 and P-value cut-off at FDR Q<0.05
 abline(v=0, col="black", lty=3, lwd=1.0)
-abline(v=-1, col="black", lty=4, lwd=2.0)
-abline(v=1, col="black", lty=4, lwd=2.0)
+abline(v=-0.5, col="black", lty=4, lwd=2.0)
+abline(v=0.5, col="black", lty=4, lwd=2.0)
 abline(h=-log10(max(topT$padj[topT$padj<0.05], na.rm=TRUE)), col="black", lty=4, lwd=2.0)
 volcano.ml <- recordPlot()
 

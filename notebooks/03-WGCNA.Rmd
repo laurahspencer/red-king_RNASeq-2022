@@ -1187,7 +1187,7 @@ for (i in 1:length(modules.interest)) {
 module.functions <- list(
   'magenta'="(a) Protein production",
   'lightcyan'="(b) Energy production",
-  'firebrick4'="(c) Carbohydrate metabolism,\nvesicle transport",
+  'firebrick4'="(c) Steroid metabolism", #Carbohydrate metabolism,\nvesicle transport
   'darkviolet'="\n(d) Tissue development",
   'royalblue'="(e) Muscle development\nand activity",
   'coral1'="\n(f) Immune function",

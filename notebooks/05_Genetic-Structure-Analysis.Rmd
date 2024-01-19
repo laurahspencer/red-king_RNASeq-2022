@@ -366,6 +366,7 @@ tab.annot.gen %>% pivot_longer(cols=contains(c("PC2.gen", "PC3.gen", "PC4.gen", 
   facet_wrap(~PC.axis)
 
 ```
+
 ADONIS or other multivariate method using SNP data? 
 
 ```{r}
@@ -972,6 +973,7 @@ plot(x=snp.dists.filt, y=sampleDistss.pH.filt, main="Correlation between pairwis
 
 packageVersion("SNPRelate")
 ```
+
 ```{r}
 # Perform mantel test 
 mantel(snp.dists.filt, sampleDistss.filt, permutations=9999 ) #distance matrices are not sign. correlated 
@@ -1014,6 +1016,132 @@ ggscatter(distancess, x = "snp", y = "expr.pH", size=1,
   ggtitle("Sample-sample distances, SNPs ~ DEGs only") +
   theme(legend.position = "right") + 
   guides(colour = guide_legend(override.aes = list(size=3.5)))
+```
+
+Perform redundancy analysis (db-RDA) to examine the variance in expression explained by genetic variance.
+
+```{r}
+PCA.merged %>% column_to_rownames(var = "sample.id") %>% select(contains(".gen"))
+
+test <- counts.ts #all genes
+#test <- diffex.pH.counts %>% t()  %>% as.data.frame() #differentially expressed genes only
+test[order(match(rownames(test), PCA.merged$sample.id)), , drop = FALSE]
+
+rda.degs <- vegan::dbrda(test[order(match(rownames(test), PCA.merged$sample.id)), , drop = FALSE] ~ PC1.gen + PC2.gen + PC3.gen + PC4.gen + PC5.gen,
+                    data = PCA.merged %>% column_to_rownames(var = "sample.id") %>% select(contains(".gen")),
+                    distance = "bray")
+print(rda.degs)
+rda.degs_summary <- summary(rda.degs)
+print(rda.degs_summary)
+rda.degs_summary$concont
+RsquareAdj(rda.degs)
+plot(rda.degs)
+```
+
+```{r}
+fwd.sel <- ordiR2step(dbrda(test[order(match(rownames(test), PCA.merged$sample.id)), , drop = FALSE] ~ 1, 
+               data = PCA.merged %>% column_to_rownames(var = "sample.id") %>% select(contains(".gen"))), # lower model limit (simple!)
+               scope = formula(rda.degs), # upper model limit (the "full" model)
+               direction = "forward",
+               R2scope = TRUE, # can't surpass the "full" model's R2
+               pstep = 1000,
+               trace = TRUE) # change to TRUE to see the selection process!
+fwd.sel$call #forward selection doesn't select any genetic PC axes for model 
+
+#test for significance of RDA 
+anova.cca(rda.degs) #entire model - not significant
+anova.cca(rda.degs, step = 1000, by = "term") #each explanatory variable - none are significant 
+anova.cca(rda.degs, step = 1000, by = "axis") #each canonical axis - none are significant 
+```
+
+
+```{r}
+# Type 1 scaling
+ordiplot(rda.degs, scaling = 1, type = "text")
+# Type 2 scaling
+ordiplot(rda.degs, scaling = 2, type = "text")
+```
+
+```{r}
+# Custom triplot code!
+
+## extract % explained by the first 2 axes
+perc <- round(100*(rda.degs_summary$cont$importance[2, 1:2]), 2)
+
+## extract scores - these are coordinates in the RDA space
+sc_si <- vegan::scores(rda.degs, display="sites", choices=c(1,2), scaling=1) %>%
+  as.data.frame() %>%
+  rownames_to_column("sample.id") %>%
+  left_join(PCA.merged %>% select(sample.id, Treatment)) %>%
+  mutate(color=case_when(
+    Treatment=="Ambient" ~ "#2c7bb6",
+    Treatment=="Moderate" ~ "#fdae61",
+    Treatment=="Low" ~ "#d7191c")) %>%
+  filter(!is.na(Treatment)) %>%
+  column_to_rownames("sample.id")
+
+sc_sp <- vegan::scores(rda.degs, display="species", choices=c(1,2), scaling=1) #genes
+sc_bp <- vegan::scores(rda.degs, display="bp", choices=c(1, 2), scaling=1)
+
+## Custom triplot, step by step
+
+# Set up a blank plot with scaling, axes, and labels
+plot(rda.degs,
+     scaling = 1, # set scaling type 
+     type = "none", # this excludes the plotting of any points from the results
+     frame = FALSE,
+     # # set axis limits
+     # xlim = c(-1,1), 
+     # ylim = c(-1.5,1.5),
+     # set axis limits
+     xlim = c(-.2,.2), 
+     ylim = c(-.3,.3),
+     # label the plot (title, and axes)
+     main = "Triplot dbRDA - scaling 1",
+     xlab = paste0("dbRDA1 (", perc[1], "%)"), 
+     ylab = paste0("dbRDA2 (", perc[2], "%)") 
+)
+# add points for site scores
+points(sc_si, 
+       pch = 21, # set shape (here, circle with a fill colour)
+       col = "black", # outline colour
+       bg = sc_si$color, # fill colour
+       cex = 1.2) # size
+# # add points for species scores
+# points(sc_sp, 
+#        pch = 22, # set shape (here, square with a fill colour)
+#        col = "black",
+#        bg = "#f2bd33", 
+#        cex = 1.2)
+# # add text labels for species abbreviations
+# text(sc_sp + c(0.03, 0.09), # adjust text coordinates to avoid overlap with points 
+#      labels = rownames(sc_sp), 
+#      col = "grey40", 
+#      font = 2, # bold
+#      cex = 0.6)
+# add arrows for effects of the expanatory variables
+arrows(0,0, # start them from (0,0)
+       sc_bp[,1], sc_bp[,2], # end them at the score value
+       col = "red", 
+       lwd = 1.5, code=2)
+# add text labels for arrows
+text(x = sc_bp[,1]*1.25, # adjust text coordinate to avoid overlap with arrow tip
+     y = sc_bp[,2]*1.25,
+     labels = rownames(sc_bp),
+     col = "red",
+     cex = 1,
+     font = 2)
+```
+Which variables are important? 
+
+```{r}
+# Forward selection of variables:
+fwd.sel <- ordiR2step(rda(spe.hel ~ 1, data = env.z), # lower model limit (simple!)
+               scope = formula(spe.rda), # upper model limit (the "full" model)
+               direction = "forward",
+               R2scope = TRUE, # can't surpass the "full" model's R2
+               pstep = 1000,
+               trace = FALSE) # change to TRUE to see the selection process!
 ```
 
 ### More analysis via vcfR - compare allelic richness and heterozygosity by pH exposure

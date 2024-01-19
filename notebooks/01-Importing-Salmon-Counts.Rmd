@@ -1,5 +1,5 @@
 ---
-title: "QuantSeq-2020-Importing-Salmon-Counts"
+title: "Importing-Salmon-Counts"
 author: "Laura H Spencer"
 date: "5/13/2020"
 output: html_document
@@ -36,6 +36,7 @@ library(tximport)
 ```{r}
 sessionInfo()
 getwd()
+"../results/salmon/all.o"
 ```
 
 ```{bash}

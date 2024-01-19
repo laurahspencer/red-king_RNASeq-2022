@@ -1,0 +1,93 @@
+---
+title: "07-Water-Quality-Data"
+author: "Laura Spencer"
+date: "2023-04-24"
+output: html_document
+---
+
+```{r}
+install.packages("tidyverse")
+install.packages("readxl")
+install.packages("janitor")
+install.packages("clipr")
+require(tidyverse)
+require(readxl)
+require(janitor)
+require(clipr)
+
+`%!in%` = Negate(`%in%`)
+```
+Read in all water parameters (based on weekly water sampling)
+
+```{r}
+(water <- read_excel("../data/R Output.xlsx") %>%
+  dplyr::rename("Alk_meas"="Alk", "DIC_meas"="DIC...9", "DIC_calc"="DIC...15", "Alk_calc"="ALK") %>%
+  mutate(Tank=as.factor(as.character(Tank)), 
+         Treatment=factor(Treatment, ordered = T, levels = c("Ambient", "pH 7.8", "pH 7.5")), 
+         Alk_meas=as.numeric(Alk_meas)) %>% 
+  select(-`Sample #`, -CO2, -fCO2, -DIC_calc, -Alk_calc) %>% 
+  pivot_longer(cols = -c(Date, Tank, Treatment), names_to = "measurement") %>%
+  mutate(measurement=as.factor(measurement)))
+```
+
+Read in daily pH and temperature data
+
+```{r}
+(daily <- read_excel("../data/pH and temp.xlsx") %>%
+  dplyr::rename("Tank"="Tank #") %>%
+  mutate(Tank=as.factor(as.character(Tank)), 
+         Treatment=factor(Treatment, ordered = T, levels = c("Ambient", "pH 7.8", "pH 7.5"))) %>% 
+  pivot_longer(cols = -c(Date, Tank, Treatment), names_to = "measurement") %>%
+  mutate(measurement=as.factor(measurement)))
+```
+
+```{r}
+pdf(file="../data/Supp_water-quality.pdf", height = 10, width = 8)
+water %>%
+  group_by(Date, measurement, Treatment) %>%
+  dplyr::summarise(mean=mean(value, na.rm=T)) %>%
+  filter(measurement %!in% c("pH", "Temp")) %>%
+  bind_rows(
+    daily %>% group_by(Date, measurement, Treatment) %>%
+      dplyr::summarise(mean=mean(value, na.rm=T)),
+  ) %>%
+  mutate(measurement=case_when(
+    measurement=="Alk_meas" ~ "Alkalinity",
+    measurement=="DIC_meas" ~ "DIC",
+    measurement=="OmegaAragonite" ~ "Aragonite",
+    measurement=="OmegaCalcite" ~ "Calcite",
+    measurement=="Temperature" ~ "Temperature",
+    measurement=="CO3" ~ "CO3",
+    measurement=="HCO3" ~ "HCO3",
+    measurement=="pCO2" ~ "pCO2",
+    measurement=="pH" ~ "pH",
+    measurement=="Salinity" ~ "Salinity")) %>%
+  mutate(measurement=factor(measurement, ordered = T, 
+                            levels=c("pH", "Temperature", "pCO2", "Aragonite",
+                                     "Calcite", "Alkalinity", "DIC",
+                                     "Salinity", "CO3", "HCO3"))) %>%
+  ggplot(aes(x=Date, y=mean, color=Treatment)) +
+    geom_line() + theme_minimal() +
+  scale_color_manual(name="Treatment", values=c(Ambient="#2c7bb6", `pH 7.8`="#fdae61", `pH 7.5`="#d7191c"),
+             guide = guide_legend(override.aes = list(size=4))) + xlab(NULL) + ylab(NULL) +
+  facet_wrap(~measurement, scales = "free_y", ncol = 2)
+dev.off()    
+```
+
+```{r}
+water %>% filter(measurement == "Alk_meas", Treatment=="pH 7.8") %>% View()
+```
+
+Calculate summary statistics by treatment 
+```{r}
+water %>% 
+  group_by(Treatment, Tank, measurement) %>% 
+  dplyr::summarise(mean=signif(mean(value, na.rm = T), digits = 3), sd=signif(sd(value, na.rm=T), digits = 3)) %>%
+  #filter(measurement=="pCO2") %>%
+  pivot_wider(names_from = measurement, values_from = c(mean, sd)) %>%
+  mutate(Tank=as.numeric(Tank)) %>%
+  arrange(Treatment, Tank) %>% 
+  write_clip()
+```
+
+

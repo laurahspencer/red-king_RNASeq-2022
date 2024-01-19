@@ -203,6 +203,9 @@ save(counts.t, file = "../results/gene-counts-trans")
 save(counts.ts, file = "../results/gene-counts-trans-filtered")
 ```
 
+```{r}
+counts.ts %>% rownames() %>% data.frame()
+```
 
 ## annotate genes with Uniprot IDs and Gene Ontology info 
 
