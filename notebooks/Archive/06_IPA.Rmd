@@ -1,0 +1,184 @@
+---
+title: "06_IPA"
+author: "Laura H Spencer"
+date: "3/31/2022"
+output: html_document
+---
+
+```{r}
+require(ggpubr)
+require(tidyverse)
+```
+
+
+```{r}
+# read in data
+ipa.in <- read.csv("../results/IPA/ipa_upload.w_ipa_mapping_gene.csv", na.strings = c("", "NA"))
+
+# There are many identical rows - all cells are the same - why? 
+# Here I filter to remove those identical rows 
+ipa.in %>% distinct() %>% nrow()
+ipa.in %>% nrow()
+
+View(ipa.in)
+# Filter to retain only unique, mapped genes
+ipa.filt <- ipa.in %>% distinct() %>%  #Remove identical rows
+  filter(!is.na(Mapping)) %>%  #Remove genes that didn't map to a gene in IPA
+  filter(Flags != "D") # Remove genes that are marked as duplicate by IPA 
+
+# Create a vector of column names identifying those containing p-values
+p <- ipa.filt %>% select(contains("padj"), starts_with("p.")) %>% colnames() %>% noquote()
+
+# Count the number of significant genes (p-value <0.05) for each experiment 
+ipa.n <- data.frame(matrix(ncol = 7, nrow = length(p)))
+for (i in 1:length(p)) {
+ ipa.n[i,1] <- p[i] # identify experiment
+ ipa.n[i,2] <- ipa.in %>% distinct() %>% filter(!!as.symbol(p[[i]]) < 0.05) %>% nrow() #count how many genes are significant for each experiment
+ ipa.n[i,3] <- ipa.filt %>% filter(!!as.symbol(p[[i]]) < 0.05) %>% nrow() #count how many of those genes map to IPA and are not duplicates
+ ipa.n[i,4] <- round(100*ipa.n[i,3]/ipa.n[i,2], digits = 1) #what % of sign. genes are retained by IPA?
+
+ # Now count how many non-significant genes there are and what percent are retained - the percent should be very similar to the above 
+ ipa.n[i,5] <- ipa.in %>% distinct() %>% filter(!!as.symbol(p[[i]]) > 0.05) %>% nrow() 
+ ipa.n[i,6] <- ipa.filt %>% filter(!!as.symbol(p[[i]]) > 0.05) %>% nrow() 
+ ipa.n[i,7] <- round(100*ipa.n[i,6]/ipa.n[i,5], digits = 1) 
+}
+
+# Results
+ipa.n <- ipa.n %>% rename("X1"="experiment", "X2"="sign", "X3"="sign.good", "X4"="sign.perc.good",
+                          "X5"="not.sign", "X6"="not.sign.good", "X7"="not.sign.perc.good")
+ipa.n %>% select(sign.perc.good) %>% summary()
+ipa.n %>% select(not.sign.perc.good) %>% summary()
+
+100*nrow(ipa.in %>% distinct() %>% 
+       filter(!is.na(Mapping)) %>%
+  filter(Flags != "D")) /
+nrow(ipa.in %>% distinct())
+  
+```
+
+```{r}
+require(tidyverse)
+require(janitor)
+ipa.AM <- read_delim("../results/IPA/Amb-vs-Mod_CANONICAL-PATHWAYS.txt", delim = "\t", na = c("", "NA"), ) %>% clean_names()
+ipa.AL <- read_delim("../results/IPA/Amb-vs-Low_CANONICAL-PATHWAYS.txt", delim = "\t", na = c("", "NA"), ) %>% clean_names()
+ipa.ML <- read_delim("../results/IPA/Mod-vs-Low_CANONICAL-PATHWAYS.txt", delim = "\t", na = c("", "NA"), ) %>% clean_names()
+ipa.GS <- read_delim("../results/IPA/GS_CANONICAL-PATHWAYS.txt", delim = "\t", na = c("", "NA"), ) %>% clean_names()
+
+
+-1*log10(.05) # threshold for significance
+10^(-1*1.30103)
+
+ipa.AM %>% filter(log_p_value > -1*log10(.005)) %>%  arrange(rev(log_p_value)) %>% View()
+ipa.AL %>% filter(log_p_value > -1*log10(.005)) %>%  arrange(rev(log_p_value)) %>% View()
+ipa.ML %>% filter(log_p_value > -1*log10(.005)) %>%  arrange(rev(log_p_value)) %>% View()
+
+
+(IPA_degs <- bind_rows(lst(ipa.AM, ipa.AL, ipa.ML), .id = "contrast") %>%  # Bind dataframe for each gene_set together
+    mutate(contrast=factor(contrast, levels=c("ipa.AM", "ipa.AL", "ipa.ML"))) %>% #Convert gene_set column to factor, define all gene_sets 
+    mutate(category=as.factor("Canonical Pathways")) %>%  #add column designating go category 
+    complete(contrast, category) %>% 
+    mutate(n_molecules=str_count(molecules,",")+1) %>% 
+    mutate(gene_set_up = case_when((contrast == "ipa.AM	" & z_score > 0) ~ "Ambient",
+                                    (contrast == "ipa.AM" & z_score < 0) ~ "Moderate",
+                                    (contrast == "ipa.AL" & z_score > 0) ~ "Ambient",
+                                    (contrast == "ipa.AL" & z_score < 0) ~ "Severe",
+                                    (contrast == "ipa.ML" & z_score > 0) ~ "Moderate",
+                                    (contrast == "ipa.ML" & z_score < 0) ~ "Severe"))) # add rows for gene_sets that are missing from dataframe
+    # 
+    # mutate(gene_set_up = case_when(z_score > 0 ~ "Upregulated",
+    #                                z_score < 0 ~ "Downregulated")))
+
+```
+```{r}
+ggplot(IPA_degs %>% droplevels() %>% filter(log_p_value > -1*log10(.0025)), aes(y=str_wrap(ingenuity_canonical_pathways),x=contrast, col=gene_set_up)) + 
+  geom_point(aes(alpha=10^(-1*log_p_value),size=n_molecules))+
+ facet_wrap(~category,scales="free", nrow = 2) +
+  scale_color_manual(name="Enriched treatment", #breaks=c("Downregulated", "Upregulated", "NA"),
+                     values=c(Ambient="#2c7bb6", Moderate="#fdae61", Severe="#d7191c","NA"="gray60"),
+             guide = guide_legend(override.aes = list(size=4))) +
+  scale_alpha("P-value", range = c(1,.35),  breaks = c(.001, .0025, .004),
+              guide = guide_legend(override.aes = list(size=4))) + 
+  scale_size("Gene count", range = c(3,8), breaks = c(10, 25, 40), 
+             guide = guide_legend(override.aes = list(col="gray50"))) + 
+  scale_x_discrete(drop=FALSE) +
+  theme_cleveland() + 
+  theme(axis.title.x=element_blank(), 
+        axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1), 
+        #axis.ticks.x = element_blank(), 
+        legend.position = "right", axis.text.y=element_text(size=7.25), 
+        plot.title = element_text(size=10))
+```
+
+Sirtuin signaling pathway: apoptosis, mitochondrial biosynthesis, lipid metabolism, fatty acid oxidation, cellular stress response, insulin secretion, and aging.
+
+```{r}
+ipa.brown <- read_delim("../results/IPA/brown_CANONICAL-PATHWAYS.txt", delim = "\t", na = c("", "NA"), ) %>% clean_names()
+ipa.cyan <- read_delim("../results/IPA/cyan_CANONICAL-PATHWAYS.txt", delim = "\t", na = c("", "NA"), ) %>% clean_names()
+ipa.darkgreen <- read_delim("../results/IPA/darkgreen_CANONICAL-PATHWAYS.txt", delim = "\t", na = c("", "NA"), ) %>% clean_names()
+ipa.green <- read_delim("../results/IPA/green_CANONICAL-PATHWAYS.txt", delim = "\t", na = c("", "NA"), ) %>% clean_names()
+ipa.lightcyan1 <- read_delim("../results/IPA/lightcyan1_CANONICAL-PATHWAYS.txt", delim = "\t", na = c("", "NA"), ) %>% clean_names()
+ipa.pink <- read_delim("../results/IPA/pink_CANONICAL-PATHWAYS.txt", delim = "\t", na = c("", "NA"), ) %>% clean_names()
+ipa.GS <- read_delim("../results/IPA/GS_CANONICAL-PATHWAYS.txt", delim = "\t", na = c("", "NA"), ) %>% clean_names()
+
+(IPA_modules <- bind_rows(lst(ipa.brown, ipa.cyan, ipa.darkgreen, ipa.green, ipa.lightcyan1, ipa.pink, ipa.GS), .id = "module") %>%  # Bind dataframe for each gene_set together
+    mutate(module=factor(module, levels=c("ipa.cyan", "ipa.pink", "ipa.brown", "ipa.lightcyan1", "ipa.green", "ipa.darkgreen", "ipa.GS"))) %>% #Convert gene_set column to factor, define all gene_sets 
+    mutate(category=as.factor("Canonical Pathways")) %>%  #add column designating go category 
+    complete(module, category) %>% 
+    mutate(n_molecules=str_count(molecules,",")+1) %>% 
+    # mutate(gene_set_up = case_when(module == "ipa.cyan" ~ "upregulated",
+    #                                 module == "ipa.pink" ~ "upregulated",
+    #                                 module == "ipa.brown" ~ "upregulated",
+    #                                 module == "ipa.lightcyan1" ~ "upregulated",
+    #                                 module == "ipa.green" ~ "downregulated",
+    #                                 module == "ipa.darkgreen" ~ "downregulated"))) # add rows for gene_sets that are missing from dataframe
+    mutate(gene_set_up = case_when(z_score > 0 ~ "Upregulated",
+                                   z_score < 0 ~ "Downregulated")))
+
+```
+
+```{r}
+ggplot(IPA_modules %>% #filter(module!="ipa.GS") %>% droplevels() %>%
+         filter(log_p_value > -1*log10(.001)), 
+       aes(y=str_wrap(ingenuity_canonical_pathways),x=module, col=gene_set_up)) + 
+  geom_point(aes(alpha=10^(-1*log_p_value),size=n_molecules))+
+ facet_wrap(~category,scales="free", nrow = 2) +
+  scale_alpha("P-value", range = c(1,.35),  #breaks = c(.001, .0025, .004),
+              guide = guide_legend(override.aes = list(size=4))) + 
+  scale_size("Gene count", range = c(3,8), #breaks = c(2, 5, 10), 
+             guide = guide_legend(override.aes = list(col="gray50"))) + 
+  scale_color_manual(name=NULL, breaks=c("Downregulated", "Upregulated", "No z-score"),
+                     values=c(Downregulated="#cc3333", Upregulated="#339900", "No z-score"="gray65"),
+             guide = guide_legend(override.aes = list(size=4))) +
+  scale_x_discrete(drop=FALSE) +
+  theme_cleveland() + 
+  theme(axis.title.x=element_blank(), 
+        axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1), 
+        #axis.ticks.x = element_blank(), 
+        legend.position = "right", axis.text.y=element_text(size=7.25), 
+        plot.title = element_text(size=10)) +
+  ylab("Enriched Gene Ontology (GO) Term")
+```
+
+Just plot the enriched canonical pathways which were identified by the Gene Significance statistic in WGCNA 
+
+```{r}
+ggplot(IPA_modules %>% filter(module=="ipa.GS") %>% droplevels() %>% 
+         filter(log_p_value > -1*log10(.01)), aes(y=str_wrap(ingenuity_canonical_pathways),x=module, col=gene_set_up)) + 
+  geom_point(aes(alpha=10^(-1*log_p_value),size=n_molecules))+
+ facet_wrap(~category,scales="free", nrow = 2) +
+  scale_alpha("P-value", range = c(1,.35),  breaks = c(.001, .0025, .004),
+              guide = guide_legend(override.aes = list(size=4))) + 
+  scale_size("Gene count", range = c(3,8), breaks = c(10, 30, 50), 
+             guide = guide_legend(override.aes = list(col="gray50"))) + 
+  scale_color_manual(name=NULL, breaks=c("Downregulated", "Upregulated", "No z-score"),
+                     values=c(Downregulated="#cc3333", Upregulated="#339900", "No z-score"="gray65"),
+             guide = guide_legend(override.aes = list(size=4))) +
+  scale_x_discrete(drop=FALSE) +
+  theme_cleveland() + 
+  theme(axis.title.x=element_blank(), 
+        axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1), 
+        #axis.ticks.x = element_blank(), 
+        legend.position = "right", axis.text.y=element_text(size=7.25), 
+        plot.title = element_text(size=10))
+```
+

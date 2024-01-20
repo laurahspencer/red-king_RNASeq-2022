@@ -1,6 +1,0 @@
----
-title: "xx-remaining-genetic-structure-code"
-author: "Laura H Spencer"
-date: "3/28/2022"
-output: html_document
----
