@@ -1,0 +1,22 @@
+{
+    "read_files": "[ /home/lspencer/2022-redking-OA/trimmed/v2/Tank_16_Crab_1.trimmed.R1.v2.fastq.gz, /home/lspencer/2022-redking-OA/trimmed/v2/Tank_16_Crab_1.trimmed.R2.v2.fastq.gz]",
+    "expected_format": "IU",
+    "compatible_fragment_ratio": 1.0,
+    "num_compatible_fragments": 10182247,
+    "num_assigned_fragments": 10182247,
+    "num_frags_with_concordant_consistent_mappings": 7720115,
+    "num_frags_with_inconsistent_or_orphan_mappings": 2544660,
+    "strand_mapping_bias": 0.5375840903924358,
+    "MSF": 0,
+    "OSF": 0,
+    "ISF": 4150211,
+    "MSR": 0,
+    "OSR": 0,
+    "ISR": 3569904,
+    "SF": 1270741,
+    "SR": 1273919,
+    "MU": 0,
+    "OU": 0,
+    "IU": 0,
+    "U": 0
+}

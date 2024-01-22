@@ -1,0 +1,12 @@
+Ingenuity Canonical Pathways	 -log(p-value)	zScore	Ratio	Molecules
+G-Protein Coupled Receptor Signaling	7.73E-01		5.10E-03	GRK6
+Molecular Mechanisms of Cancer	8.53E-01		6.21E-03	LRP6
+Hepatic Fibrosis Signaling Pathway	9.64E-01		8.13E-03	LRP6
+Opioid Signaling Pathway	1.04E+00		9.71E-03	GRK6
+Colorectal Cancer Metastasis Signaling	1.12E+00		1.18E-02	LRP6
+"Role of Macrophages, Fibroblasts and Endothelial Cells in Rheumatoid Arthritis"	1.14E+00		1.25E-02	LRP6
+WNT/β-catenin Signaling	1.27E+00		1.69E-02	LRP6
+"Role of Osteoblasts, Osteoclasts and Chondrocytes in Rheumatoid Arthritis"	1.29E+00		1.79E-02	LRP6
+Factors Promoting Cardiogenesis in Vertebrates	1.31E+00		1.85E-02	LRP6
+Salvage Pathways of Pyrimidine Ribonucleotides	1.47E+00		2.70E-02	GRK6
+Pyridoxal 5'-phosphate Salvage Pathway	1.59E+00		3.57E-02	GRK6

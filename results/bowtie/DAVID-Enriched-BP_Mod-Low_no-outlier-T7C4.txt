@@ -1,0 +1,2 @@
+Category	Term	Count	%	PValue	Genes	List Total	Pop Hits	Pop Total	Fold Enrichment	Bonferroni	Benjamini	FDR
+GOTERM_BP_DIRECT	GO:0016579~protein deubiquitination	2	33.33333333333333	0.03384506739281295	Q9W422, A6QQJ8	4	19	1666	43.84210526315789	0.9004287507147045	1.0	1.0

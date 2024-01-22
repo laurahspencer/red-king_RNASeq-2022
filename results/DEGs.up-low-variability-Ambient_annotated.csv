@@ -1,0 +1,293 @@
+"Treatment","gene","mean","sd","cv","DEG","change_in_treatment","spid","protein_names","evalue"
+"Ambient","g101177",12.9670440646048,0.37750291881408,0.0291124883152454,"DEG","Up-regulated","P29691","Elongation factor 2 (EF-2)",5.23e-32
+"Ambient","g101209",18.71328681437,0.510826188895055,0.0272975129362518,"DEG","Up-regulated","P05661","Myosin heavy chain, muscle",1.83e-144
+"Ambient","g102393",8.93354413125668,0.220958212204109,0.0247335445997318,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g10253",11.0528122424099,0.311963431287126,0.0282248014754213,"DEG","Up-regulated","Q5R8K6","60S ribosomal protein L35a",7.73e-12
+"Ambient","g102537",14.8648506691509,0.189259038448802,0.0127319838363108,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g103816",7.47924046029805,0.211185097893062,0.0282361690353577,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g104172",8.69404311082943,0.249354061844673,0.0286810243135411,"DEG","Up-regulated","P23228","Hydroxymethylglutaryl-CoA synthase, cytoplasmic (HMG-CoA synthase) (EC 2.3.3.10) (3-hydroxy-3-methylglutaryl coenzyme A synthase)",1.03e-18
+"Ambient","g104267",13.1577640253534,0.254488592150483,0.0193413251415754,"DEG","Up-regulated","P48855","40S ribosomal protein S14",1.79e-46
+"Ambient","g104660",6.9241496597337,0.1274617345487,0.0184082870550782,"DEG","Up-regulated","A5D7H2","Striatin-3",3.83e-11
+"Ambient","g104739",14.6183492734202,0.421865525606482,0.0288586295015907,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g10530",9.92187348484674,0.22855733903148,0.0230357038295787,"DEG","Up-regulated","P54385","Glutamate dehydrogenase, mitochondrial (GDH) (EC 1.4.1.3)",3.97e-33
+"Ambient","g10546",9.09202733188429,0.216063263405607,0.023764035843569,"DEG","Up-regulated","P54385","Glutamate dehydrogenase, mitochondrial (GDH) (EC 1.4.1.3)",1.44e-33
+"Ambient","g105613",12.3615613072411,0.304026617618787,0.0245945160212646,"DEG","Up-regulated","P29693","Elongation factor 1-delta (EF-1-delta) (P36)",2.12e-18
+"Ambient","g105684",13.6850670820989,0.216283743750522,0.0158043612393715,"DEG","Up-regulated","P04764","Alpha-enolase (EC 4.2.1.11) (2-phospho-D-glycerate hydro-lyase) (Enolase 1) (Non-neural enolase) (NNE)",2.22e-25
+"Ambient","g105771",11.4230998206283,0.283947588206501,0.0248573147976645,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g106204",14.4296145775952,0.341182640679279,0.0236446121859022,"DEG","Up-regulated","P13060","Eukaryotic translation elongation factor 2 (Elongation factor 2) (EF-2)",1.99e-52
+"Ambient","g106493",7.71734135006489,0.225075211241452,0.0291648640421432,"DEG","Up-regulated","Q9UNS1","Protein timeless homolog (hTIM)",0
+"Ambient","g106881",8.71849404113137,0.261184412882549,0.0299575146407574,"DEG","Up-regulated","Q95SX7","Probable RNA-directed DNA polymerase from transposon BS (EC 2.7.7.49) (Reverse transcriptase)",2.67e-17
+"Ambient","g107678",9.29113265538723,0.223025888642298,0.0240041657905919,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g10894",10.7925041921842,0.222023455970274,0.0205720055342726,"DEG","Up-regulated","O18497","Alpha-mannosidase 2 (EC 3.2.1.114) (Alpha-mannosidase II) (Class II alpha-mannosidase) (Mannosyl-oligosaccharide 1,3-1,6-alpha-mannosidase)",2.32e-145
+"Ambient","g109903",11.9134833756741,0.319285475424509,0.0268003459069286,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g111593",8.2961157361401,0.248190149860419,0.0299164280916714,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g11168",12.9701790956056,0.197600030455354,0.0152349500341366,"DEG","Up-regulated","P47826","60S acidic ribosomal protein P0 (60S ribosomal protein L10E)",2.85e-31
+"Ambient","g11173",12.9607822742157,0.196924349552449,0.0151938629463911,"DEG","Up-regulated","P47826","60S acidic ribosomal protein P0 (60S ribosomal protein L10E)",2.85e-31
+"Ambient","g112723",14.8943732015004,0.259279320065537,0.0174078705131021,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g113371",10.2955824712613,0.303056632929205,0.029435598595334,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g113501",11.482990315199,0.252251444359597,0.0219674002533744,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g11521",11.8065806625157,0.231554161414541,0.0196122965686158,"DEG","Up-regulated","P13395","Spectrin alpha chain",0
+"Ambient","g116032",7.86032623830467,0.209316459069429,0.0266294874695398,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g118028",6.68874027632799,0.186527631932067,0.0278868104046742,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g118872",8.15504769542112,0.183082244887342,0.0224501746311231,"DEG","Up-regulated","Q7SXW4","ER membrane protein complex subunit 3 (Protein pob) (Transmembrane protein 111)",2.04e-24
+"Ambient","g119855",12.8321835741309,0.281424073091485,0.021931113396696,"DEG","Up-regulated","Q7ZV82","60S ribosomal protein L27",5.14e-16
+"Ambient","g121232",8.32501382187295,0.178438509035774,0.0214340195528503,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g121340",9.23022979611425,0.182155579879524,0.0197346744234047,"DEG","Up-regulated","P21328","RNA-directed DNA polymerase from mobile element jockey (EC 2.7.7.49) (Reverse transcriptase)",8.78e-24
+"Ambient","g121389",8.04162901163117,0.214943715563277,0.0267288773521371,"DEG","Up-regulated","Q9XTL9","Glycogen phosphorylase (EC 2.4.1.1)",4.66e-35
+"Ambient","g121833",9.41746699501197,0.118551803609201,0.0125885021600812,"DEG","Up-regulated","Q3KNM2","E3 ubiquitin-protein ligase MARCHF5 (EC 2.3.2.27) (Membrane-associated RING finger protein 5) (Membrane-associated RING-CH protein V) (MARCH-V) (RING-type E3 ubiquitin transferase MARCHF5)",4.68e-17
+"Ambient","g12318",16.0358619659086,0.417374089908245,0.0260275431901048,"DEG","Up-regulated","J7HCX7","Myosin light chain 1 (allergen Pro c 5.0101)",4.08e-46
+"Ambient","g12319",17.5154908819696,0.489837920036427,0.0279659829882739,"DEG","Up-regulated","Q9UM11","Fizzy-related protein homolog (Fzr) (CDC20-like protein 1) (Cdh1/Hct1 homolog) (hCDH1)",1.55e-31
+"Ambient","g124965",11.4162800342338,0.305797948971046,0.0267861289364008,"DEG","Up-regulated","O57592","60S ribosomal protein L7a (Surfeit locus protein 3)",6.23e-12
+"Ambient","g126092",9.01465519014177,0.241542311306245,0.0267944038026424,"DEG","Up-regulated","Q8MKK4","Facilitated trehalose transporter Tret1-2 homolog (DmTret1-2)",2.23e-94
+"Ambient","g12612",8.72366389423722,0.228548955631401,0.0261987346603734,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g126296",12.9412918469336,0.331967676246649,0.0256518190125901,"DEG","Up-regulated","P49149","60S ribosomal protein L3",1.12e-26
+"Ambient","g126446",7.53850241768281,0.178533577805194,0.0236828972006978,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g126588",9.5100604833155,0.255115734365463,0.0268258792689111,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g127541",7.84284648309448,0.165664289138436,0.0211229799659512,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g127766",10.2521375440115,0.216272358484793,0.0210953430498132,"DEG","Up-regulated","P29693","Elongation factor 1-delta (EF-1-delta) (P36)",1.98e-25
+"Ambient","g12865",8.79729830824863,0.231853986022995,0.0263551351675323,"DEG","Up-regulated","Q9NBX4","Probable RNA-directed DNA polymerase from transposon X-element (EC 2.7.7.49) (Reverse transcriptase)",2e-24
+"Ambient","g129332",9.47792827553716,0.262634599367785,0.0277101273329588,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g12936",11.8823796733786,0.272520949428367,0.0229348797900244,"DEG","Up-regulated","P11369","LINE-1 retrotransposable element ORF2 protein (ORF2p) (Long interspersed element-1) (L1) (Retrovirus-related Pol polyprotein LINE-1) [Includes: Reverse transcriptase (EC 2.7.7.49); Endonuclease (EC 3.1.21.-)]",2.69e-16
+"Ambient","g130657",10.8395668628491,0.309244012324736,0.0285291853666794,"DEG","Up-regulated","P31161","Superoxide dismutase [Mn] 1, mitochondrial (EC 1.15.1.1)",4.53e-25
+"Ambient","g131369",7.43835916593628,0.222873174875386,0.0299626799275876,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g131859",10.8362194706672,0.287302695836012,0.0265131853977043,"DEG","Up-regulated","P54385","Glutamate dehydrogenase, mitochondrial (GDH) (EC 1.4.1.3)",1.17e-21
+"Ambient","g132293",13.3976992566603,0.326876990988154,0.024397994366507,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g132924",8.62864864163816,0.198133008871158,0.0229622293246538,"DEG","Up-regulated","Q0IIX9","Tuftelin-interacting protein 11 (Septin and tuftelin-interacting protein 1) (STIP-1)",6.33e-93
+"Ambient","g134259",10.7214780557043,0.284968171529946,0.0265791871278728,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g13451",9.82208888739996,0.139224776531571,0.0141746606172718,"DEG","Up-regulated","P08548","LINE-1 reverse transcriptase homolog (EC 2.7.7.49)",3.98e-11
+"Ambient","g134631",13.3966630788927,0.341972389490269,0.0255266843300007,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g134664",8.99677984606561,0.253940769418971,0.0282257400718794,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g13515",8.24624941080233,0.200186770235275,0.0242760993831979,"DEG","Up-regulated","O46037","Vinculin",7.97e-27
+"Ambient","g135221",12.8199272054801,0.383790047117412,0.0299369911362175,"DEG","Up-regulated","Q4R7Y2","60S ribosomal protein L10 (Ribosomal protein L10)",6.46e-32
+"Ambient","g135922",12.2032483766337,0.306421418483622,0.0251098239605075,"DEG","Up-regulated","Q96DM1","PiggyBac transposable element-derived protein 4",5.45e-57
+"Ambient","g136252",10.1861972899636,0.294131306947122,0.0288754771358028,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g136299",18.4270577807806,0.528422182879877,0.0286764273041473,"DEG","Up-regulated","P49871","Actin, muscle",0
+"Ambient","g136745",8.91503122756113,0.254988275971741,0.0286020620077511,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g13719",10.795291856108,0.204147406010139,0.0189107815454413,"DEG","Up-regulated","Q26250","V-type proton ATPase 16 kDa proteolipid subunit c (V-ATPase 16 kDa proteolipid subunit c) (Vacuolar proton pump 16 kDa proteolipid subunit c)",2.97e-15
+"Ambient","g1377",10.7035753449462,0.0761795390601612,0.00711720491565746,"DEG","Up-regulated","Q14562","ATP-dependent RNA helicase DHX8 (EC 3.6.4.13) (DEAH box protein 8) (RNA helicase HRH1)",1.03e-174
+"Ambient","g139623",10.8696405680034,0.235321757079898,0.0216494515718032,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g13963",14.7646982513864,0.34208808896263,0.0231693247730619,"DEG","Up-regulated","P54399","Protein disulfide-isomerase (PDI) (dPDI) (EC 5.3.4.1)",7.7e-94
+"Ambient","g140800",12.1806015205855,0.30692121124724,0.0251975414127566,"DEG","Up-regulated","Q9FJA6","40S ribosomal protein S3-3",1.63e-19
+"Ambient","g14120",9.98917395360642,0.267111244549505,0.0267400733824511,"DEG","Up-regulated","Q3T1I9","RNA polymerase II-associated protein 1",1.71e-30
+"Ambient","g146477",11.5012583220086,0.304603579073342,0.0264843698441637,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g147451",8.50598816037674,0.185078508240904,0.0217586134322466,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g148232",12.0828479663764,0.262155565589805,0.021696504526029,"DEG","Up-regulated","P31009","40S ribosomal protein S2 (Protein strings of pearls)",9.82e-13
+"Ambient","g14831",10.5814902699881,0.186803364196673,0.0176537859441686,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g149045",10.7189907061343,0.272596709072432,0.0254311918487279,"DEG","Up-regulated","O16797","60S ribosomal protein L3",1.24e-29
+"Ambient","g150989",11.6335447570776,0.27048436741057,0.0232503826699951,"DEG","Up-regulated","O13019","40S ribosomal protein S12",7.62e-17
+"Ambient","g151147",10.0949376567448,0.273734952428812,0.0271160617070199,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g153167",10.5404258975154,0.200999268759606,0.0190693688010259,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g15386",8.13722495109177,0.0968103217996177,0.0118972158667715,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g154455",10.9367108628584,0.179865560460186,0.016446037818465,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g15679",9.18259542077365,0.199128259161842,0.0216854004818024,"DEG","Up-regulated","Q11002","Calpain-A (EC 3.4.22.-) (Calcium-activated neutral proteinase A) (CANP A) [Cleaved into: Calpain-A catalytic subunit]",1.24e-16
+"Ambient","g15686",9.00823979121805,0.241524400522792,0.0268114977088253,"DEG","Up-regulated","Q9VT65","Calpain-B (EC 3.4.22.-) (Calcium-activated neutral proteinase B) (CANP B) [Cleaved into: Calpain-B catalytic subunit 1; Calpain-B catalytic subunit 2]",3.1e-20
+"Ambient","g159718",11.2509494238955,0.336761206131991,0.0299318033922324,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g15980",13.325190364811,0.332466525277631,0.0249502270643432,"DEG","Up-regulated","P56649","Glyceraldehyde-3-phosphate dehydrogenase (GAPDH) (EC 1.2.1.12)",3.66e-177
+"Ambient","g15993",9.35321862298379,0.187199278932554,0.0200144235346479,"DEG","Up-regulated","Q9VPW1","Protein asteroid",2.99e-15
+"Ambient","g162427",13.3120334738483,0.32543359825184,0.0244465730116409,"DEG","Up-regulated","Q7KF90","60S ribosomal protein L31",9.93e-34
+"Ambient","g17180",8.34579787126268,0.19485420183142,0.0233475822009022,"DEG","Up-regulated","Q9NBX4","Probable RNA-directed DNA polymerase from transposon X-element (EC 2.7.7.49) (Reverse transcriptase)",9.55e-39
+"Ambient","g1731",10.1964826131875,0.261096406465139,0.0256065171069338,"DEG","Up-regulated","Q7PVF6","Coatomer subunit gamma (Gamma-coat protein) (Gamma-COP)",1.91e-27
+"Ambient","g17753",12.1570585356184,0.249206232206784,0.0204988921848691,"DEG","Up-regulated","P46782","40S ribosomal protein S5 (Small ribosomal subunit protein uS7) [Cleaved into: 40S ribosomal protein S5, N-terminally processed]",3.65e-18
+"Ambient","g17904",9.98452612547818,0.233020308581955,0.0233381440093929,"DEG","Up-regulated","Q5R874","ATP-dependent RNA helicase A (EC 3.6.4.13) (DEAH box protein 9) (Nuclear DNA helicase II) (NDH II)",9.64e-47
+"Ambient","g18111",9.64760433044166,0.193046136332006,0.020009748505427,"DEG","Up-regulated","A2AKG8","Focadhesin",9.63e-27
+"Ambient","g18392",11.9148620361868,0.294591720596857,0.0247247277981186,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g18506",12.0010411616605,0.288132747896826,0.0240089792223459,"DEG","Up-regulated","Q9NBX4","Probable RNA-directed DNA polymerase from transposon X-element (EC 2.7.7.49) (Reverse transcriptase)",6.48e-24
+"Ambient","g18793",12.0404582523236,0.183700916137263,0.0152569704813196,"DEG","Up-regulated","Q99PV0","Pre-mRNA-processing-splicing factor 8 (Splicing factor Prp8)",0
+"Ambient","g18849",7.09624900312197,0.198388759534425,0.027956848674158,"DEG","Up-regulated","P11369","LINE-1 retrotransposable element ORF2 protein (ORF2p) (Long interspersed element-1) (L1) (Retrovirus-related Pol polyprotein LINE-1) [Includes: Reverse transcriptase (EC 2.7.7.49); Endonuclease (EC 3.1.21.-)]",7.76e-17
+"Ambient","g18960",11.9192785478132,0.30607497736696,0.0256789851952168,"DEG","Up-regulated","P36241","60S ribosomal protein L19",3.77e-20
+"Ambient","g18974",11.9178552860826,0.308115054733581,0.0258532300768402,"DEG","Up-regulated","P36241","60S ribosomal protein L19",3.62e-20
+"Ambient","g19713",9.98187727354793,0.253281142033551,0.0253740989888493,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g20610",12.0022060831442,0.298676106699134,0.0248851006748328,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g20908",9.23962266627293,0.15074010657861,0.0163145305845499,"DEG","Up-regulated","O88480","Calcineurin-binding protein cabin-1 (Calcineurin inhibitor) (CAIN)",6.49e-54
+"Ambient","g20978",8.60959375986609,0.234279571826462,0.0272114548445438,"DEG","Up-regulated","O88480","Calcineurin-binding protein cabin-1 (Calcineurin inhibitor) (CAIN)",6.86e-55
+"Ambient","g21419",7.7601966093046,0.186444152967581,0.024025699650964,"DEG","Up-regulated","P14604","Enoyl-CoA hydratase, mitochondrial (mECH) (mECH1) (EC 4.2.1.17) (EC 5.3.3.8) (Enoyl-CoA hydratase 1) (ECHS1) (Short-chain enoyl-CoA hydratase) (SCEH)",4.33e-24
+"Ambient","g21779",12.8420960241178,0.302571245327513,0.0235608926112431,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g22190",10.4758502605674,0.260344601136136,0.0248518826310558,"DEG","Up-regulated","Q9VEN1","Filamin-A (FLN-A) (Actin-binding protein 280) (ABP-280) (Filamin-1) (Filamin1)",2.06e-21
+"Ambient","g22319",7.63216125204397,0.165443509009517,0.0216771506190608,"DEG","Up-regulated","P11369","LINE-1 retrotransposable element ORF2 protein (ORF2p) (Long interspersed element-1) (L1) (Retrovirus-related Pol polyprotein LINE-1) [Includes: Reverse transcriptase (EC 2.7.7.49); Endonuclease (EC 3.1.21.-)]",1.71e-24
+"Ambient","g22455",8.31821955626632,0.229261146221463,0.0275613242317889,"DEG","Up-regulated","Q95SX7","Probable RNA-directed DNA polymerase from transposon BS (EC 2.7.7.49) (Reverse transcriptase)",7.19e-31
+"Ambient","g22729",7.31942225952886,0.213947052451613,0.0292300464251921,"DEG","Up-regulated","Q9VW47","Mediator of RNA polymerase II transcription subunit 12 (Mediator complex subunit 12) (Mediator complex subunit Kohtalo) (dTRAP230)",2.1e-11
+"Ambient","g23274",9.9402746964194,0.261676214286513,0.0263248473787925,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g2396",10.2912913127633,0.278619267922466,0.0270733049386058,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g24293",13.6533403453389,0.188052499548408,0.0137733693581151,"DEG","Up-regulated","P41824","Y-box factor homolog (APY1)",5.35e-23
+"Ambient","g24755",6.84395233279439,0.178906095777003,0.0261407571352788,"DEG","Up-regulated","Q95SX7","Probable RNA-directed DNA polymerase from transposon BS (EC 2.7.7.49) (Reverse transcriptase)",2.76e-20
+"Ambient","g25094",16.7832839179682,0.431398775004503,0.0257040741915023,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g26320",11.1534673983418,0.301297873351969,0.0270138301024453,"DEG","Up-regulated","Q17Q06","Eukaryotic translation initiation factor 3 subunit C (eIF3c) (Eukaryotic translation initiation factor 3 subunit 8)",1.07e-31
+"Ambient","g26429",6.90510187820965,0.159966410256221,0.023166408414773,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g26673",10.9689722898348,0.308019744691904,0.0280810030833385,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g27181",11.5580577697286,0.272808203874917,0.023603291254472,"DEG","Up-regulated","Q3SZ71","Mitochondrial-processing peptidase subunit beta (EC 3.4.24.64) (Beta-MPP)",7.06e-18
+"Ambient","g272",9.67037245484201,0.262290819566819,0.0271231352041139,"DEG","Up-regulated","Q92616","eIF-2-alpha kinase activator GCN1 (GCN1 eIF-2-alpha kinase activator homolog) (GCN1-like protein 1) (General control of amino-acid synthesis 1-like protein 1) (Translational activator GCN1) (HsGCN1)",1.29e-22
+"Ambient","g27721",10.4191935241909,0.302018550375906,0.0289867492790772,"DEG","Up-regulated","Q9TZH6","Putative pterin-4-alpha-carbinolamine dehydratase (PHS) (EC 4.2.1.96) (4-alpha-hydroxy-tetrahydropterin dehydratase) (Pterin carbinolamine dehydratase) (PCD)",7.37e-21
+"Ambient","g27727",12.5574514391749,0.26661901478929,0.021231936757289,"DEG","Up-regulated","Q6GPM1","Zinc finger RNA-binding protein",4.17e-30
+"Ambient","g28038",11.2369383582707,0.177277326869989,0.0157763014459812,"DEG","Up-regulated","P31410","V-type proton ATPase subunit B (V-ATPase subunit B) (Vacuolar proton pump subunit B)",4.19e-85
+"Ambient","g28406",11.8280430281407,0.334827109314946,0.0283079042338907,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g28545",12.2629522283984,0.204732409123743,0.0166951974785995,"DEG","Up-regulated","P35270","Sepiapterin reductase (SPR) (EC 1.1.1.153)",3.62e-22
+"Ambient","g28665",12.1026396441621,0.187854588283677,0.0155217864703004,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g28904",13.1610676745356,0.343034868437597,0.0260643647552478,"DEG","Up-regulated","Q6QN05","60S ribosomal protein L21",1.26e-17
+"Ambient","g29127",11.3401309073589,0.197485497772073,0.0174147458601134,"DEG","Up-regulated","P67874","Casein kinase II subunit beta (CK II beta) (Phosvitin)",1.44e-54
+"Ambient","g29301",7.78827253007503,0.216093572151809,0.0277460208688572,"DEG","Up-regulated","Q96BP3","Peptidylprolyl isomerase domain and WD repeat-containing protein 1 (EC 5.2.1.8) (Spliceosome-associated cyclophilin)",1.78e-23
+"Ambient","g29785",12.1462277718698,0.32933992877218,0.0271145852817711,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g29962",11.8850087212668,0.226127769906284,0.019026302395694,"DEG","Up-regulated","P29775","DNA-binding protein D-ETS-4",4.28e-43
+"Ambient","g29989",11.7970451112841,0.219771777448057,0.0186293919684888,"DEG","Up-regulated","P29775","DNA-binding protein D-ETS-4",4.19e-43
+"Ambient","g30674",13.6184983818573,0.323218249295164,0.0237337656643378,"DEG","Up-regulated","P62083","40S ribosomal protein S7 (S8)",1.01e-22
+"Ambient","g30758",8.59372397037853,0.209765006187904,0.0244090928346008,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g31001",11.9620354878507,0.339326251220763,0.0283669323306557,"DEG","Up-regulated","Q9Y3Q8","TSC22 domain family protein 4 (TSC22-related-inducible leucine zipper protein 2) (Tsc-22-like protein THG-1)",4.91e-11
+"Ambient","g31396",10.0638633498269,0.238583679784586,0.0237069673435788,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g31651",7.15604006773712,0.160736253320657,0.0224616200858536,"DEG","Up-regulated","Q9NBX4","Probable RNA-directed DNA polymerase from transposon X-element (EC 2.7.7.49) (Reverse transcriptase)",4.01e-52
+"Ambient","g32852",8.81489239771964,0.223036142328994,0.0253021968126,"DEG","Up-regulated","Q9W4P5","V-type proton ATPase subunit d 1 (V-ATPase subunit d 1) (V-ATPase 39 kDa subunit) (Vacuolar H+ ATPase subunit AC39-1) (Vacuolar proton pump subunit d 1)",3.73e-25
+"Ambient","g32960",9.76905716928515,0.290276781571596,0.0297138993601403,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g33004",10.7504420164463,0.280599802332118,0.0261012339681334,"DEG","Up-regulated","P23403","40S ribosomal protein S20 (S22)",6.43e-42
+"Ambient","g33176",10.1277053295721,0.238282244896606,0.0235277624242128,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g33181",12.8079609654745,0.32208091288663,0.0251469311746687,"DEG","Up-regulated","P62282","40S ribosomal protein S11",4.18e-23
+"Ambient","g33590",8.30828758305665,0.2088506644014,0.0251376306264741,"DEG","Up-regulated","Q0P5L5","Formylglycine-generating enzyme (FGE) (EC 1.8.3.7) (C-alpha-formylglycine-generating enzyme 1) (Sulfatase-modifying factor 1)",3.56e-19
+"Ambient","g34069",10.8297827048592,0.319946271459819,0.0295431847691886,"DEG","Up-regulated","Q9NB33","60S ribosomal protein L44",3.49e-15
+"Ambient","g3561",8.54608350998739,0.186293970762283,0.0217987538437426,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g3572",9.16469687169008,0.194841668189348,0.0212600232083199,"DEG","Up-regulated","B0W6M9","Leucine-rich repeat protein soc-2 homolog (Protein Sur-8 homolog) (Protein soc-2 homolog)",9.42e-30
+"Ambient","g36749",7.72114577397449,0.204545195757927,0.0264915598987113,"DEG","Up-regulated","P11369","LINE-1 retrotransposable element ORF2 protein (ORF2p) (Long interspersed element-1) (L1) (Retrovirus-related Pol polyprotein LINE-1) [Includes: Reverse transcriptase (EC 2.7.7.49); Endonuclease (EC 3.1.21.-)]",1.07e-23
+"Ambient","g37260",6.38604600832239,0.158557992851224,0.0248288209393714,"DEG","Up-regulated","P98194","Calcium-transporting ATPase type 2C member 1 (ATPase 2C1) (EC 7.2.2.10) (ATP-dependent Ca(2+) pump PMR1) (Ca(2+)/Mn(2+)-ATPase 2C1) (Secretory pathway Ca(2+)-transporting ATPase type 1) (SPCA1)",8.26e-25
+"Ambient","g37773",16.989872812066,0.42770685551352,0.0251742235062388,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g38027",12.925010921356,0.298431107832896,0.0230894279044513,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g38186",8.50007432691526,0.231954469167834,0.0272885224583691,"DEG","Up-regulated","Q9XW92","V-type proton ATPase catalytic subunit A (V-ATPase subunit A) (EC 7.1.2.2) (V-ATPase 69 kDa subunit) (Vacuolar H ATPase protein 13) (Vacuolar proton pump subunit alpha)",4.04e-29
+"Ambient","g38431",11.5500141096019,0.333629837898729,0.0288856649639392,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g38506",7.58159822850993,0.216491447858367,0.0285548562893072,"DEG","Up-regulated","Q6NRJ7","Malignant T-cell-amplified sequence 1-B (MCT-1B)",5.46e-40
+"Ambient","g39021",8.38580882745546,0.159297097403493,0.0189960325451194,"DEG","Up-regulated","P17027","Zinc finger protein 23 (Zinc finger protein 359) (Zinc finger protein 612) (Zinc finger protein KOX16)",9.85e-38
+"Ambient","g3911",11.1184056517687,0.192646957172464,0.0173268509178577,"DEG","Up-regulated","A6QL88","Phosphatidylinositol-3-phosphatase SAC1 (EC 3.1.3.64) (Phosphatidylinositol-4-phosphate phosphatase) (Suppressor of actin mutations 1-like protein)",0
+"Ambient","g39188",9.48480923190128,0.216959183686051,0.0228743855971641,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g40961",13.1104480937515,0.380979246699332,0.0290592086536623,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g41173",13.362422590345,0.382233773171878,0.0286051253496549,"DEG","Up-regulated","Q4GXH6","60S ribosomal protein L17",6.98e-20
+"Ambient","g4154",10.944536415529,0.296390005894447,0.027081092760942,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g41900",7.8492534791077,0.233569824754809,0.0297569476354025,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g422",7.75543905285933,0.148089310159986,0.019094897032991,"DEG","Up-regulated","P49754","Vacuolar protein sorting-associated protein 41 homolog (S53)",1.34e-42
+"Ambient","g42491",9.62987599204087,0.251219082207963,0.0260874680437834,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g43008",10.9173966391137,0.244531551228221,0.022398339028202,"DEG","Up-regulated","Q17237","Silk gland factor 3 (SGF-3) (POU domain protein M1)",3.77e-108
+"Ambient","g43009",11.0023128134716,0.184340431328278,0.0167546982578577,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g43182",7.5973111197919,0.179064510659602,0.0235694586987648,"DEG","Up-regulated","P11369","LINE-1 retrotransposable element ORF2 protein (ORF2p) (Long interspersed element-1) (L1) (Retrovirus-related Pol polyprotein LINE-1) [Includes: Reverse transcriptase (EC 2.7.7.49); Endonuclease (EC 3.1.21.-)]",1.24e-22
+"Ambient","g436",9.07306214665648,0.206776398157762,0.0227901445857463,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g43715",14.1731695191239,0.254506951941598,0.0179569539190363,"DEG","Up-regulated","Q9XYC2","60S ribosomal protein L15",1.24e-35
+"Ambient","g44071",15.0153179051615,0.181239336062549,0.0120702962939098,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g44073",9.58879541378537,0.198044838316952,0.0206537765976561,"DEG","Up-regulated","Q8STF0","Calmodulin (CaM)",1.53e-22
+"Ambient","g44816",10.1524874526257,0.294395246808778,0.0289973514552475,"DEG","Up-regulated","P11217","Glycogen phosphorylase, muscle form (EC 2.4.1.1) (Myophosphorylase)",1.73e-35
+"Ambient","g45228",11.5035056067619,0.240995569919635,0.0209497502898572,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g454",7.46131709002325,0.214411545308092,0.0287364204899947,"DEG","Up-regulated","Q5FWN8","DnaJ homolog subfamily B member 6-A",1.26e-22
+"Ambient","g45495",7.10573869167776,0.150818282568186,0.0212248562904268,"DEG","Up-regulated","P30044","Peroxiredoxin-5, mitochondrial (EC 1.11.1.24) (Alu corepressor 1) (Antioxidant enzyme B166) (AOEB166) (Liver tissue 2D-page spot 71B) (PLP) (Peroxiredoxin V) (Prx-V) (Peroxisomal antioxidant enzyme) (TPx type VI) (Thioredoxin peroxidase PMP20) (Thioredoxin-dependent peroxiredoxin 5)",9.67e-11
+"Ambient","g46465",9.46447354713048,0.263689174159401,0.0278609447050913,"DEG","Up-regulated","Q0MQI5","NADH dehydrogenase [ubiquinone] flavoprotein 1, mitochondrial (EC 7.1.1.2) (Complex I-51kD) (CI-51kD) (NADH-ubiquinone oxidoreductase 51 kDa subunit)",1.9e-67
+"Ambient","g46713",6.89014618404838,0.141939458654993,0.0206003551831168,"DEG","Up-regulated","Q5REU2","60S ribosomal protein L23",6.16e-17
+"Ambient","g4714",10.7365261303463,0.204733308136619,0.0190688594850014,"DEG","Up-regulated","Q94613","40S ribosomal protein S19",3.68e-17
+"Ambient","g4718",9.69898057633608,0.127441901626227,0.0131397212957787,"DEG","Up-regulated","Q95SX7","Probable RNA-directed DNA polymerase from transposon BS (EC 2.7.7.49) (Reverse transcriptase)",5.56e-32
+"Ambient","g48123",7.82421052019286,0.192062421092778,0.024547194965818,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g48131",7.84235961123679,0.22155726975084,0.0282513530026582,"DEG","Up-regulated","Q27331","V-type proton ATPase catalytic subunit A isoform 2 (V-ATPase subunit A 2) (EC 7.1.2.2) (V-ATPase 69 kDa subunit 2) (Vacuolar proton pump subunit alpha 2)",5.71e-36
+"Ambient","g48132",7.60875221474264,0.227316885816024,0.0298757114702168,"DEG","Up-regulated","Q2TJ56","V-type proton ATPase catalytic subunit A (V-ATPase subunit A) (EC 7.1.2.2) (V-ATPase 69 kDa subunit) (Vacuolar proton pump subunit alpha)",3.77e-21
+"Ambient","g48892",7.98531619932742,0.160824248592936,0.0201399975377909,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g49032",15.1215702368824,0.43756055390517,0.0289361850026614,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g49553",10.1500751740175,0.107647445347429,0.0106055810919498,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g50008",11.3154543932996,0.277065497766365,0.0244855830032268,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g50107",8.73159147505221,0.224890479501498,0.02575595527391,"DEG","Up-regulated","P21328","RNA-directed DNA polymerase from mobile element jockey (EC 2.7.7.49) (Reverse transcriptase)",2.78e-18
+"Ambient","g5019",10.312679383538,0.213100531713064,0.0206639345399638,"DEG","Up-regulated","G4WAW9","Selenoprotein M",9.44e-11
+"Ambient","g50250",8.14565677508652,0.170425666656887,0.0209222744540543,"DEG","Up-regulated","Q9NBX4","Probable RNA-directed DNA polymerase from transposon X-element (EC 2.7.7.49) (Reverse transcriptase)",9.28e-30
+"Ambient","g5036",9.33271756421546,0.161940737116231,0.0173519380611241,"DEG","Up-regulated","Q01484","Ankyrin-2 (ANK-2) (Ankyrin-B) (Brain ankyrin) (Non-erythroid ankyrin)",4.51e-26
+"Ambient","g5049",10.7440938512371,0.264047742603511,0.0245760830331083,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g5050",11.3884318480728,0.298511549859689,0.0262118221228328,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g51593",10.6954789143097,0.293117884019444,0.0274057745677264,"DEG","Up-regulated","O75643","U5 small nuclear ribonucleoprotein 200 kDa helicase (EC 3.6.4.13) (Activating signal cointegrator 1 complex subunit 3-like 1) (BRR2 homolog) (U5 snRNP-specific 200 kDa protein) (U5-200KD)",0
+"Ambient","g51992",13.9746730158199,0.417562509907506,0.029879948492162,"DEG","Up-regulated","A2I3Z2","40S ribosomal protein SA",4.49e-24
+"Ambient","g52228",8.52849027703753,0.222510742332751,0.026090285045156,"DEG","Up-regulated","P21856","Rab GDP dissociation inhibitor alpha (Rab GDI alpha) (Guanosine diphosphate dissociation inhibitor 1) (GDI-1) (SMG p25A GDI)",4.22e-11
+"Ambient","g52489",12.3657978450242,0.304282131198814,0.0246067528365146,"DEG","Up-regulated","Q4R506","60S ribosomal protein L7",2.52e-18
+"Ambient","g52490",12.2709828612044,0.245839689085457,0.0200342296836463,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g52676",14.2803544815268,0.390338321014615,0.0273339377898189,"DEG","Up-regulated","O42248","Guanine nucleotide-binding protein subunit beta-2-like 1 (Receptor of activated protein kinase C) (RACK)",2.77e-49
+"Ambient","g52742",7.71674578581598,0.227822682590097,0.0295231550855095,"DEG","Up-regulated","O65781","UDP-glucose 4-epimerase GEPI48 (EC 5.1.3.2) (Galactowaldenase) (UDP-galactose 4-epimerase)",8.09e-21
+"Ambient","g52879",9.35097602719151,0.234088131962097,0.0250335506455579,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g53200",10.7221984015755,0.27246304974101,0.0254111180875906,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g5333",9.03569098514067,0.13263547044114,0.0146790622498336,"DEG","Up-regulated","Q5TTG1","V-type proton ATPase catalytic subunit A (V-ATPase subunit A) (EC 7.1.2.2) (V-ATPase 69 kDa subunit) (Vacuolar proton pump subunit alpha)",7.96e-115
+"Ambient","g5431",8.35967856151094,0.24620414557212,0.0294513890409227,"DEG","Up-regulated","Q96DM1","PiggyBac transposable element-derived protein 4",1.43e-42
+"Ambient","g5498",15.9960278034746,0.225060533028859,0.0140697763090892,"DEG","Up-regulated","P13607","Sodium/potassium-transporting ATPase subunit alpha (Na(+)/K(+) ATPase alpha subunit) (EC 7.2.2.13) (Sodium pump subunit alpha)",0
+"Ambient","g55226",13.2671643956308,0.385783215697814,0.0290780459330752,"DEG","Up-regulated","Q8WQI5","40S ribosomal protein S8",1.06e-24
+"Ambient","g55280",12.5648239011014,0.34009659942674,0.0270673590098567,"DEG","Up-regulated","B4LYI3","Eukaryotic translation initiation factor 3 subunit D-1 (eIF3d-1) (Eukaryotic translation initiation factor 3 subunit 7-1) (Eukaryotic translation initiation factor 3 subunit p66)",1.95e-119
+"Ambient","g55718",11.8416878067563,0.167241167731006,0.0141230853625094,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g571",11.0896647692355,0.264186398293364,0.0238227578372125,"DEG","Up-regulated","P81021","Vigilin",3.62e-14
+"Ambient","g57177",8.51773160623104,0.213393231840134,0.0250528241209231,"DEG","Up-regulated","Q9XTL9","Glycogen phosphorylase (EC 2.4.1.1)",1.05e-35
+"Ambient","g57217",13.4482896636396,0.224926837549301,0.0167253117812773,"DEG","Up-regulated","O16797","60S ribosomal protein L3",1.27e-34
+"Ambient","g5727",10.1992231473294,0.17687345748449,0.0173418558383835,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g57404",8.19396213077647,0.159166150108289,0.0194248090933276,"DEG","Up-regulated","Q8VDM6","Heterogeneous nuclear ribonucleoprotein U-like protein 1",1.06e-25
+"Ambient","g57439",10.0164657217879,0.237586729493604,0.0237196168881008,"DEG","Up-regulated","Q9BUQ8","Probable ATP-dependent RNA helicase DDX23 (EC 3.6.4.13) (100 kDa U5 snRNP-specific protein) (DEAD box protein 23) (PRP28 homolog) (U5-100kD)",0
+"Ambient","g57810",12.4415563584143,0.268988150340549,0.0216201367892877,"DEG","Up-regulated","Q5REY2","60S ribosomal protein L27a",3.32e-14
+"Ambient","g584",7.8437127131413,0.216024434993961,0.0275410947461188,"DEG","Up-regulated","Q96DM1","PiggyBac transposable element-derived protein 4",8.14e-70
+"Ambient","g58679",7.85949080415582,0.217058134944847,0.0276173279355547,"DEG","Up-regulated","P11369","LINE-1 retrotransposable element ORF2 protein (ORF2p) (Long interspersed element-1) (L1) (Retrovirus-related Pol polyprotein LINE-1) [Includes: Reverse transcriptase (EC 2.7.7.49); Endonuclease (EC 3.1.21.-)]",5.05e-24
+"Ambient","g5934",13.9601064940655,0.32628130215117,0.0233724078172235,"DEG","Up-regulated","B4PEU8","40S ribosomal protein S9",2.82e-26
+"Ambient","g59417",11.0389785368266,0.33049407821529,0.0299388278646202,"DEG","Up-regulated","O16797","60S ribosomal protein L3",6.9e-26
+"Ambient","g60225",10.4344793493107,0.238151577051718,0.0228235227728398,"DEG","Up-regulated","Q01484","Ankyrin-2 (ANK-2) (Ankyrin-B) (Brain ankyrin) (Non-erythroid ankyrin)",7.33e-38
+"Ambient","g60378",12.0332014473014,0.252301707491906,0.0209671307005741,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g60814",9.62880571656864,0.269383940905969,0.0279768798785119,"DEG","Up-regulated","Q0EF98","Glutathione peroxidase 2 (GPx-2) (GSHPx-2) (EC 1.11.1.9) (Glutathione peroxidase-gastrointestinal) (GPx-GI) (GSHPx-GI)",1.44e-15
+"Ambient","g61544",8.26129054158845,0.245697138764036,0.0297407696203352,"DEG","Up-regulated","Q0V9J0","Transmembrane protein 69",1.72e-28
+"Ambient","g61708",7.90967862998213,0.177413790057719,0.0224299618678844,"DEG","Up-regulated","P59470","DNA-directed RNA polymerase III subunit RPC2 (RNA polymerase III subunit C2) (EC 2.7.7.6) (C128) (DNA-directed RNA polymerase III 127.6 kDa polypeptide) (DNA-directed RNA polymerase III subunit B)",0
+"Ambient","g64674",10.0064376177048,0.206792800432973,0.0206659760779486,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g64811",7.06463688243401,0.184086772246351,0.0260574995303831,"DEG","Up-regulated","Q8RY11","Aminopeptidase P2 (AtAPP2) (EC 3.4.11.9)",2.56e-15
+"Ambient","g65622",16.3975454973967,0.267798001896721,0.0163315907212599,"DEG","Up-regulated","Q9YIC0","Elongation factor 1-alpha (EF-1-alpha)",4.09e-128
+"Ambient","g65980",10.8909713487747,0.263279129932362,0.0241740724037422,"DEG","Up-regulated","Q1HDZ5","Eukaryotic translation initiation factor 3 subunit B (eIF3b) (Eukaryotic translation initiation factor 3 subunit 9)",7.6e-24
+"Ambient","g65981",10.3599576262213,0.274193135980599,0.0264666271690735,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g6619",9.81823320545532,0.181609420560616,0.0184971589857642,"DEG","Up-regulated","O61199","2-oxoglutarate dehydrogenase, mitochondrial (EC 1.2.4.2) (2-oxoglutarate dehydrogenase complex component E1) (OGDC-E1) (Alpha-ketoglutarate dehydrogenase)",1.06e-36
+"Ambient","g66666",9.7264247854543,0.209632715923119,0.0215529056716319,"DEG","Up-regulated","Q3SZE9","Tubulin-specific chaperone C (Tubulin-folding cofactor C) (CFC)",6.57e-70
+"Ambient","g6796",12.6462646454131,0.311695158951902,0.0246472114645296,"DEG","Up-regulated","P21328","RNA-directed DNA polymerase from mobile element jockey (EC 2.7.7.49) (Reverse transcriptase)",1.5e-33
+"Ambient","g68623",11.5363974198418,0.266586133780337,0.0231082654383792,"DEG","Up-regulated","Q08473","RNA-binding protein squid (Heterogeneous nuclear ribonucleoprotein 40) (HNRNP 40)",4.68e-45
+"Ambient","g68644",7.61562776563498,0.215708883394917,0.0283245045626165,"DEG","Up-regulated","P21329","RNA-directed DNA polymerase from mobile element jockey (EC 2.7.7.49) (Reverse transcriptase)",2.18e-35
+"Ambient","g69382",11.0421054456125,0.260029069386719,0.0235488667145484,"DEG","Up-regulated","P56252","Enolase (EC 4.2.1.11) (2-phospho-D-glycerate hydro-lyase) (2-phosphoglycerate dehydratase)",9.82e-102
+"Ambient","g69723",9.84114784940999,0.284814982115788,0.0289412359690199,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g7003",12.0646859631142,0.301856501131543,0.0250198390620709,"DEG","Up-regulated","O75564","Jerky protein homolog",7.46e-29
+"Ambient","g7037",13.0397397302627,0.174065183841114,0.013348823476679,"DEG","Up-regulated","P37276","Dynein heavy chain, cytoplasmic (Dynein heavy chain, cytosolic) (DYHC)",0
+"Ambient","g70822",8.41890877394981,0.181171906338379,0.0215196424148186,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g71416",7.52141267898702,0.176358007257308,0.0234474579157196,"DEG","Up-regulated","O08788","Dynactin subunit 1 (150 kDa dynein-associated polypeptide) (DAP-150) (DP-150) (p150-glued)",2.17e-11
+"Ambient","g7179",14.0132979218358,0.223238572301024,0.0159304807152618,"DEG","Up-regulated","P82013","Voltage-dependent anion-selective channel protein 2 (VDAC-2) (Outer mitochondrial membrane protein porin 2)",7.11e-36
+"Ambient","g72805",13.0763044285986,0.282830301977373,0.0216292228069276,"DEG","Up-regulated","Q01768","Nucleoside diphosphate kinase B (NDK B) (NDP kinase B) (EC 2.7.4.6) (Histidine protein kinase NDKB) (EC 2.7.13.3) (P18) (nm23-M2)",4.29e-33
+"Ambient","g73664",8.90246398334822,0.240069627675067,0.0269666496965458,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g73683",10.1575837599765,0.288792059971384,0.0284311768227105,"DEG","Up-regulated","A7RWP6","Eukaryotic translation initiation factor 3 subunit E (eIF3e) (Eukaryotic translation initiation factor 3 subunit 6)",4.7e-33
+"Ambient","g7386",12.5891147839508,0.23380113525083,0.0185716898497813,"DEG","Up-regulated","Q95V32","40S ribosomal protein S6",2.11e-32
+"Ambient","g74389",13.0713250583565,0.287308509298853,0.0219800600181064,"DEG","Up-regulated","P55833","40S ribosomal protein S27",4.4e-17
+"Ambient","g74595",7.20437487908071,0.187486494714214,0.0260239781883946,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g75525",7.42738889373772,0.19822489469319,0.0266883688910271,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g75717",9.13415720971055,0.270977997196011,0.0296664477055347,"DEG","Up-regulated","P45437","Coatomer subunit beta (Beta-coat protein) (Beta-COP)",1.16e-28
+"Ambient","g7636",10.9695785034381,0.27820088836124,0.0253611283491017,"DEG","Up-regulated","Q10126","Putative uncharacterized transposon-derived protein F52C9.6",9.23e-18
+"Ambient","g767",9.384569617598,0.230087342509108,0.0245176232778589,"DEG","Up-regulated","Q8CIW5","Twinkle mtDNA helicase (EC 3.6.4.12) (Progressive external ophthalmoplegia 1 protein homolog) (T7 gp4-like protein with intramitochondrial nucleoid localization) (T7-like mitochondrial DNA helicase) (Twinkle protein, mitochondrial)",3.01e-14
+"Ambient","g76915",7.57994196248535,0.223685899671929,0.0295102390993222,"DEG","Up-regulated","B0WAM5","Eukaryotic translation initiation factor 3 subunit E (eIF3e) (Eukaryotic translation initiation factor 3 subunit 6)",3.6e-14
+"Ambient","g76939",9.3424032560442,0.211594962248,0.0226488791426452,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g77255",11.94043744041,0.303962792798053,0.0254565876932911,"DEG","Up-regulated","Q86FP7","40S ribosomal protein S23",1.04e-32
+"Ambient","g77718",8.66828674154314,0.241303083956416,0.0278374598292833,"DEG","Up-regulated","Q5R922","Coatomer subunit beta (Beta-coat protein) (Beta-COP)",1.17e-33
+"Ambient","g78697",12.482676383147,0.289061931443466,0.0231570476211121,"DEG","Up-regulated","P46791","40S ribosomal protein S2 (Fragment)",4.5e-27
+"Ambient","g80175",16.3806844403967,0.290136105232761,0.0177120868354714,"DEG","Up-regulated","O42820","Elongation factor 1-alpha (EF-1-alpha)",6.32e-101
+"Ambient","g80447",6.1393422545968,0.180669002672922,0.0294280714742116,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g81361",6.38638334905497,0.169885030937455,0.0266011326994008,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g81370",9.8714649561084,0.294774390150107,0.0298612608625737,"DEG","Up-regulated","P09623","Dihydrolipoyl dehydrogenase, mitochondrial (EC 1.8.1.4) (Dihydrolipoamide dehydrogenase)",1.98e-45
+"Ambient","g83201",10.2401172956172,0.191294095438101,0.0186808500250262,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g83435",9.68062417871366,0.261188502031649,0.0269805435279644,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g83518",8.4742565828796,0.242738672769074,0.0286442439398725,"DEG","Up-regulated","Q5R8D7","26S proteasome regulatory subunit 7 (26S proteasome AAA-ATPase subunit RPT1) (Proteasome 26S subunit ATPase 2)",2.15e-24
+"Ambient","g83538",7.30325154465963,0.205162526483751,0.0280919430515538,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g83795",7.71838954948206,0.229262828094207,0.0297034538907915,"DEG","Up-regulated","P11369","LINE-1 retrotransposable element ORF2 protein (ORF2p) (Long interspersed element-1) (L1) (Retrovirus-related Pol polyprotein LINE-1) [Includes: Reverse transcriptase (EC 2.7.7.49); Endonuclease (EC 3.1.21.-)]",9.86e-26
+"Ambient","g84569",9.76781297294139,0.247932279129222,0.0253825784560002,"DEG","Up-regulated","Q4R5X8","NADH dehydrogenase [ubiquinone] iron-sulfur protein 6, mitochondrial (Complex I-13kD-A) (CI-13kD-A) (NADH-ubiquinone oxidoreductase 13 kDa-A subunit)",5.53e-16
+"Ambient","g85988",11.2693394180298,0.229346978609331,0.0203514128115086,"DEG","Up-regulated","Q567C6","Zinc finger protein 367",5.46e-20
+"Ambient","g86110",9.25687799388086,0.189755726995364,0.0204988903516715,"DEG","Up-regulated","P21328","RNA-directed DNA polymerase from mobile element jockey (EC 2.7.7.49) (Reverse transcriptase)",1.37e-17
+"Ambient","g86487",8.06401040306135,0.192499611858732,0.0238714488495269,"DEG","Up-regulated","Q7QJ33","Ribosome biogenesis protein WDR12 homolog",8.87e-22
+"Ambient","g87038",7.88963487551079,0.21586866464055,0.0273610462393641,"DEG","Up-regulated","P21328","RNA-directed DNA polymerase from mobile element jockey (EC 2.7.7.49) (Reverse transcriptase)",4.08e-33
+"Ambient","g87351",10.4845980109141,0.275717336974459,0.0262973684529865,"DEG","Up-regulated","Q24048","Sodium/potassium-transporting ATPase subunit beta-2 (Protein nervana 2) (Sodium/potassium-dependent ATPase subunit beta-2)",1.6e-13
+"Ambient","g87501",10.2579326419056,0.307663934405162,0.0299927816983605,"DEG","Up-regulated","P11369","LINE-1 retrotransposable element ORF2 protein (ORF2p) (Long interspersed element-1) (L1) (Retrovirus-related Pol polyprotein LINE-1) [Includes: Reverse transcriptase (EC 2.7.7.49); Endonuclease (EC 3.1.21.-)]",4.24e-16
+"Ambient","g88056",12.7416863361085,0.336031888826279,0.0263726385944695,"DEG","Up-regulated","Q90YV8","60S ribosomal protein L10a",3.63e-22
+"Ambient","g8806",7.02833696511694,0.176842439431147,0.0251613490230835,"DEG","Up-regulated","Q9VEV4","Protein CLEC16A homolog (Endosomal maturation defective protein)",5.29e-32
+"Ambient","g8833",8.04198459454668,0.157907135730141,0.0196353442205322,"DEG","Up-regulated","Q3UQU0","Bromodomain-containing protein 9",7.16e-12
+"Ambient","g89089",13.3121839626467,0.232745109605088,0.0174836157807132,"DEG","Up-regulated","Q9XTL9","Glycogen phosphorylase (EC 2.4.1.1)",0
+"Ambient","g89100",12.4820801009657,0.335655316704895,0.0268909760224121,"DEG","Up-regulated","Q962T1","60S ribosomal protein L32",5.5e-25
+"Ambient","g89205",7.36784804268261,0.182892381481923,0.0248230392948404,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g89427",10.5069697694102,0.269508369966129,0.0256504373649927,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g89700",9.40256291883554,0.162066199382419,0.0172363855239684,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g89998",13.3887536201391,0.372152739673766,0.0277959211314473,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g90145",10.2329677413968,0.237609859962528,0.0232200341061658,"DEG","Up-regulated","P30153","Serine/threonine-protein phosphatase 2A 65 kDa regulatory subunit A alpha isoform (Medium tumor antigen-associated 61 kDa protein) (PP2A subunit A isoform PR65-alpha) (PP2A subunit A isoform R1-alpha)",1.55e-31
+"Ambient","g90893",7.8978470232893,0.233249324812797,0.0295332796552007,"DEG","Up-regulated","Q5R648","COP9 signalosome complex subunit 4 (SGN4) (Signalosome subunit 4)",7.55e-26
+"Ambient","g91021",7.87174185373659,0.20676335017891,0.0262665308416793,"DEG","Up-regulated","Q10126","Putative uncharacterized transposon-derived protein F52C9.6",8.79e-19
+"Ambient","g92290",13.5619901319116,0.316723098257881,0.0233537331304073,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g9293",12.9286267179539,0.233845479831745,0.018087418326264,"DEG","Up-regulated","Q5REX3","Zinc finger RNA-binding protein",6.75e-26
+"Ambient","g9411",8.25519533478664,0.246683085702119,0.0298821621655176,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g94270",10.1954453368634,0.25707172751036,0.0252143696539544,"DEG","Up-regulated","Q2KJC9","Alpha-aminoadipic semialdehyde dehydrogenase (Alpha-AASA dehydrogenase) (EC 1.2.1.31) (Aldehyde dehydrogenase family 7 member A1) (EC 1.2.1.3) (Antiquitin-1) (Betaine aldehyde dehydrogenase) (EC 1.2.1.8) (Delta1-piperideine-6-carboxylate dehydrogenase) (P6c dehydrogenase)",2.73e-30
+"Ambient","g945",7.40244028915182,0.144162396205741,0.0194749826509251,"DEG","Up-regulated","P21328","RNA-directed DNA polymerase from mobile element jockey (EC 2.7.7.49) (Reverse transcriptase)",1.13e-23
+"Ambient","g94978",10.8042615391134,0.291185059363163,0.0269509450793116,"DEG","Up-regulated","Q7ZUB2","40S ribosomal protein S17",7.91e-26
+"Ambient","g95160",8.17225091048851,0.170181666807483,0.0208243320807816,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g95351",16.1414766086201,0.338978379904773,0.0210004566573387,"DEG","Up-regulated","Q1HPK6","Translation elongation factor 2 (EF-2)",1.2e-170
+"Ambient","g95442",8.30125538991955,0.227066066460652,0.0273532201811771,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g95748",12.2457695200707,0.356680651310189,0.0291268466816719,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g96285",9.6767306349724,0.178163746693065,0.0184115641339823,"DEG","Up-regulated","Q8MQI6","Transcription elongation factor 1 homolog",1.96e-15
+"Ambient","g97696",13.7956174138279,0.370636512083941,0.0268662504160514,"DEG","Up-regulated","Q1HPK6","Translation elongation factor 2 (EF-2)",7.02e-24
+"Ambient","g97861",13.0496420443186,0.319445651402542,0.0244792654325425,"DEG","Up-regulated",NA,NA,NA
+"Ambient","g98112",8.52034612640043,0.20616500952762,0.0241967880728242,"DEG","Up-regulated",NA,NA,NA

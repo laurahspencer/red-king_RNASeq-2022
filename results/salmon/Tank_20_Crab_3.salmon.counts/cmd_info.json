@@ -1,0 +1,12 @@
+{
+    "salmon_version": "1.4.0",
+    "index": "/home/lspencer/references/bluekingcrab/salmon/salmon_index",
+    "libType": "A",
+    "mates1": "/home/lspencer/2022-redking-OA/trimmed/v2/Tank_20_Crab_3.trimmed.R1.v2.fastq.gz",
+    "mates2": "/home/lspencer/2022-redking-OA/trimmed/v2/Tank_20_Crab_3.trimmed.R2.v2.fastq.gz",
+    "validateMappings": [],
+    "gcBias": [],
+    "threads": "20",
+    "output": "/scratch/lspencer/2022-redking-OA/aligned/salmon/Tank_20_Crab_3.salmon.counts",
+    "auxDir": "aux_info"
+}

@@ -1,0 +1,67 @@
+"Treatment","gene","mean","sd","cv","DEG","change_in_treatment","spid","protein_names","evalue"
+"Moderate","g104176",10.9562301705997,0.197754043601297,0.0180494604916166,"DEG","Up-regulated",NA,NA,NA
+"Moderate","g122431",8.24592055938527,0.212031294975694,0.0257134777674235,"DEG","Up-regulated","Q94HW2","Retrovirus-related Pol polyprotein from transposon RE1 (Retro element 1) (AtRE1) [Includes: Protease RE1 (EC 3.4.23.-); Reverse transcriptase RE1 (EC 2.7.7.49); Endonuclease RE1]",3.02e-19
+"Moderate","g12517",7.75474928212328,0.108428027877855,0.0139821448680242,"DEG","Up-regulated","P21328","RNA-directed DNA polymerase from mobile element jockey (EC 2.7.7.49) (Reverse transcriptase)",3.08e-29
+"Moderate","g1298",10.6099715748623,0.236702180104122,0.0223094075638174,"DEG","Up-regulated",NA,NA,NA
+"Moderate","g137406",9.10483865653672,0.124586458062651,0.0136835437466216,"DEG","Up-regulated","E9Q5F9","Histone-lysine N-methyltransferase SETD2 (EC 2.1.1.359) (Lysine N-methyltransferase 3A) (Protein-lysine N-methyltransferase SETD2) (EC 2.1.1.-) (SET domain-containing protein 2)",1.68e-11
+"Moderate","g15150",9.72504857495085,0.251120337096573,0.0258220136548616,"DEG","Up-regulated",NA,NA,NA
+"Moderate","g15806",9.13540931530701,0.242994903228338,0.0265992354410637,"DEG","Up-regulated","O75182","Paired amphipathic helix protein Sin3b (Histone deacetylase complex subunit Sin3b) (Transcriptional corepressor Sin3b)",3.57e-12
+"Moderate","g16947",7.38960531171165,0.201452938622905,0.0272616642060201,"DEG","Up-regulated","Q9NBX4","Probable RNA-directed DNA polymerase from transposon X-element (EC 2.7.7.49) (Reverse transcriptase)",1.85e-32
+"Moderate","g17239",11.8257894546268,0.153271430125033,0.0129607778586879,"DEG","Up-regulated",NA,NA,NA
+"Moderate","g17510",10.889063417384,0.246853968132481,0.0226698990234906,"DEG","Up-regulated",NA,NA,NA
+"Moderate","g18893",9.68911652663487,0.188058245815343,0.0194092253198091,"DEG","Up-regulated",NA,NA,NA
+"Moderate","g20936",12.936438425694,0.363941067072969,0.0281330189266095,"DEG","Up-regulated",NA,NA,NA
+"Moderate","g2359",10.8895384676455,0.303398580252978,0.027861472839682,"DEG","Up-regulated",NA,NA,NA
+"Moderate","g2450",9.88346521790991,0.264376413378069,0.0267493644738072,"DEG","Up-regulated",NA,NA,NA
+"Moderate","g2638",12.1377099864783,0.344842176990836,0.0284108103896863,"DEG","Up-regulated",NA,NA,NA
+"Moderate","g26714",11.1800665948108,0.210224388396719,0.0188035005528763,"DEG","Up-regulated",NA,NA,NA
+"Moderate","g27569",8.92965120389189,0.212550775712649,0.0238028082911023,"DEG","Up-regulated",NA,NA,NA
+"Moderate","g27607",9.48223195777926,0.187676676517085,0.0197924578678034,"DEG","Up-regulated","Q10126","Putative uncharacterized transposon-derived protein F52C9.6",8.7e-12
+"Moderate","g27676",11.3485812466849,0.231716384177139,0.0204180927236898,"DEG","Up-regulated","C9J069","Apical junction component 1 homolog",1.42e-22
+"Moderate","g28357",11.7853549985416,0.195091725534938,0.0165537419584798,"DEG","Up-regulated",NA,NA,NA
+"Moderate","g28380",11.0871262115831,0.209805692388104,0.0189233610571613,"DEG","Up-regulated",NA,NA,NA
+"Moderate","g28887",10.0250947737326,0.259180190849603,0.0258531412120608,"DEG","Up-regulated",NA,NA,NA
+"Moderate","g29686",9.53735497942167,0.23452917357733,0.0245905886992109,"DEG","Up-regulated",NA,NA,NA
+"Moderate","g29753",8.07745088145927,0.146837331688774,0.0181786721880067,"DEG","Up-regulated",NA,NA,NA
+"Moderate","g313",13.536791046301,0.229882561220576,0.0169820573010465,"DEG","Up-regulated",NA,NA,NA
+"Moderate","g31851",11.3428196731971,0.236474058928379,0.0208479078167101,"DEG","Up-regulated","P21329","RNA-directed DNA polymerase from mobile element jockey (EC 2.7.7.49) (Reverse transcriptase)",5.38e-33
+"Moderate","g32118",9.58849591990161,0.267707295561208,0.027919633881844,"DEG","Up-regulated",NA,NA,NA
+"Moderate","g32544",12.6901393204094,0.263297684636154,0.0207482107160711,"DEG","Up-regulated",NA,NA,NA
+"Moderate","g35163",11.7586625110906,0.256338103388951,0.0217999371227107,"DEG","Up-regulated",NA,NA,NA
+"Moderate","g37575",9.80119682692504,0.262433299503082,0.0267756381324929,"DEG","Up-regulated",NA,NA,NA
+"Moderate","g38678",6.60337398222813,0.180386811330104,0.0273173701528318,"DEG","Up-regulated",NA,NA,NA
+"Moderate","g38725",10.9492625487032,0.256022521103135,0.0233826269088285,"DEG","Up-regulated","P21521","Synaptotagmin 1 (p65)",2.79e-28
+"Moderate","g3883",11.4565391953743,0.231467442326364,0.0202039584886003,"DEG","Up-regulated",NA,NA,NA
+"Moderate","g39067",7.19316345336807,0.178306206793239,0.0247882879277198,"DEG","Up-regulated","Q96IR2","Zinc finger protein 845",1.22e-114
+"Moderate","g41210",7.36667397823027,0.171859045565629,0.0233292590487242,"DEG","Up-regulated",NA,NA,NA
+"Moderate","g4131",10.4006704941306,0.292915697188334,0.028163155188277,"DEG","Up-regulated",NA,NA,NA
+"Moderate","g4132",10.9859331519921,0.31336688291036,0.0285243755423305,"DEG","Up-regulated","Q80T69","Lysine-specific demethylase 9 (KDM9) (EC 1.14.11.-) (Round spermatid basic protein 1) (Rosbin)",6.46e-19
+"Moderate","g41689",11.6898665401595,0.196166176831229,0.0167808739438828,"DEG","Up-regulated","P21328","RNA-directed DNA polymerase from mobile element jockey (EC 2.7.7.49) (Reverse transcriptase)",6.48e-23
+"Moderate","g42886",12.3452485220155,0.179085926191453,0.0145064658578631,"DEG","Up-regulated",NA,NA,NA
+"Moderate","g4357",10.725366181196,0.281147145240076,0.0262132910420338,"DEG","Up-regulated",NA,NA,NA
+"Moderate","g44584",9.32964906261211,0.275640163084212,0.0295445371239975,"DEG","Up-regulated","Q95SX7","Probable RNA-directed DNA polymerase from transposon BS (EC 2.7.7.49) (Reverse transcriptase)",1.32e-19
+"Moderate","g44890",10.690729375126,0.238084358520345,0.0222701698047183,"DEG","Up-regulated","Q9VE46","High-affinity choline transporter 1",4.48e-27
+"Moderate","g49051",9.59455284420201,0.241528380721141,0.0251734900670329,"DEG","Up-regulated","Q9NBX4","Probable RNA-directed DNA polymerase from transposon X-element (EC 2.7.7.49) (Reverse transcriptase)",3.28e-20
+"Moderate","g50117",10.7700101454601,0.150887397796704,0.0140099587427323,"DEG","Up-regulated",NA,NA,NA
+"Moderate","g5037",10.3723910984822,0.228073134459833,0.0219884819512068,"DEG","Up-regulated","Q01484","Ankyrin-2 (ANK-2) (Ankyrin-B) (Brain ankyrin) (Non-erythroid ankyrin)",4e-22
+"Moderate","g52980",10.021358395257,0.237443762161504,0.0236937701254037,"DEG","Up-regulated",NA,NA,NA
+"Moderate","g53974",13.6074099583114,0.35466698739239,0.0260642538498489,"DEG","Up-regulated",NA,NA,NA
+"Moderate","g5629",9.44432895920667,0.179293661116259,0.0189842668431702,"DEG","Up-regulated","Q9VMJ7","Lysine-specific demethylase lid (EC 1.14.11.67) (Histone demethylase lid) (Jumonji/ARID domain-containing protein lid) (Protein little imaginal disks) (Retinoblastoma-binding protein 2 homolog) ([histone H3]-trimethyl-L-lysine(4) demethylase lid)",4.39e-17
+"Moderate","g5684",10.7841198360823,0.31298393856611,0.0290226688244788,"DEG","Up-regulated",NA,NA,NA
+"Moderate","g5792",11.6548618222502,0.322895384241257,0.0277047801308824,"DEG","Up-regulated",NA,NA,NA
+"Moderate","g60890",8.86660513856324,0.261581948335607,0.0295019282180411,"DEG","Up-regulated",NA,NA,NA
+"Moderate","g60891",10.5189396959987,0.131547172874917,0.0125057445594975,"DEG","Up-regulated",NA,NA,NA
+"Moderate","g6744",8.12965079315032,0.230041499157821,0.0282966027706435,"DEG","Up-regulated",NA,NA,NA
+"Moderate","g74523",12.5551423690839,0.147665998783501,0.011761395804409,"DEG","Up-regulated","Q9NL83","Orcokinin peptides type A [Cleaved into: Orcomyotropin-like peptide; Orcokinin; Orcokinin-like peptide 1; Orcokinin-like peptide 2; Orcokinin-like peptide 3; Orcokinin-like peptide 4]",9.52e-50
+"Moderate","g74524",12.275539675685,0.172019109819042,0.0140131606726645,"DEG","Up-regulated",NA,NA,NA
+"Moderate","g8065",9.97453376167685,0.248360462809589,0.0248994558285837,"DEG","Up-regulated","P21328","RNA-directed DNA polymerase from mobile element jockey (EC 2.7.7.49) (Reverse transcriptase)",1.94e-27
+"Moderate","g85062",8.23720040566597,0.231948058459041,0.0281586032919019,"DEG","Up-regulated",NA,NA,NA
+"Moderate","g85684",11.435795086839,0.26242307609815,0.0229475147207002,"DEG","Up-regulated","P48613","Protein tipE (Temperature-induced paralytic E)",2.29e-16
+"Moderate","g8820",8.25476795696983,0.213823625870899,0.0259030450020535,"DEG","Up-regulated","Q9NBX4","Probable RNA-directed DNA polymerase from transposon X-element (EC 2.7.7.49) (Reverse transcriptase)",3.74e-29
+"Moderate","g91175",8.06142902155877,0.230098989775556,0.0285432011074215,"DEG","Up-regulated",NA,NA,NA
+"Moderate","g92129",7.87197580342395,0.205304673455766,0.0260804502684659,"DEG","Up-regulated","Q9NBX4","Probable RNA-directed DNA polymerase from transposon X-element (EC 2.7.7.49) (Reverse transcriptase)",2.19e-24
+"Moderate","g92576",9.98515368909211,0.16643937658031,0.0166686845052901,"DEG","Up-regulated",NA,NA,NA
+"Moderate","g94257",6.88767615581551,0.199667379015844,0.0289890776655138,"DEG","Up-regulated",NA,NA,NA
+"Moderate","g95785",8.44702304191987,0.14952368129782,0.0177013464454616,"DEG","Up-regulated",NA,NA,NA
+"Moderate","g97061",10.0401779610573,0.223867494346647,0.0222971639760727,"DEG","Up-regulated",NA,NA,NA
+"Moderate","g99029",8.95761513219821,0.217003319777961,0.0242255685888916,"DEG","Up-regulated",NA,NA,NA

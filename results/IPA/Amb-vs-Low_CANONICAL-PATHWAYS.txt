@@ -1,0 +1,531 @@
+Ingenuity Canonical Pathways	 -log(p-value)	zScore	Ratio	Molecules
+3-phosphoinositide Biosynthesis	0.00E+00		5.06E-02	"ALPL,ENTPD6,NUDT11,PTPA"
+3-phosphoinositide Degradation	0.00E+00		5.63E-02	"ALPL,ENTPD6,NUDT11,PTPA"
+AMPK Signaling	0.00E+00	0	1.11E-01	"CCNA2,CCND1,CHRNA7,CKM,EP300,MLST8,MRAS,ORAI2,PBRM1,PTPA"
+ATM Signaling	0.00E+00	0	1.03E-01	"CCNB3,CDK1,PTPA,SMC2"
+Actin Cytoskeleton Signaling	0.00E+00	2.333333333	1.28E-01	"ACTC1,ACTG1,ARPC1B,ARPC3,ARPC4,ITGA8,ITGB2,MRAS,PAK1,SOS1,VCL"
+Activation of IRF by Cytosolic Pattern Recognition Receptors	0.00E+00		1.25E-01	PPIB
+Acute Phase Response Signaling	0.00E+00	1	1.11E-01	"A2M,MRAS,SOD2,SOS1"
+Adipogenesis pathway	0.00E+00		1.27E-01	"CCNH,EBF1,FGFR1,GTF2H4,HDAC2,HDAC7,SIN3B"
+Adrenomedullin signaling pathway	0.00E+00	0	1.38E-01	"ADCY1,CALM1 (includes others),CTH,GUCY1B1,GUCY2C,Gucy2d,KCNN2,MRAS,NPR1,PLCZ1,SOS1"
+Agranulocyte Adhesion and Diapedesis	0.00E+00		1.25E-01	"ACTC1,ACTG1,ITGB2"
+Aldosterone Signaling in Epithelial Cells	0.00E+00		2.63E-02	"PLCZ1,SOS1"
+Amyloid Processing	0.00E+00		4.17E-02	CSNK2B
+Amyotrophic Lateral Sclerosis Signaling	0.00E+00	0.447213595	1.30E-01	"CACNA1A,CAT,GLUL,GPX1,GRID1,GRIK2,PAK1"
+Angiopoietin Signaling	0.00E+00	1	1.29E-01	"ANGPT1,MRAS,PAK1,SOS1"
+Antioxidant Action of Vitamin C	0.00E+00		8.82E-02	"PLAAT4,PLCZ1,PRDX6"
+Apelin Cardiomyocyte Signaling Pathway	0.00E+00		7.69E-02	"CAT,PLCZ1,SLC8A2"
+Apelin Endothelial Signaling Pathway	0.00E+00	2	9.80E-02	"ADCY1,ANGPT1,CALM1 (includes others),GUCY1B1,MRAS"
+Apelin Muscle Signaling Pathway	0.00E+00		7.69E-02	MRAS
+Apoptosis Signaling	0.00E+00		1.05E-01	"CDK1,CYC1,MRAS,PARP1"
+Autophagy	0.00E+00	0	5.26E-02	"CALM1 (includes others),EIF2A,MLST8,PTPA"
+Axonal Guidance Signaling	0.00E+00		1.25E-01	"ACE,ARPC1B,ARPC3,ARPC4,ECE2,ITGA8,ITGB2,L1CAM,MRAS,PAK1,PLCZ1,PMPCB,ROBO1,ROBO2,SOS1,TUBA1B,TUBA3C/TUBA3D,TUBA3E,TUBB2B,TUBB4A"
+B Cell Receptor Signaling	0.00E+00	0	7.58E-02	"CALM1 (includes others),CAMK2D,EBF1,MRAS,SOS1"
+BAG2 Signaling Pathway	0.00E+00		6.67E-02	"CHRNA7,PRKN,PSMC2"
+BEX2 Signaling Pathway	0.00E+00		1.00E-01	"CCND1,PTPA"
+BMP signaling pathway	0.00E+00		6.45E-02	"MRAS,SOS1"
+Breast Cancer Regulation by Stathmin1	0.00E+00	-2.523573073	1.28E-01	"AURKB,CAMK2D,CCKAR,CCND1,CDK1,FSHR,GPR84,HTR1A,LHCGR,MRAS,PAK1,PTPA,SOS1,SPDEF,TUBA1B,TUBA3C/TUBA3D,TUBA3E,TUBB2B,TUBB4A"
+CCR3 Signaling in Eosinophils	0.00E+00		6.98E-02	"CALM1 (includes others),MRAS,PAK1"
+CCR5 Signaling in Macrophages	0.00E+00		1.20E-01	"CACNA1A,CALM1 (includes others),MRAS"
+CD27 Signaling in Lymphocytes	0.00E+00		5.26E-02	CYC1
+CD28 Signaling in T Helper Cells	0.00E+00	2.236067977	1.28E-01	"ARPC1B,ARPC3,ARPC4,CALM1 (includes others),PAK1"
+CDK5 Signaling	0.00E+00	-0.447213595	1.25E-01	"ADCY1,CACNA1A,GUCY1B1,LAMC1,MRAS,PTPA"
+CNTF Signaling	0.00E+00		9.52E-02	"MRAS,SOS1"
+CREB Signaling in Neurons	0.00E+00	-0.774596669	1.15E-01	"ADCY1,CACNA1A,CALM1 (includes others),CAMK2D,CCKAR,EP300,FGFR1,FSHR,GPR84,GRID1,GRIK2,GUCY1B1,HTR1A,LHCGR,MRAS,PLCZ1,SOS1,TBP,TGFBR1"
+CSDE1 Signaling Pathway	0.00E+00		4.76E-02	RPL9
+CTLA4 Signaling in Cytotoxic T Lymphocytes	0.00E+00		7.14E-02	"AP2A1,PTPA"
+CXCR4 Signaling	0.00E+00		6.78E-02	"ADCY1,GUCY1B1,MRAS,PAK1"
+Calcium Signaling	0.00E+00	-0.377964473	1.35E-01	"ACTC1,ATP2C1,CACNA1A,CALM1 (includes others),CAMK2D,CASQ1,CHRNA7,EP300,HDAC2,HDAC7,SLC8A2,TRPC5"
+Cancer Drug Resistance By Drug Efflux	0.00E+00		9.09E-02	"MRAS,YBX1"
+Cardiac Hypertrophy Signaling	0.00E+00	0.333333333	1.06E-01	"ADCY1,CACNA1A,CALM1 (includes others),EP300,GATA4,GUCY1B1,MRAS,PLCZ1,SOS1,TGFBR1"
+Cardiac Hypertrophy Signaling (Enhanced)	0.00E+00	0	1.24E-01	"ACE,ADCY1,CACNA1A,CALM1 (includes others),CAMK2D,DLG1,EP300,FGFR1,GATA4,GUCY1B1,HDAC2,HDAC7,ITGA8,ITGB2,MRAS,NPR1,PDE8A,PLCZ1,SMPDL3B,TGFBR1"
+Cardiac β-adrenergic Signaling	0.00E+00	0	1.32E-01	"ADCY1,AKAP1,CACNA1A,GUCY1B1,MRAS,PDE8A,PTPA,SLC8A2,SMPDL3B"
+Cardiomyocyte Differentiation via BMP Receptors	0.00E+00		1.00E-01	GATA4
+Chemokine Signaling	0.00E+00		1.30E-01	"CALM1 (includes others),CAMK2D,MRAS"
+Cholecystokinin/Gastrin-mediated Signaling	0.00E+00		5.41E-02	"MRAS,SOS1"
+Chondroitin Sulfate Biosynthesis	0.00E+00		8.33E-02	"CHST13,SULT1E1"
+Chondroitin Sulfate Biosynthesis (Late Stages)	0.00E+00		1.00E-01	"CHST13,SULT1E1"
+Colorectal Cancer Metastasis Signaling	0.00E+00	0	9.41E-02	"ADCY1,CCND1,GUCY1B1,LRP1,LRP6,MRAS,SOS1,TGFBR1"
+"D-myo-inositol (1,4,5)-Trisphosphate Biosynthesis"	0.00E+00		6.67E-02	PLCZ1
+"D-myo-inositol (1,4,5,6)-Tetrakisphosphate Biosynthesis"	0.00E+00		6.06E-02	"ALPL,ENTPD6,NUDT11,PTPA"
+"D-myo-inositol (3,4,5,6)-tetrakisphosphate Biosynthesis"	0.00E+00		6.06E-02	"ALPL,ENTPD6,NUDT11,PTPA"
+D-myo-inositol-5-phosphate Metabolism	0.00E+00	0	6.58E-02	"ALPL,ENTPD6,NUDT11,PLCZ1,PTPA"
+DNA Double-Strand Break Repair by Non-Homologous End Joining	0.00E+00		8.33E-02	PARP1
+Dendritic Cell Maturation	0.00E+00		6.25E-02	"COL2A1,PLCZ1"
+Dermatan Sulfate Biosynthesis	0.00E+00		8.33E-02	"CHST13,SULT1E1"
+Dermatan Sulfate Biosynthesis (Late Stages)	0.00E+00		1.11E-01	"CHST13,SULT1E1"
+Dilated Cardiomyopathy Signaling Pathway	0.00E+00	-2	1.25E-01	"ACTC1,ACTG1,ADCY1,CACNA1A,CAMK2D,GUCY1B1,SCN5A"
+Dopamine Receptor Signaling	0.00E+00		9.09E-02	"ADCY1,GUCY1B1,PTPA"
+Dopamine-DARPP32 Feedback in cAMP Signaling	0.00E+00	0	8.45E-02	"ADCY1,CACNA1A,CALM1 (includes others),GUCY1B1,PLCZ1,PTPA"
+EGF Signaling	0.00E+00		9.09E-02	"CSNK2B,SOS1"
+ERB2-ERBB3 Signaling	0.00E+00		1.20E-01	"CCND1,MRAS,SOS1"
+ERBB Signaling	0.00E+00		8.57E-02	"MRAS,PAK1,SOS1"
+ERBB4 Signaling	0.00E+00		7.41E-02	"MRAS,SOS1"
+ERK/MAPK Signaling	0.00E+00	1.133893419	1.25E-01	"ITGA8,ITGB2,KSR1,MRAS,PAK1,PTPA,RAPGEF4,SOS1,VRK2"
+ERK5 Signaling	0.00E+00		5.26E-02	MRAS
+Endocannabinoid Developing Neuron Pathway	0.00E+00	2	9.43E-02	"ADCY1,CCND1,GUCY1B1,MLST8,MRAS"
+Endocannabinoid Neuronal Synapse Pathway	0.00E+00	0.447213595	9.84E-02	"ADCY1,CACNA1A,GUCY1B1,NDUFS2,PLCZ1,RIMS1"
+Endometrial Cancer Signaling	0.00E+00		1.25E-01	"CCND1,MRAS,SOS1"
+Ephrin A Signaling	0.00E+00		5.56E-02	PAK1
+Ephrin B Signaling	0.00E+00		1.30E-01	"ITSN2,MRAS,PAK1"
+Ephrin Receptor Signaling	0.00E+00	1.632993162	1.36E-01	"ANGPT1,ARPC1B,ARPC3,ARPC4,ITGA8,ITGB2,MRAS,PAK1,SOS1"
+Erythropoietin Signaling Pathway	0.00E+00		8.11E-02	"CCND1,MRAS,SOS1"
+FAK Signaling	0.00E+00	1.212678125	1.12E-01	"ARPC1B,ARPC3,ARPC4,CCKAR,CCND1,COL2A1,FSHR,GPR84,HTR1A,ITGA8,ITGB2,LHCGR,MRAS,PAK1,SOS1,SPARCL1,TGFBR1"
+FAT10 Signaling Pathway	0.00E+00		3.03E-02	PSMC2
+FGF Signaling	0.00E+00		6.67E-02	"FGFR1,SOS1"
+FLT3 Signaling in Hematopoietic Progenitor Cells	0.00E+00		8.00E-02	"MRAS,SOS1"
+FXR/RXR Activation	0.00E+00		1.20E-01	"FBP1,MTTP,NR5A2"
+Fc Epsilon RI Signaling	0.00E+00		4.88E-02	"MRAS,SOS1"
+FcγRIIB Signaling in B Lymphocytes	0.00E+00		1.15E-01	"CACNA1A,MRAS,SOS1"
+G Beta Gamma Signaling	0.00E+00	0.447213595	1.25E-01	"ADCY1,CACNA1A,MRAS,PAK1,SOS1"
+G Protein Signaling Mediated by Tubby	0.00E+00		7.14E-02	MRAS
+G-Protein Coupled Receptor Signaling	0.00E+00	0.688247202	9.69E-02	"ADCY1,CALM1 (includes others),CAMK2D,CCKAR,CCND1,CNGA3,CNGB3,FSHR,GPR84,GUCY1B1,HTR1A,KCNN2,LHCGR,MRAS,PAK1,PDE8A,RAPGEF4,SMPDL3B,SOS1"
+GDNF Family Ligand-Receptor Interactions	0.00E+00		1.20E-01	"MRAS,RET,SOS1"
+GNRH Signaling	0.00E+00	-0.447213595	1.18E-01	"ADCY1,CACNA1A,CALM1 (includes others),CAMK2D,GUCY1B1,MRAS,PAK1,SOS1"
+GP6 Signaling Pathway	0.00E+00	2.236067977	1.19E-01	"CALM1 (includes others),COL2A1,COL7A1,LAMC1,LAMC3"
+GPCR-Mediated Integration of Enteroendocrine Signaling Exemplified by an L Cell	0.00E+00		1.33E-01	"ADCY1,CCKAR,GUCY1B1,PLCZ1"
+GPCR-Mediated Nutrient Sensing in Enteroendocrine Cells	0.00E+00	0	1.28E-01	"ADCY1,CACNA1A,GUCY1B1,PLCZ1,RAPGEF4"
+Glioblastoma Multiforme Signaling	0.00E+00	1	6.67E-02	"CCND1,MRAS,PLCZ1,SOS1"
+Glioma Invasiveness Signaling	0.00E+00		3.85E-02	MRAS
+Glutamate Receptor Signaling	0.00E+00		1.08E-01	"CALM1 (includes others),GLUL,GRID1,GRIK2"
+Granulocyte Adhesion and Diapedesis	0.00E+00		9.09E-02	ITGB2
+Growth Hormone Signaling	0.00E+00		3.70E-02	A2M
+Gα12/13 Signaling	0.00E+00		2.78E-02	MRAS
+Gαi Signaling	0.00E+00	0	1.14E-01	"ADCY1,GUCY1B1,HTR1A,MRAS,SOS1"
+Gαq Signaling	0.00E+00		5.88E-02	"ARHGEF25,CALM1 (includes others),MRAS"
+HER-2 Signaling in Breast Cancer	0.00E+00	1.133893419	1.17E-01	"BLK,CCND1,COPS6,ITGB2,MLST8,MRAS,NUP37,NUP93,SOS1"
+HGF Signaling	0.00E+00	1	1.15E-01	"CCND1,ITGA8,ITGB2,MRAS,PAK1,SOS1"
+HIF1α Signaling	0.00E+00	-0.447213595	7.58E-02	"CAMK2D,EP300,MRAS,NAA10,RACK1"
+HMGB1 Signaling	0.00E+00		2.86E-02	MRAS
+HOTAIR Regulatory Pathway	0.00E+00		5.00E-02	"EP300,HDAC2"
+Hepatic Cholestasis	0.00E+00		1.14E-01	"ADCY1,CYP3A5,GUCY1B1,NR5A2,SLC22A6"
+Hepatic Fibrosis Signaling Pathway	0.00E+00	-0.333333333	1.06E-01	"CACNA1A,CALM1 (includes others),CCND1,COL2A1,FGFR1,ITGA8,ITGB2,LRP1,LRP6,MRAS,SOD2,SOS1,TGFBR1"
+Human Embryonic Stem Cell Pluripotency	0.00E+00		6.98E-02	"FGFR1,MRAS,TGFBR1"
+Huntington's Disease Signaling	0.00E+00	0	1.19E-01	"ATP5F1A,ATP5F1B,ATP5F1C,ATP5PB,CASQ1,EP300,HDAC2,HDAC7,NAPA,NSF,PSMC2,RPS27A,SOS1,TBP,UBA52"
+Hypoxia Signaling in the Cardiovascular System	0.00E+00		1.25E-01	"EP300,P4HB,UBE2Q2,UBE2W"
+ICOS-ICOSL Signaling in T Helper Cells	0.00E+00		8.00E-02	"CALM1 (includes others),CAMK2D"
+ID1 Signaling Pathway	0.00E+00	0	1.14E-01	"BLK,CCND1,CHRNA7,EP300,FGFR1,MRAS,TGFBR1,TYMS"
+IGF-1 Signaling	0.00E+00		1.08E-01	"CCN1,CSNK2B,MRAS,SOS1"
+IL-1 Signaling	0.00E+00		8.11E-02	"ADCY1,GUCY1B1,MRAS"
+IL-10 Signaling	0.00E+00		8.33E-02	ARG2
+IL-12 Signaling and Production in Macrophages	0.00E+00		3.45E-02	EP300
+IL-15 Production	0.00E+00	-0.447213595	1.25E-01	"BLK,FGFR1,RET,ROR1,SRMS"
+IL-15 Signaling	0.00E+00		8.00E-02	"MLST8,MRAS"
+IL-17 Signaling	0.00E+00		3.57E-02	MRAS
+IL-23 Signaling Pathway	0.00E+00		8.33E-02	RORA
+IL-3 Signaling	0.00E+00		1.03E-01	"MRAS,PAK1,SOS1"
+IL-4 Signaling	0.00E+00		9.09E-02	"MRAS,SOS1"
+IL-6 Signaling	0.00E+00	0	1.21E-01	"A2M,CSNK2B,MRAS,SOS1"
+IL-7 Signaling Pathway	0.00E+00		1.20E-01	"CCND1,EBF1,SOS1"
+IL-8 Signaling	0.00E+00	2	6.35E-02	"ANGPT1,CCND1,ITGB2,MRAS"
+ILK Signaling	0.00E+00	1.133893419	1.06E-01	"ACTC1,ACTG1,CCND1,FLNC,ITGB2,PTPA,VCL"
+Inhibition of ARE-Mediated mRNA Degradation Pathway	0.00E+00		3.95E-02	"CNOT8,PSMC2,PTPA"
+Insulin Receptor Signaling	0.00E+00		5.56E-02	"ACLY,MRAS,SOS1"
+JAK/STAT Signaling	0.00E+00		8.00E-02	"MRAS,SOS1"
+Kinetochore Metaphase Signaling Pathway	0.00E+00	2	1.11E-01	"AURKB,CDC16,CDK1,H2AZ1"
+LPS-stimulated MAPK Signaling	0.00E+00		6.25E-02	"MRAS,PAK1"
+LXR/RXR Activation	0.00E+00		5.00E-02	ARG2
+Leptin Signaling in Obesity	0.00E+00		8.82E-02	"ADCY1,GUCY1B1,PLCZ1"
+Leukocyte Extravasation Signaling	0.00E+00	2	9.80E-02	"ACTC1,ACTG1,ITGB2,RAPGEF4,VCL"
+Lymphotoxin β Receptor Signaling	0.00E+00		1.25E-01	"CYC1,EP300"
+MSP-RON Signaling In Cancer Cells Pathway	0.00E+00		7.50E-02	"CCND1,MRAS,SOS1"
+MSP-RON Signaling In Macrophages Pathway	0.00E+00		1.25E-01	"ITGB2,MRAS,SOS1"
+Macropinocytosis Signaling	0.00E+00		1.38E-01	"ITGB2,MRAS,MRC1,PAK1"
+Melanocyte Development and Pigmentation Signaling	0.00E+00	0	1.19E-01	"ADCY1,EP300,GUCY1B1,MRAS,SOS1"
+Melanoma Signaling	0.00E+00		1.11E-01	"CCND1,MRAS"
+Melatonin Signaling	0.00E+00	1	1.29E-01	"CALM1 (includes others),CAMK2D,PLCZ1,RORA"
+Mitotic Roles of Polo-Like Kinase	0.00E+00		1.25E-01	"CCNB3,CDC16,CDK1,PTPA"
+Molecular Mechanisms of Cancer	0.00E+00		1.06E-01	"ADCY1,CAMK2D,CCND1,CDK1,CDK8,EP300,GUCY1B1,HDAC2,HDAC7,ITGA8,ITGB2,LRP1,LRP6,MRAS,PAK1,SOS1,TGFBR1"
+Mouse Embryonic Stem Cell Pluripotency	0.00E+00		5.71E-02	"MRAS,SOS1"
+NAD Signaling Pathway	0.00E+00	0.816496581	8.82E-02	"ACADL,ETFA,NADSYN1,PARP1,SIRT7,SOD2"
+NF-κB Activation by Viruses	0.00E+00		7.14E-02	"MRAS,TBP"
+NF-κB Signaling	0.00E+00	0	1.30E-01	"CSNK2B,EP300,FGFR1,HDAC2,MRAS,TGFBR1"
+NGF Signaling	0.00E+00	0	9.30E-02	"MRAS,SMPD1,SMPD2,SOS1"
+Natural Killer Cell Signaling	0.00E+00	0	7.55E-02	"COL2A1,MRAS,PAK1,SOS1"
+Netrin Signaling	0.00E+00		3.23E-02	CACNA1A
+Neuregulin Signaling	0.00E+00		9.30E-02	"ITGA8,ITGB2,MRAS,SOS1"
+Neuroinflammation Signaling Pathway	0.00E+00		8.57E-02	"GABRA6,GABRR2,GLUL,IDE,SOD2,TGFBR1"
+Neuropathic Pain Signaling In Dorsal Horn Neurons	0.00E+00		6.00E-02	"CAMK2D,KCNN2,PLCZ1"
+Neurotrophin/TRK Signaling	0.00E+00		8.00E-02	"MRAS,SOS1"
+Nitric Oxide Signaling in the Cardiovascular System	0.00E+00	0	1.33E-01	"ARG2,CACNA1A,CALM1 (includes others),GUCY1B1,GUCY2C,NPR1"
+Notch Signaling	0.00E+00		6.67E-02	NOTCH2
+Opioid Signaling Pathway	0.00E+00	-0.707106781	9.71E-02	"ADCY1,AP2A1,BLK,CACNA1A,CALM1 (includes others),CAMK2D,EP300,GUCY1B1,MRAS,SOS1"
+Osteoarthritis Pathway	0.00E+00	1.341640786	1.29E-01	"ALPL,CASQ1,COL2A1,FGFR1,ITGA8,ITGB2,LRP1,TGFBR1"
+Ovarian Cancer Signaling	0.00E+00		9.68E-02	"CCND1,FSHR,HDAC2,HDAC7,LHCGR,MRAS"
+Oxytocin In Brain Signaling Pathway	0.00E+00	0.816496581	1.11E-01	"CACNA1A,CALM1 (includes others),EIF2A,MRAS,PLAAT4,PRDX6"
+Oxytocin Signaling Pathway	0.00E+00	0.333333333	9.00E-02	"CACNA1A,CALM1 (includes others),CTH,GUCY1B1,GUCY2C,Gucy2d,MRAS,NPR1,SOS1"
+P2Y Purigenic Receptor Signaling Pathway	0.00E+00		8.33E-02	"ADCY1,GUCY1B1,MRAS,PLCZ1"
+PAK Signaling	0.00E+00		1.19E-01	"ITGA8,ITGB2,MRAS,PAK1,SOS1"
+"PD-1, PD-L1 cancer immunotherapy pathway"	0.00E+00		4.35E-02	CSNK2B
+PDGF Signaling	0.00E+00		9.68E-02	"CSNK2B,MRAS,SOS1"
+PEDF Signaling	0.00E+00		7.41E-02	"MRAS,SOD2"
+PFKFB4 Signaling Pathway	0.00E+00		5.00E-02	FBP1
+PI3K Signaling in B Lymphocytes	0.00E+00	0.447213595	1.22E-01	"BLK,CALM1 (includes others),CAMK2D,MRAS,PLCZ1"
+PI3K/AKT Signaling	0.00E+00	1	1.07E-01	"CCND1,ITGA8,ITGB2,MRAS,PTPA,SOS1"
+PKCθ Signaling in T Lymphocytes	0.00E+00		1.11E-01	"CACNA1A,CAMK2D,MRAS,POU2F1,SOS1"
+PPAR Signaling	0.00E+00		1.25E-01	"EP300,MRAS,SOS1"
+PPARα/RXRα Activation	0.00E+00	0.707106781	1.33E-01	"ACADL,ACOX1,ADCY1,EP300,GOT2,GUCY1B1,MRAS,PLCZ1,SOS1,TGFBR1"
+Pancreatic Adenocarcinoma Signaling	0.00E+00		1.03E-01	"CCND1,HDAC2,HDAC7,TGFBR1"
+Phagosome Formation	0.00E+00	1.697749375	1.02E-01	"ARPC1B,ARPC3,ARPC4,CCKAR,FSHR,GPR84,HTR1A,ITGA8,ITGB2,LHCGR,MRAS,MRC1,PAK1,PLAAT4,PRDX6,RAPGEF4,SOS1"
+Phospholipase C Signaling	0.00E+00	0.816496581	1.28E-01	"ADCY1,CALM1 (includes others),EP300,GUCY1B1,HDAC2,HDAC7,ITGA8,ITGB2,MRAS,SOS1"
+Production of Nitric Oxide and Reactive Oxygen Species in Macrophages	0.00E+00		5.26E-02	"ARG2,CAT,PTPA"
+Prolactin Signaling	0.00E+00		1.00E-01	"EP300,MRAS,SOS1"
+Prostate Cancer Signaling	0.00E+00		1.25E-01	"CCND1,HDAC2,HDAC7,MRAS,SOS1"
+Protein Kinase A Signaling	0.00E+00	1.264911064	9.93E-02	"ADCY1,AKAP1,CALM1 (includes others),CAMK2D,CDC16,CNGA3,CNGB3,FLNC,GUCY1B1,PDE8A,PLCZ1,PTPRD,PYGB,SMPDL3B,TGFBR1"
+Protein Ubiquitination Pathway	0.00E+00		6.82E-02	"PRKN,PSMC2,RPS27A,SKP1,THOP1,UBA52,UBE2Q2,UBE2W,USP10"
+Pulmonary Fibrosis Idiopathic Signaling Pathway	0.00E+00	0.632455532	1.21E-01	"ACTC1,ACTG1,CCND1,COL2A1,COL7A1,EP300,FGFR1,MRAS,NOTCH2,PRKN,SOS1,TGFBR1"
+Pulmonary Healing Signaling Pathway	0.00E+00	0	1.31E-01	"BLK,CCND1,CHRNA7,EP300,FGFR1,MRAS,NOTCH2,SOS1"
+Pyridoxal 5'-phosphate Salvage Pathway	0.00E+00		1.07E-01	"CDK1,CDK8,PAK1"
+RAC Signaling	0.00E+00	2.236067977	1.21E-01	"ARPC1B,ARPC3,ARPC4,ITGA8,ITGB2,MRAS,PAK1"
+RANK Signaling in Osteoclasts	0.00E+00		3.70E-02	CALM1 (includes others)
+RHOA Signaling	0.00E+00	2.236067977	1.19E-01	"ACTC1,ACTG1,ARPC1B,ARPC3,ARPC4"
+Reelin Signaling in Neurons	0.00E+00	0.447213595	9.68E-02	"ARHGEF25,ARPC1B,ARPC3,ARPC4,BLK,CAMK2D"
+Regulation Of The Epithelial Mesenchymal Transition By Growth Factors Pathway	0.00E+00	-1	7.41E-02	"FGFR1,MRAS,SOS1,TGFBR1"
+Regulation of IL-2 Expression in Activated and Anergic T Lymphocytes	0.00E+00	1	1.38E-01	"CALM1 (includes others),MRAS,SOS1,TGFBR1"
+Regulation of the Epithelial-Mesenchymal Transition Pathway	0.00E+00		7.69E-02	"FGFR1,MRAS,NOTCH2,SOS1,TGFBR1"
+Relaxin Signaling	0.00E+00	0	1.34E-01	"ADCY1,CTH,GUCY1B1,GUCY2C,Gucy2d,MRAS,NPR1,PDE8A,SMPDL3B"
+Renin-Angiotensin Signaling	0.00E+00	1	1.25E-01	"ACE,ADCY1,GUCY1B1,MRAS,PAK1,SOS1"
+Retinoic acid Mediated Apoptosis Signaling	0.00E+00		1.25E-01	PARP1
+Role of BRCA1 in DNA Damage Response	0.00E+00		1.21E-01	"BRIP1,PBRM1,POU2F1,RFC2"
+Role of JAK1 and JAK3 in γc Cytokine Signaling	0.00E+00		5.56E-02	MRAS
+Role of MAPK Signaling in Inhibiting the Pathogenesis of Influenza	0.00E+00		1.18E-01	"PLAAT4,PRDX6"
+"Role of Macrophages, Fibroblasts and Endothelial Cells in Rheumatoid Arthritis"	0.00E+00		8.75E-02	"CALM1 (includes others),CAMK2D,CCND1,LRP1,LRP6,MRAS,PLCZ1"
+Role of NANOG in Mammalian Embryonic Stem Cell Pluripotency	0.00E+00		7.32E-02	"GATA4,MRAS,SOS1"
+Role of NFAT in Regulation of the Immune Response	0.00E+00		7.27E-02	"CALM1 (includes others),GATA4,MRAS,SOS1"
+Role of OCT4 in Mammalian Embryonic Stem Cell Pluripotency	0.00E+00		1.25E-01	"NR5A2,PARP1"
+"Role of Osteoblasts, Osteoclasts and Chondrocytes in Rheumatoid Arthritis"	0.00E+00		7.14E-02	"ALPL,CALM1 (includes others),LRP1,LRP6"
+Role of PKR in Interferon Induction and Antiviral Response	0.00E+00		6.06E-02	"CYC1,TARBP2"
+Role of Tissue Factor in Cancer	0.00E+00		1.14E-01	"BLK,CCN1,MRAS,P4HB,PAK1"
+Role of p14/p19ARF in Tumor Suppression	0.00E+00		1.11E-01	SF3A1
+SAPK/JNK Signaling	0.00E+00		5.41E-02	"MRAS,SOS1"
+SNARE Signaling Pathway	0.00E+00	-1.414213562	1.36E-01	"ADCY1,CALM1 (includes others),CAMK2D,GUCY1B1,NAPA,NSF,RIMS1,SYT14"
+SPINK1 General Cancer Pathway	0.00E+00		5.88E-02	MRAS
+STAT3 Pathway	0.00E+00		9.68E-02	"FGFR1,MRAS,TGFBR1"
+Salvage Pathways of Pyrimidine Ribonucleotides	0.00E+00	2	1.08E-01	"CDK1,CDK8,NME1,PAK1"
+Semaphorin Neuronal Repulsive Signaling Pathway	0.00E+00	1	8.47E-02	"BCAN,GUCY1B1,ITGA8,ITGB2,PAK1"
+Semaphorin Signaling in Neurons	0.00E+00		5.00E-02	PAK1
+Signaling by Rho Family GTPases	0.00E+00	2.645751311	1.06E-01	"ACTC1,ACTG1,ARPC1B,ARPC3,ARPC4,ITGA8,ITGB2,MRAS,PAK1"
+Small Cell Lung Cancer Signaling	0.00E+00		1.25E-01	"CCND1,CYC1,HDAC2,HDAC7"
+Sonic Hedgehog Signaling	0.00E+00		5.88E-02	CDK1
+Spliceosomal Cycle	0.00E+00		3.45E-02	SF3A1
+Stearate Biosynthesis I (Animals)	0.00E+00		8.70E-02	"PPT1,TECR"
+Sumoylation Pathway	0.00E+00		1.14E-01	"EP300,HDAC2,PCNA,RFC2"
+Superpathway of Inositol Phosphate Compounds	0.00E+00	0	5.49E-02	"ALPL,ENTPD6,NUDT11,PLCZ1,PTPA"
+Synaptic Long Term Potentiation	0.00E+00	0.816496581	1.02E-01	"ADCY1,CALM1 (includes others),CAMK2D,EP300,MRAS,PLCZ1"
+Synaptogenesis Signaling Pathway	0.00E+00	0.25819889	1.20E-01	"ADCY1,AP2A1,ARPC1B,ARPC3,ARPC4,CALM1 (includes others),CAMK2D,GUCY1B1,ITSN2,LRP1,MRAS,NAPA,NSF,PAK1,SOS1,SYT14"
+Systemic Lupus Erythematosus In B Cell Signaling Pathway	0.00E+00	1.341640786	1.00E-01	"CALM1 (includes others),CCND1,MRAS,PLAAT4,SOS1"
+Systemic Lupus Erythematosus In T Cell Signaling Pathway	0.00E+00	-0.816496581	9.52E-02	"CASQ1,DNMT1,MLST8,MRAS,PTPA,SOS1"
+T Cell Exhaustion Signaling Pathway	0.00E+00		7.50E-02	"MRAS,PTPA,TGFBR1"
+T Cell Receptor Signaling	0.00E+00	1	1.00E-01	"CALM1 (includes others),ITGB2,MLST8,MRAS,SOS1"
+TEC Kinase Signaling	0.00E+00	1.341640786	1.35E-01	"ACTC1,ACTG1,BLK,ITGA8,ITGB2,MRAS,PAK1"
+TGF-β Signaling	0.00E+00	0	1.25E-01	"EP300,MRAS,SOS1,TGFBR1"
+TNFR1 Signaling	0.00E+00		8.33E-02	PAK1
+TR/RXR Activation	0.00E+00		1.07E-01	"ENO1,EP300,RAB3B"
+Telomere Extension by Telomerase	0.00E+00		1.11E-01	TERF2
+Th1 Pathway	0.00E+00		9.52E-02	"ITGB2,NOTCH2"
+Th1 and Th2 Activation Pathway	0.00E+00		1.00E-01	"ITGB2,NOTCH2,TGFBR1"
+Th17 Activation Pathway	0.00E+00		1.00E-01	RORA
+Th2 Pathway	0.00E+00		1.03E-01	"ITGB2,NOTCH2,TGFBR1"
+Thrombin Signaling	0.00E+00	1.133893419	1.17E-01	"ADCY1,ARHGEF25,CAMK2D,GATA4,GUCY1B1,MRAS,PLCZ1,SOS1,TBP"
+Thrombopoietin Signaling	0.00E+00		8.33E-02	"MRAS,SOS1"
+Thyroid Cancer Signaling	0.00E+00		1.36E-01	"CCND1,MRAS,RET"
+Thyroid Hormone Metabolism II (via Conjugation and/or Degradation)	0.00E+00		1.00E-01	B4GAT1
+Toll-like Receptor Signaling	0.00E+00		1.25E-01	"RPS27A,UBA52"
+Transcriptional Regulatory Network in Embryonic Stem Cells	0.00E+00		1.33E-01	"GATA4,L1CAM"
+Tumor Microenvironment Pathway	0.00E+00		6.25E-02	"CCND1,MRAS"
+Type I Diabetes Mellitus Signaling	0.00E+00		5.88E-02	CYC1
+Type II Diabetes Mellitus Signaling	0.00E+00		6.82E-02	"CACNA1A,SMPD1,SMPD2"
+UVA-Induced MAPK Signaling	0.00E+00		1.16E-01	"MRAS,PARP1,PLCZ1,SMPD1,SMPD2"
+Unfolded protein response	0.00E+00		9.09E-02	"DNAJA2,EIF2A,P4HB,VCP"
+VDR/RXR Activation	0.00E+00		5.00E-02	EP300
+VEGF Family Ligand-Receptor Interactions	0.00E+00		7.69E-02	"MRAS,SOS1"
+VEGF Signaling	0.00E+00	0.447213595	1.32E-01	"ACTC1,ACTG1,MRAS,SOS1,VCL"
+WNT/Ca+ pathway	0.00E+00		8.00E-02	"PLCZ1,ROR1"
+White Adipose Tissue Browning Pathway	0.00E+00	-0.447213595	1.19E-01	"ADCY1,CACNA1A,FGFR1,GUCY1B1,NPR1"
+eNOS Signaling	0.00E+00	0	1.21E-01	"ADCY1,CALM1 (includes others),CCNA2,CHRNA7,CNGA3,CNGB3,GUCY1B1"
+fMLP Signaling in Neutrophils	0.00E+00	2.236067977	1.09E-01	"ARPC1B,ARPC3,ARPC4,CALM1 (includes others),MRAS"
+iNOS Signaling	0.00E+00		1.25E-01	CALM1 (includes others)
+nNOS Signaling in Neurons	0.00E+00		4.55E-02	CALM1 (includes others)
+nNOS Signaling in Skeletal Muscle Cells	0.00E+00		1.18E-01	"CACNA1A,CALM1 (includes others)"
+p38 MAPK Signaling	0.00E+00		4.17E-02	TGFBR1
+p53 Signaling	0.00E+00		9.09E-02	"CCND1,EP300,PCNA"
+p70S6K Signaling	0.00E+00	1	8.33E-02	"MRAS,PLCZ1,PTPA,SOS1"
+tRNA Charging	0.00E+00		7.14E-02	"AARS1,GARS1"
+tRNA Splicing	0.00E+00		9.52E-02	"PDE8A,SMPDL3B"
+γ-glutamyl Cycle	0.00E+00		1.25E-01	ANPEP
+Heme Biosynthesis II	1.89E-01		1.43E-01	ALAD
+Lipid Antigen Presentation by CD1	1.89E-01		1.43E-01	AP2A1
+NAD biosynthesis II (from tryptophan)	1.89E-01		1.43E-01	NADSYN1
+The Visual Cycle	1.89E-01		1.43E-01	RDH13
+Cell Cycle Regulation by BTG Family Proteins	2.25E-01		1.43E-01	"CCND1,PTPA"
+Pyrimidine Ribonucleotides De Novo Biosynthesis	2.25E-01		1.43E-01	"ENTPD6,NME1"
+Apelin Liver Signaling Pathway	2.29E-01		1.67E-01	COL2A1
+"Bile Acid Biosynthesis, Neutral Pathway"	2.29E-01		1.67E-01	SCP2
+Role of RIG1-like Receptors in Antiviral Innate Immunity	2.29E-01		1.67E-01	EP300
+Role of MAPK Signaling in the Pathogenesis of Influenza	2.44E-01		1.43E-01	"MRAS,PLAAT4,PRDX6"
+Wound Healing Signaling Pathway	2.54E-01	0	1.40E-01	"COL2A1,COL7A1,LAMC1,MRAS,SOS1,TGFBR1"
+SPINK1 Pancreatic Cancer Pathway	2.57E-01		1.54E-01	"CPA1,TGFBR1"
+14-3-3-mediated Signaling	2.62E-01		1.40E-01	"MRAS,PLCZ1,TUBA1B,TUBA3C/TUBA3D,TUBA3E,TUBB2B,TUBB4A"
+IL-13 Signaling Pathway	2.71E-01		1.50E-01	"BLK,CLCA1,SPDEF"
+IL-2 Signaling	2.71E-01		1.50E-01	"CSNK2B,MRAS,SOS1"
+PXR/RXR Activation	2.71E-01		1.50E-01	"ALDH3A2,CYP2A6 (includes others),CYP3A5"
+UVC-Induced MAPK Signaling	2.71E-01		1.50E-01	"MRAS,SMPD1,SMPD2"
+α-Adrenergic Signaling	2.74E-01	2	1.43E-01	"ADCY1,CALM1 (includes others),GUCY1B1,MRAS,PYGB,SLC8A2"
+Epithelial Adherens Junction Signaling	2.79E-01	2.529822128	1.41E-01	"ARPC1B,ARPC3,ARPC4,FGFR1,MRAS,NOTCH2,PAK1,PTPA,TGFBR1,VCL"
+Ferroptosis Signaling Pathway	2.80E-01	-0.377964473	1.43E-01	"CTH,EIF2A,GPX4,H2AZ1,MRAS,STEAP3,VDAC2"
+2-oxobutanoate Degradation I	2.80E-01		2.00E-01	MCEE
+Acetyl-CoA Biosynthesis I (Pyruvate Dehydrogenase Complex)	2.80E-01		2.00E-01	PDHA1
+Assembly of RNA Polymerase I Complex	2.80E-01		2.00E-01	TBP
+Choline Biosynthesis III	2.80E-01		2.00E-01	CEPT1
+Embryonic Stem Cell Differentiation into Cardiac Lineages	2.80E-01		2.00E-01	GATA4
+Folate Transformations I	2.80E-01		2.00E-01	MTR
+Histidine Degradation III	2.80E-01		2.00E-01	FTCD
+Leucine Degradation I	2.80E-01		2.00E-01	MCCC2
+Methylglyoxal Degradation III	2.80E-01		2.00E-01	AKR1B1
+Phosphatidylethanolamine Biosynthesis II	2.80E-01		2.00E-01	CEPT1
+Primary Immunodeficiency Signaling	2.80E-01		2.00E-01	ADA
+Circadian Rhythm Signaling	2.85E-01		1.40E-01	"ADCY1,BLK,CACNA1A,CAMK2D,CTH,GUCY1B1,GUCY2C,Gucy2d,HLF,MLST8,MRAS,NPR1,PLCZ1,RACK1,RORA"
+Ceramide Signaling	2.88E-01		1.47E-01	"KSR1,MRAS,PTPA,SMPD1,SMPD2"
+Neuroprotective Role of THOP1 in Alzheimer's Disease	2.88E-01		1.47E-01	"ACE,ECE1,ECE2,IDE,THOP1"
+Pyrimidine Ribonucleotides Interconversion	2.93E-01		1.67E-01	"ENTPD6,NME1"
+Retinoate Biosynthesis I	2.93E-01		1.67E-01	"AKR1B1,RDH13"
+Telomerase Signaling	2.94E-01		1.46E-01	"HDAC2,HDAC7,MRAS,PTPA,SOS1,TERF2"
+Xenobiotic Metabolism General Signaling Pathway	3.00E-01	1.889822365	1.46E-01	"EP300,GSTM3,GSTM4,GSTM5,Gstm6,MGST3,MRAS"
+PTEN Signaling	3.04E-01	0	1.45E-01	"CCND1,CSNK2B,FGFR1,ITGA8,ITGB2,MRAS,SOS1,TGFBR1"
+Acute Myeloid Leukemia Signaling	3.12E-01		1.52E-01	"CCND1,IDH1,IDH3G,MRAS,SOS1"
+RAR Activation	3.15E-01		1.45E-01	"ADCY1,AKR1B1,CCNH,CSNK2B,EP300,GTF2H4,GUCY1B1,PARP1,PBRM1,RDH13,RPL7A"
+Chronic Myeloid Leukemia Signaling	3.17E-01		1.50E-01	"CCND1,HDAC2,HDAC7,MRAS,SOS1,TGFBR1"
+Virus Entry via Endocytic Pathways	3.17E-01		1.50E-01	"ACTC1,ACTG1,AP2A1,FLNC,ITGB2,MRAS"
+Integrin Signaling	3.35E-01	2.713602101	1.46E-01	"ACTC1,ACTG1,ARPC1B,ARPC3,ARPC4,ITGA8,ITGB2,MRAS,PAK1,SOS1,TSPAN5,VCL"
+FAT10 Cancer Signaling Pathway	3.36E-01		1.82E-01	"PCNA,TGFBR1"
+Oncostatin M Signaling	3.36E-01		1.82E-01	"MRAS,SOS1"
+Assembly of RNA Polymerase II Complex	3.37E-01	2	1.60E-01	"CCNH,GTF2H4,TAF2,TBP"
+Death Receptor Signaling	3.37E-01		1.60E-01	"ACTC1,ACTG1,CYC1,PARP1"
+Role of CHK Proteins in Cell Cycle Checkpoint Control	3.37E-01		1.60E-01	"CDK1,PCNA,PTPA,RFC2"
+Necroptosis Signaling Pathway	3.40E-01	0.816496581	1.54E-01	"CAMK2D,GLUL,SLC25A3,SLC25A5,TOMM40,VDAC2"
+Role of MAPK Signaling in Promoting the Pathogenesis of Influenza	3.40E-01	1.341640786	1.54E-01	"ATP6V1B1,ATP6V1F,ATP6V1G2,MRAS,PLAAT4,PRDX6"
+Iron homeostasis signaling pathway	3.44E-01		1.51E-01	"ATP6V1B1,ATP6V1F,ATP6V1G2,LRP1,NUBP1,SKP1,STEAP3,TMPRSS6"
+Corticotropin Releasing Hormone Signaling	3.46E-01	0.377964473	1.50E-01	"ADCY1,CACNA1A,CALM1 (includes others),CTH,GUCY1B1,GUCY2C,Gucy2d,KRT1,NPR1"
+Acyl-CoA Hydrolysis	3.48E-01		2.50E-01	PPT1
+Citrulline Biosynthesis	3.48E-01		2.50E-01	ARG2
+Citrulline-Nitric Oxide Cycle	3.48E-01		2.50E-01	ASL
+Extrinsic Prothrombin Activation Pathway	3.48E-01		2.50E-01	SERPINC1
+GDP-glucose Biosynthesis	3.48E-01		2.50E-01	PGM1
+Glutamate Degradation III (via 4-aminobutyrate)	3.48E-01		2.50E-01	ABAT
+Methylmalonyl Pathway	3.48E-01		2.50E-01	MCEE
+Phosphatidylcholine Biosynthesis I	3.48E-01		2.50E-01	CEPT1
+T Helper Cell Differentiation	3.48E-01		2.50E-01	TGFBR1
+Tetrapyrrole Biosynthesis II	3.48E-01		2.50E-01	ALAD
+Synaptic Long Term Depression	3.52E-01	1.264911064	1.48E-01	"CACNA1A,CTH,GRID1,GUCY1B1,GUCY2C,Gucy2d,MRAS,NPR1,PLAAT4,PLCZ1,PRDX6,PTPA"
+CDC42 Signaling	3.66E-01	2	1.56E-01	"ARPC1B,ARPC3,ARPC4,EXOC3,ITGA8,ITGB2,PAK1"
+Fcγ Receptor-mediated Phagocytosis in Macrophages and Monocytes	3.66E-01	2.449489743	1.58E-01	"ACTC1,ACTG1,ARPC1B,ARPC3,ARPC4,PAK1"
+Heparan Sulfate Biosynthesis	3.66E-01	2.236067977	1.61E-01	"AARS1,Ces1b/Ces1c,CHST13,PRDX6,SULT1E1"
+Androgen Signaling	3.67E-01	0.447213595	1.53E-01	"CACNA1A,CALM1 (includes others),CCND1,CCNH,EP300,GTF2H4,MRAS,TAF2,TBP"
+Clathrin-mediated Endocytosis Signaling	3.67E-01		1.52E-01	"ACTC1,ACTG1,AP2A1,ARPC1B,ARPC3,ARPC4,CSNK2B,ITGB2,RPS27A,UBA52"
+Methionine Degradation I (to Homocysteine)	3.86E-01		2.00E-01	"EHMT1,FTSJ1"
+Superpathway of Geranylgeranyldiphosphate Biosynthesis I (via Mevalonate)	3.86E-01		2.00E-01	"ACAA2,HADHA"
+RHOGDI Signaling	3.88E-01	-2.121320344	1.54E-01	"ACTC1,ACTG1,ARPC1B,ARPC3,ARPC4,EP300,ITGA8,ITGB2,MRAS,PAK1"
+HIPPO signaling	3.93E-01		1.62E-01	"DLG1,DLG5,PATJ,PTPA,RASSF1,SKP1"
+Calcium-induced T Lymphocyte Apoptosis	4.16E-01		1.88E-01	"CALM1 (includes others),EP300,HDAC2"
+Mechanisms of Viral Exit from Host Cells	4.16E-01		1.88E-01	"ACTC1,ACTG1,LMNB2"
+Serotonin Receptor Signaling	4.16E-01		1.88E-01	"ADCY1,GUCY1B1,HTR1A"
+Sphingosine-1-phosphate Signaling	4.17E-01	0.447213595	1.63E-01	"ADCY1,ASAH2,CASQ1,GUCY1B1,PLCZ1,SMPD1,SMPD2"
+Hepatic Fibrosis / Hepatic Stellate Cell Activation	4.22E-01		1.67E-01	"A2M,COL2A1,COL7A1,ECE1,FGFR1,TGFBR1"
+CLEAR Signaling Pathway	4.24E-01	0.727606875	1.52E-01	"ATP6V1B1,ATP6V1F,ATP6V1G2,CTSF,EP300,FGFR1,GBA,GLB1,GUSB,MLST8,MRAS,NPRL3,PRKN,PTPA,SLC36A1,SUMF1,TGFBR1"
+BER (Base Excision Repair) Pathway	4.29E-01	1.341640786	1.72E-01	"FEN1,MPG,PARP1,PCNA,RFC2"
+Estrogen-Dependent Breast Cancer Signaling	4.29E-01		1.72E-01	"CCND1,HSD17B12,HSD17B4,HSD17B8,MRAS"
+Cellular Effects of Sildenafil (Viagra)	4.32E-01		1.59E-01	"ACTC1,ACTG1,ADCY1,CACNA1A,CALM1 (includes others),GUCY1B1,GUCY2C,KCNN2,NPR1,PLCZ1"
+Endocannabinoid Cancer Inhibition Pathway	4.35E-01	-0.707106781	1.61E-01	"ADCY1,CASQ1,CCND1,EIF2A,GUCY1B1,MLST8,SMPD1,SMPD2,TRIB3"
+"NER (Nucleotide Excision Repair, Enhanced Pathway)"	4.35E-01	0.333333333	1.61E-01	"CCNH,COPS6,COPS8,EP300,ERCC6,GTF2H4,PCNA,RFC2,XPC"
+Systemic Lupus Erythematosus Signaling	4.39E-01		1.63E-01	"LSM4,MRAS,SNRNP40,SNRNP70,SNRPD1,SNRPN,SOS1,ZMAT5"
+Insulin Secretion Signaling Pathway	4.41E-01	-0.5	1.53E-01	"ADCY1,CACNA1A,CAMK2D,CCKAR,EIF2A,GUCY1B1,NALCN,NAPA,NSF,PCSK2,PDHA1,PLCZ1,RAPGEF4,SEC61G,SPCS3,SRP72,SSR1"
+4-aminobutyrate Degradation I	4.44E-01		3.33E-01	ABAT
+Arginine Biosynthesis IV	4.44E-01		3.33E-01	ASL
+Calcium Transport I	4.44E-01		3.33E-01	ATP2C1
+Cholesterol Biosynthesis I	4.44E-01		3.33E-01	SC5D
+"Cholesterol Biosynthesis II (via 24,25-dihydrolanosterol)"	4.44E-01		3.33E-01	SC5D
+Cholesterol Biosynthesis III (via Desmosterol)	4.44E-01		3.33E-01	SC5D
+Complement System	4.44E-01		3.33E-01	ITGB2
+Cytotoxic T Lymphocyte-mediated Apoptosis of Target Cells	4.44E-01		3.33E-01	CYC1
+Galactose Degradation I (Leloir Pathway)	4.44E-01		3.33E-01	GALK1
+L-carnitine Biosynthesis	4.44E-01		3.33E-01	BBOX1
+Lysine Degradation V	4.44E-01		3.33E-01	PIPOX
+NAD Phosphorylation and Dephosphorylation	4.44E-01		3.33E-01	NNT
+Parkinson's Signaling	4.44E-01		3.33E-01	PRKN
+Pentose Phosphate Pathway (Non-oxidative Branch)	4.44E-01		3.33E-01	TKTL2
+Prostanoid Biosynthesis	4.44E-01		3.33E-01	HPGDS
+Selenocysteine Biosynthesis II (Archaea and Eukaryotes)	4.44E-01		3.33E-01	SEPHS2
+dTMP De Novo Biosynthesis	4.44E-01		3.33E-01	TYMS
+Coagulation System	4.45E-01		2.22E-01	"A2M,SERPINC1"
+DNA Methylation and Transcriptional Repression Signaling	4.45E-01		2.22E-01	"DNMT1,HDAC2"
+Intrinsic Prothrombin Activation Pathway	4.45E-01		2.22E-01	"COL2A1,SERPINC1"
+Antiproliferative Role of Somatostatin Receptor 2	4.53E-01		1.71E-01	"CTH,GUCY1B1,GUCY2C,Gucy2d,MRAS,NPR1"
+Non-Small Cell Lung Cancer Signaling	4.53E-01	0	1.71E-01	"CCND1,HDAC2,HDAC7,MRAS,RASSF1,SOS1"
+Senescence Pathway	4.59E-01	-0.5	1.55E-01	"CACNA1A,CALM1 (includes others),CAT,CCNB3,CCND1,CDC16,CDK1,EP300,GATA4,ITSN2,MRAS,PARP1,PDHA1,PHF1,PTPA,SOD2,TGFBR1"
+Eicosanoid Signaling	4.64E-01		2.00E-01	"HPGDS,PLAAT4,PRDX6"
+MSP-RON Signaling Pathway	4.64E-01		2.00E-01	"ACTC1,ACTG1,ITGB2"
+Agrin Interactions at Neuromuscular Junction	4.65E-01	2	1.79E-01	"ACTC1,ACTG1,LAMC1,MRAS,PAK1"
+Bladder Cancer Signaling	4.65E-01		1.79E-01	"CCND1,HDAC2,HDAC7,MRAS,RASSF1"
+Nucleotide Excision Repair Pathway	4.84E-01		1.90E-01	"CCNH,ERCC6,GTF2H4,XPC"
+Polyamine Regulation in Colon Cancer	4.84E-01	2	1.90E-01	"CSNK2B,MLST8,SMS,SRM"
+Factors Promoting Cardiogenesis in Vertebrates	4.87E-01	0.377964473	1.67E-01	"CAMK2D,CCND1,GATA4,LRP1,LRP6,PLCZ1,SCN5A,TBX5,TGFBR1"
+Heparan Sulfate Biosynthesis (Late Stages)	5.03E-01	2.236067977	1.85E-01	"AARS1,Ces1b/Ces1c,CHST13,PRDX6,SULT1E1"
+Tight Junction Signaling	5.06E-01		1.67E-01	"ACTC1,ACTG1,CPSF3,NAPA,NSF,NUDT21,PATJ,PTPA,TGFBR1,VCL"
+Cleavage and Polyadenylation of Pre-mRNA	5.15E-01		2.50E-01	"CPSF3,NUDT21"
+DNA damage-induced 14-3-3σ Signaling	5.15E-01		2.50E-01	"CCNB3,CDK1"
+Purine Nucleotides De Novo Biosynthesis II	5.15E-01		2.50E-01	"ATIC,PAICS"
+Superpathway of Citrulline Metabolism	5.15E-01		2.50E-01	"ARG2,ASL"
+Induction of Apoptosis by HIV1	5.18E-01		2.14E-01	"CYC1,SLC25A3,SLC25A5"
+Sperm Motility	5.29E-01	2.449489743	1.63E-01	"BLK,CALM1 (includes others),CNGA3,CNGB3,FGFR1,GUCY1B1,MRAS,NPR1,PLAAT4,PLCZ1,PRDX6,RET,ROR1,SRMS"
+Cell Cycle: G1/S Checkpoint Regulation	5.45E-01	0	1.92E-01	"CCND1,HDAC2,HDAC7,RPL11,SKP1"
+GM-CSF Signaling	5.45E-01	0.447213595	1.92E-01	"CAMK2D,CCND1,MRAS,RACK1,SOS1"
+Regulation of Actin-based Motility by Rho	5.76E-01	2.236067977	1.84E-01	"ACTC1,ARPC1B,ARPC3,ARPC4,ITGA8,ITGB2,PAK1"
+Role of NFAT in Cardiac Hypertrophy	5.76E-01	0.632455532	1.67E-01	"ADCY1,CACNA1A,CALM1 (includes others),CAMK2D,EP300,GATA4,GUCY1B1,HDAC2,HDAC7,MRAS,PLCZ1,SLC8A2,SOS1,TGFBR1"
+Superpathway of Melatonin Degradation	5.81E-01	2	2.11E-01	"B4GAT1,CYP2A6 (includes others),CYP3A5,CYP4B1"
+Cysteine Biosynthesis/Homocysteine Degradation	5.90E-01		5.00E-01	CTH
+L-cysteine Degradation I	5.90E-01		5.00E-01	GOT2
+Methionine Salvage II (Mammalian)	5.90E-01		5.00E-01	MTR
+NAD Biosynthesis from 2-amino-3-carboxymuconate Semialdehyde	5.90E-01		5.00E-01	NADSYN1
+Oleate Biosynthesis II (Animals)	5.90E-01		5.00E-01	ALDH6A1
+Palmitate Biosynthesis I (Animals)	5.90E-01		5.00E-01	CBR4
+Proline Biosynthesis I	5.90E-01		5.00E-01	PYCR1
+Proline Degradation	5.90E-01		5.00E-01	ALDH4A1
+Threonine Degradation II	5.90E-01		5.00E-01	GCAT
+Paxillin Signaling	5.92E-01	1.632993162	1.82E-01	"ACTC1,ACTG1,ITGA8,ITGB2,MRAS,PAK1,SOS1,VCL"
+Glycogen Degradation II	6.01E-01		2.86E-01	"PGM1,PYGB"
+Leukotriene Biosynthesis	6.01E-01		2.86E-01	"GSTM4,MGST3"
+Mevalonate Pathway I	6.01E-01		2.86E-01	"ACAA2,HADHA"
+Hereditary Breast Cancer Signaling	6.07E-01		1.75E-01	"CCND1,CDK1,EP300,HDAC2,HDAC7,MRAS,PBRM1,RFC2,RPS27A,UBA52,XPC"
+Neurovascular Coupling Signaling Pathway	6.27E-01	0.534522484	1.71E-01	"CACNA1A,CALM1 (includes others),CTH,ENTPD6,GABRA6,GABRR2,GUCY1B1,GUCY2C,Gucy2d,KCNN2,NPR1,ORAI2,PLAAT4,PRDX6"
+Gαs Signaling	6.27E-01	-0.447213595	1.86E-01	"ADCY1,CNGA3,CNGB3,FSHR,GUCY1B1,LHCGR,MRAS,RAPGEF4"
+Melatonin Degradation I	6.37E-01	2	2.22E-01	"B4GAT1,CYP2A6 (includes others),CYP3A5,CYP4B1"
+Cysteine Biosynthesis III (mammalia)	6.50E-01		2.50E-01	"CTH,EHMT1,FTSJ1"
+Mismatch Repair in Eukaryotes	6.50E-01		2.50E-01	"FEN1,PCNA,RFC2"
+Endothelin-1 Signaling	6.53E-01	1.414213562	1.76E-01	"ADCY1,CASQ1,ECE1,ECE2,GUCY1B1,GUCY2C,MRAS,NPR1,PLAAT4,PLCZ1,PRDX6,SOS1"
+cAMP-mediated signaling	6.97E-01	-0.301511345	1.78E-01	"ADCY1,AKAP1,CALM1 (includes others),CAMK2D,CNGA3,CNGB3,FSHR,GUCY1B1,HTR1A,LHCGR,PDE8A,RAPGEF4,SMPDL3B"
+Phospholipases	7.00E-01		2.35E-01	"PLA2G15,PLAAT4,PLCZ1,PRDX6"
+Tryptophan Degradation III (Eukaryotic)	7.00E-01		2.35E-01	"ACAA2,HADHA,HSD17B4,HSD17B8"
+Assembly of RNA Polymerase III Complex	7.08E-01		3.33E-01	"SF3A1,TBP"
+Glycine Betaine Degradation	7.08E-01		3.33E-01	"PIPOX,SARDH"
+Acetone Degradation I (to Methylglyoxal)	7.31E-01		2.73E-01	"CYP2A6 (includes others),CYP3A5,CYP4B1"
+Colanic Acid Building Blocks Biosynthesis	7.31E-01		2.73E-01	"GALK1,GMPPA,PMM1"
+Dopamine Degradation	7.31E-01		2.73E-01	"ALDH2,ALDH3A2,ALDH4A1"
+Isoleucine Degradation I	7.31E-01		2.73E-01	"ACAA2,HADHA,HSD17B4"
+Superpathway of Cholesterol Biosynthesis	7.31E-01		2.73E-01	"ACAA2,HADHA,SC5D"
+WNT/β-catenin Signaling	7.36E-01	1.666666667	1.86E-01	"CCND1,CSNK2B,EP300,LRP1,LRP6,NR5A2,PTPA,RPS27A,SOX14,TGFBR1,UBA52"
+Xenobiotic Metabolism Signaling	7.39E-01		1.73E-01	"ALDH2,ALDH3A2,ALDH4A1,ALDH6A1,CAMK2D,CAT,CHST13,CYP3A5,EP300,ESD,GSTM3,GSTM4,GSTM5,Gstm6,MGST3,MRAS,PTPA,SULT1E1"
+Actin Nucleation by ARP-WASP Complex	7.43E-01	1.341640786	2.06E-01	"ARPC1B,ARPC3,ARPC4,ITGA8,ITGB2,MRAS,SOS1"
+GADD45 Signaling	7.49E-01	-1.341640786	2.27E-01	"CCND1,CDK1,PCNA,POU2F1,TGFBR1"
+Germ Cell-Sertoli Cell Junction Signaling	7.60E-01		1.83E-01	"A2M,ACTC1,ACTG1,LAMC3,MRAS,PAK1,TGFBR1,TUBA1B,TUBA3C/TUBA3D,TUBA3E,TUBB2B,TUBB4A,VCL"
+Sertoli Cell-Sertoli Cell Junction Signaling	8.04E-01		1.84E-01	"A2M,ACTC1,ACTG1,DLG1,GUCY1B1,ITGA8,ITGB2,MRAS,TUBA1B,TUBA3C/TUBA3D,TUBA3E,TUBB2B,TUBB4A,VCL"
+Cell Cycle: G2/M DNA Damage Checkpoint Regulation	8.12E-01	-1.341640786	2.38E-01	"CCNB3,CDK1,EP300,SKP1,TRIP12"
+Oxytocin In Spinal Neurons Signaling Pathway	8.12E-01	0.447213595	2.38E-01	"CTH,GUCY1B1,GUCY2C,Gucy2d,NPR1"
+Purine Nucleotides Degradation II (Aerobic)	8.24E-01		3.00E-01	"ADA,ADA2,ADARB2"
+Glioma Signaling	8.40E-01	0	2.05E-01	"CALM1 (includes others),CAMK2D,CCND1,HDAC2,HDAC7,IDH1,IDH3G,MRAS,SOS1"
+GDP-mannose Biosynthesis	8.44E-01		4.00E-01	"GMPPA,PMM1"
+Glucose and Glucose-1-phosphate Degradation	8.44E-01		4.00E-01	"PGM1,RGN"
+Glycine Cleavage Complex	8.44E-01		4.00E-01	"GCSH,GLDC"
+Renal Cell Carcinoma Signaling	8.44E-01		2.19E-01	"EP300,FH,MRAS,PAK1,RPS27A,SOS1,UBA52"
+4-hydroxyproline Degradation I	8.60E-01		1.00E+00	ALDH4A1
+Acetyl-CoA Biosynthesis III (from Citrate)	8.60E-01		1.00E+00	ACLY
+Aspartate Biosynthesis	8.60E-01		1.00E+00	GOT2
+Ceramide Degradation	8.60E-01		1.00E+00	ASAH2
+Creatine-phosphate Biosynthesis	8.60E-01		1.00E+00	CKM
+Glutamate Degradation II	8.60E-01		1.00E+00	GOT2
+Glutamine Biosynthesis I	8.60E-01		1.00E+00	GLUL
+Glycine Biosynthesis III	8.60E-01		1.00E+00	AGXT2
+Interferon Signaling	8.60E-01		1.00E+00	MED14
+L-cysteine Degradation II	8.60E-01		1.00E+00	CTH
+L-glutamine Biosynthesis II (tRNA-dependent)	8.60E-01		1.00E+00	GATB
+Lactose Degradation III	8.60E-01		1.00E+00	GLB1
+NADH Repair	8.60E-01		1.00E+00	GAPDH
+Proline Biosynthesis II (from Arginine)	8.60E-01		1.00E+00	PYCR1
+Rapoport-Luebering Glycolytic Shunt	8.60E-01		1.00E+00	PGAM2
+Sorbitol Degradation I	8.60E-01		1.00E+00	SORD
+Spermidine Biosynthesis I	8.60E-01		1.00E+00	SRM
+Spermine Biosynthesis	8.60E-01		1.00E+00	SMS
+Sphingosine and Sphingosine-1-phosphate Metabolism	8.60E-01		1.00E+00	ASAH2
+Thiamin Salvage III	8.60E-01		1.00E+00	TPK1
+Serotonin Degradation	8.81E-01	2.236067977	2.50E-01	"ADH5,ALDH2,ALDH3A2,ALDH4A1,B4GAT1"
+Apelin Adipocyte Signaling Pathway	8.90E-01	1.889822365	2.16E-01	"ADCY1,CAT,GPX1,GPX2,GPX4,GUCY1B1,MGST3,PRDX6"
+Glycogen Degradation III	9.34E-01		3.33E-01	"MGAM,PGM1,PYGB"
+Inhibition of Angiogenesis by TSP1	9.34E-01		3.33E-01	"GUCY1B1,HSPG2,TGFBR1"
+Pyrimidine Deoxyribonucleotides De Novo Biosynthesis I	9.34E-01		3.33E-01	"NME1,RRM1,TYMS"
+Atherosclerosis Signaling	9.34E-01		2.86E-01	"COL2A1,ITGB2,PLAAT4,PRDX6"
+Fatty Acid β-oxidation I	9.57E-01	2.236067977	2.63E-01	"ACAA2,HADHA,HSD17B4,HSD17B8,SCP2"
+Phototransduction Pathway	9.57E-01		2.63E-01	"CNGA3,CNGB3,GUCY1B1,GUCY2C,NPR1"
+2-ketoglutarate Dehydrogenase Complex	1.02E+00		5.00E-01	"DHTKD1,DLST"
+Granzyme A Signaling	1.02E+00		5.00E-01	"EP300,NME1"
+Granzyme B Signaling	1.02E+00		5.00E-01	"LMNB2,PARP1"
+Sphingomyelin Metabolism	1.02E+00		5.00E-01	"SMPD1,SMPD2"
+Valine Degradation I	1.03E+00		3.08E-01	"ABAT,ALDH6A1,HADHA,HSD17B4"
+Triacylglycerol Degradation	1.04E+00	2.236067977	2.78E-01	"AARS1,CEL,Ces1b/Ces1c,PNLIP,PRDX6"
+Adenosine Nucleotides Degradation II	1.07E+00		3.75E-01	"ADA,ADA2,ADARB2"
+Antiproliferative Role of TOB in T Cell Signaling	1.07E+00		3.75E-01	"CCNA2,SKP1,TGFBR1"
+Bupropion Degradation	1.07E+00		3.75E-01	"CYP2A6 (includes others),CYP3A5,CYP4B1"
+Fatty Acid α-oxidation	1.07E+00		3.75E-01	"ALDH2,ALDH3A2,ALDH4A1"
+Ketogenesis	1.07E+00		3.75E-01	"ACAA2,BDH1,HADHA"
+"Tryptophan Degradation X (Mammalian, via Tryptamine)"	1.07E+00		3.75E-01	"ALDH2,ALDH3A2,ALDH4A1"
+Gap Junction Signaling	1.07E+00		1.95E-01	"ACTC1,ACTG1,ADCY1,CTH,GRIK2,GUCY1B1,GUCY2C,Gucy2d,MRAS,NPR1,PLCZ1,SOS1,TUBA1B,TUBA3C/TUBA3D,TUBA3E,TUBB2B,TUBB4A"
+Xenobiotic Metabolism CAR Signaling Pathway	1.11E+00	2.840187787	2.03E-01	"ALDH2,ALDH3A2,ALDH4A1,ALDH6A1,CHST13,CYP3A5,EP300,GSTM3,GSTM4,GSTM5,Gstm6,MGST3,PTPA,RACK1,SULT1E1"
+Maturity Onset Diabetes of Young (MODY) Signaling	1.13E+00		2.94E-01	"BLK,CACNA1A,CEL,EP300,GAPDH"
+Retinol Biosynthesis	1.13E+00	2.236067977	2.94E-01	"BCO1,CEL,ESD,PNLIP,RDH13"
+Superpathway of Methionine Degradation	1.14E+00	1.632993162	2.73E-01	"CTH,EHMT1,FTSJ1,GOT2,MCEE,MTR"
+Glutaryl-CoA Degradation	1.14E+00		3.33E-01	"ACAA2,HADHA,HSD17B4,HSD17B8"
+Cell Cycle Control of Chromosomal Replication	1.22E+00	3	2.43E-01	"CDK1,CDK8,MCM3,MCM4,MCM5,MCM6,MCM7,ORC3,PCNA"
+Crosstalk between Dendritic Cells and Natural Killer Cells	1.22E+00		4.29E-01	"ACTC1,ACTG1,CAMK2D"
+Estrogen-mediated S-phase Entry	1.22E+00		4.29E-01	"CCNA2,CCND1,CDK1"
+Inhibition of Matrix Metalloproteases	1.22E+00		4.29E-01	"A2M,HSPG2,LRP1"
+Ketolysis	1.22E+00		4.29E-01	"ACAA2,BDH1,HADHA"
+Putrescine Degradation III	1.22E+00		4.29E-01	"ALDH2,ALDH3A2,ALDH4A1"
+Nicotine Degradation II	1.23E+00	2.236067977	3.12E-01	"AOX1,B4GAT1,CYP2A6 (includes others),CYP3A5,CYP4B1"
+Nicotine Degradation III	1.23E+00	2.236067977	3.12E-01	"AOX1,B4GAT1,CYP2A6 (includes others),CYP3A5,CYP4B1"
+Inosine-5'-phosphate Biosynthesis II	1.28E+00		6.67E-01	"ATIC,PAICS"
+Pentose Phosphate Pathway (Oxidative Branch)	1.28E+00		6.67E-01	"PGD,PGLS"
+Superoxide Radicals Degradation	1.28E+00		6.67E-01	"CAT,SOD2"
+Urea Cycle	1.28E+00		6.67E-01	"ARG2,ASL"
+Regulation of Cellular Mechanics by Calpain Protease	1.29E+00	-1	2.50E-01	"CCNA2,CCND1,CDK1,CNGA3,CNGB3,ITGA8,ITGB2,MRAS,VCL"
+GABA Receptor Signaling	1.32E+00		2.31E-01	"ABAT,ADCY1,AP2A1,CACNA1A,GABRA6,GABRR2,GUCY1B1,KCNN2,MRAS,NSF,RPS27A,UBA52"
+Gustation Pathway	1.32E+00	-0.904534034	2.31E-01	"ADCY1,CACNA1A,GABRA6,GABRR2,GUCY1B1,HTR1A,KCNN2,LIPA,LIPJ,ORAI2,PNLIP,SCN5A"
+Cyclins and Cell Cycle Regulation	1.36E+00	2.449489743	2.57E-01	"CCNA2,CCNB3,CCND1,CCNH,CDK1,HDAC2,HDAC7,PTPA,SKP1"
+LPS/IL-1 Mediated Inhibition of RXR Function	1.41E+00	-1	2.15E-01	"ACOX1,ALDH2,ALDH3A2,ALDH4A1,ALDH6A1,CAT,CHST13,CYP2A6 (includes others),Cyp2j9,CYP3A5,GSTM3,GSTM4,GSTM5,Gstm6,MGST3,NR5A2,SULT1E1"
+Ethanol Degradation II	1.42E+00	2	4.00E-01	"ADH5,ALDH2,ALDH3A2,ALDH4A1"
+Noradrenaline and Adrenaline Degradation	1.42E+00	2	4.00E-01	"ADH5,ALDH2,ALDH3A2,ALDH4A1"
+Xenobiotic Metabolism PXR Signaling Pathway	1.42E+00	3.5	2.19E-01	"ALDH2,ALDH3A2,ALDH4A1,ALDH6A1,CAMK2D,CAT,CHST13,CYP3A5,EP300,ESD,GSTM3,GSTM4,GSTM5,Gstm6,MGST3,SULT1E1"
+Histamine Degradation	1.42E+00		5.00E-01	"ALDH2,ALDH3A2,ALDH4A1"
+Pentose Phosphate Pathway	1.42E+00		5.00E-01	"PGD,PGLS,TKTL2"
+Oxidative Ethanol Degradation III	1.47E+00		3.57E-01	"ALDH2,ALDH3A2,ALDH4A1,CYP2A6 (includes others),Cyp2j9"
+NUR77 Signaling in T Lymphocytes	1.54E+00	0.816496581	3.33E-01	"CALM1 (includes others),EP300,HDAC2,HDAC7,PCNA,SIN3B"
+Ethanol Degradation IV	1.59E+00	2	4.44E-01	"ALDH2,ALDH3A2,ALDH4A1,CAT"
+Phagosome Maturation	1.60E+00		2.34E-01	"ATP6V1B1,ATP6V1F,ATP6V1G2,CTSC,CTSF,CTSL,DYNLRB1,NAPA,NSF,PRDX6,TUBA1B,TUBA3C/TUBA3D,TUBA3E,TUBB2B,TUBB4A"
+NRF2-mediated Oxidative Stress Response	1.66E+00	2.121320344	2.16E-01	"ACTC1,ACTG1,AOX1,CAT,CYP2A6 (includes others),Cyp2j9,Cyp3a25 (includes others),CYP3A5,DNAJA2,EP300,EPHX1,GPX2,GSTM3,GSTM4,GSTM5,Gstm6,MGST3,MRAS,PPIB,SOD2,VCP"
+"Phenylalanine Degradation IV (Mammalian, via Side Chain)"	1.67E+00		6.00E-01	"ALDH2,ALDH3A2,GOT2"
+Purine Ribonucleosides Degradation to Ribose-1-phosphate	1.67E+00		6.00E-01	"ADA,ADA2,ADARB2"
+Sucrose Degradation V (Mammalian)	1.67E+00		6.00E-01	"ALDOA,ALDOC,TPI1"
+Arginine Degradation I (Arginase Pathway)	1.72E+00		1.00E+00	"ALDH4A1,ARG2"
+Arginine Degradation VI (Arginase 2 Pathway)	1.72E+00		1.00E+00	"ARG2,PYCR1"
+Formaldehyde Oxidation II (Glutathione-dependent)	1.72E+00		1.00E+00	"ADH5,ESD"
+Phenylethylamine Degradation I	1.72E+00		1.00E+00	"ALDH2,ALDH3A2"
+β-alanine Degradation I	1.72E+00		1.00E+00	"ABAT,ALDH6A1"
+Caveolar-mediated Endocytosis Signaling	1.78E+00		3.00E-01	"ACTC1,ACTG1,COPB1,COPE,COPG2,COPZ1,FLNC,ITGA8,ITGB2"
+Estrogen Biosynthesis	1.95E+00	2.449489743	4.00E-01	"CYP2A6 (includes others),CYP3A5,CYP4B1,HSD17B12,HSD17B4,HSD17B8"
+Adenine and Adenosine Salvage III	2.03E+00		7.50E-01	"ADA,ADA2,ADARB2"
+mTOR Signaling	2.13E+00		2.39E-01	"EIF3B,EIF3D,MLST8,MRAS,PTPA,RPS11,RPS15,RPS15A,RPS17,RPS18,RPS2,RPS24,RPS26,RPS27A,RPS3,RPS4X,RPS5,RPS7,RPS8,RPS9,RPSA"
+Estrogen Receptor Signaling	2.26E+00	2.523573073	2.18E-01	"ADCY1,ARG2,ATP5F1A,ATP5F1B,ATP5F1C,ATP5PB,CACNA1A,CCND1,CDK8,CYC1,EP300,GUCY1B1,MED14,MRAS,NDUFA10,NDUFA7,NDUFA9,NDUFB5,NDUFB8,NDUFB9,NDUFS1,NDUFS2,NDUFS7,NDUFV2,PAK1,PCNA,PLCZ1,SOD2,SOS1,UQCRC2,UQCRFS1"
+Xenobiotic Metabolism AHR Signaling Pathway	2.40E+00	2.529822128	3.45E-01	"ALDH2,ALDH3A2,ALDH4A1,ALDH6A1,EP300,GSTM3,GSTM4,GSTM5,Gstm6,MGST3"
+Glutathione Redox Reactions I	2.41E+00	1.341640786	5.56E-01	"GPX1,GPX2,GPX4,MGST3,PRDX6"
+Aspartate Degradation II	2.58E+00		1.00E+00	"GOT2,MDH1,MDH2"
+Remodeling of Epithelial Adherens Junctions	2.64E+00		3.33E-01	"ACTC1,ACTG1,ARPC1B,ARPC3,ARPC4,NME1,TUBA1B,TUBA3C/TUBA3D,TUBA3E,TUBB2B,TUBB4A,VCL"
+Aryl Hydrocarbon Receptor Signaling	2.64E+00	2	3.00E-01	"ALDH2,ALDH3A2,ALDH4A1,ALDH6A1,CCNA2,CCND1,Cyp3a25 (includes others),CYP3A5,EP300,GSTM3,GSTM4,GSTM5,Gstm6,MCM7,MGST3"
+Glucocorticoid Receptor Signaling	2.81E+00		2.34E-01	"A2M,ARG2,ATP5F1A,ATP5F1B,ATP5F1C,ATP5PB,CCNH,CYC1,EP300,FBP1,FKBP4,GTF2H4,KRT1,MED14,MRAS,NDUFA10,NDUFA7,NDUFA9,NDUFB5,NDUFB8,NDUFB9,NDUFS1,NDUFS2,NDUFS7,NDUFV2,PBRM1,SOS1,TAF2,TBP,TGFBR1,UQCRC2,UQCRFS1"
+Glutathione-mediated Detoxification	3.73E+00	1.632993162	6.36E-01	"ANPEP,GSTM3,GSTM4,GSTM5,Gstm6,HPGDS,MGST3"
+TCA Cycle II (Eukaryotic)	3.82E+00	3	5.29E-01	"CS,DHTKD1,DLST,FH,IDH3A,IDH3G,MDH1,MDH2,SUCLG1"
+Regulation of eIF4 and p70S6K Signaling	3.91E+00		3.00E-01	"EIF2A,EIF3B,EIF3D,ITGA8,ITGB2,MRAS,PTPA,RPS11,RPS15,RPS15A,RPS17,RPS18,RPS2,RPS24,RPS26,RPS27A,RPS3,RPS4X,RPS5,RPS7,RPS8,RPS9,RPSA,SOS1"
+Coronavirus Replication Pathway	4.86E+00	3.464101615	5.22E-01	"ACE,COPB1,COPE,COPG2,COPZ1,CTSL,DDX1,TUBA1B,TUBA3C/TUBA3D,TUBA3E,TUBB2B,TUBB4A"
+Glycolysis I	5.35E+00	2.828427125	8.00E-01	"ALDOA,ALDOC,ENO1,FBP1,GAPDH,PGAM2,PGK1,TPI1"
+Sirtuin Signaling Pathway	6.31E+00	-1.224744871	3.24E-01	"ACADL,ACLY,ARG2,ATP5F1A,ATP5F1B,ATP5F1C,ATP5PB,CYC1,GOT2,NDUFA10,NDUFA7,NDUFA9,NDUFB5,NDUFB8,NDUFB9,NDUFS1,NDUFS2,NDUFS7,NDUFV2,PARP1,PDHA1,PGAM2,PGK1,SF3A1,SIRT7,SLC25A5,SOD2,TOMM40,TUBA1B,TUBA3C/TUBA3D,TUBA3E,UQCRC2,UQCRFS1,VDAC2,XPC"
+Coronavirus Pathogenesis Pathway	6.85E+00	-3	4.00E-01	"ACE,CCND1,CTSL,EEF1A2,EIF2A,EP300,HDAC2,HDAC7,NPC1,RPS11,RPS15,RPS15A,RPS17,RPS18,RPS2,RPS24,RPS26,RPS27A,RPS3,RPS4X,RPS5,RPS7,RPS8,RPS9,RPSA,TGFBR1"
+Gluconeogenesis I	7.64E+00	3.16227766	9.09E-01	"ALDOA,ALDOC,ENO1,FBP1,GAPDH,MDH1,MDH2,ME3,PGAM2,PGK1"
+Mitochondrial Dysfunction	8.62E+00		4.58E-01	"ATP5F1A,ATP5F1B,ATP5F1C,ATP5PB,ATP5PD,ATP5PO,CAT,CYC1,GPX4,NDUFA10,NDUFA7,NDUFA9,NDUFB5,NDUFB8,NDUFB9,NDUFS1,NDUFS2,NDUFS7,NDUFV2,PDHA1,PRDX3,PRKN,SOD2,UQCRC2,UQCRFS1,UQCRQ,VDAC2"
+Oxidative Phosphorylation	9.97E+00	4.472135955	6.18E-01	"ATP5F1A,ATP5F1B,ATP5F1C,ATP5PB,ATP5PD,ATP5PO,CYC1,ENOX1,NDUFA10,NDUFA7,NDUFA9,NDUFB5,NDUFB8,NDUFB9,NDUFS1,NDUFS2,NDUFS7,NDUFV2,UQCRC2,UQCRFS1,UQCRQ"
+EIF2 Signaling	1.55E+01	4.746928832	4.62E-01	"ACTC1,CCND1,EIF2A,EIF3B,EIF3D,MRAS,RPL10A,RPL11,RPL12,RPL13,RPL15,RPL18,RPL18A,RPL19,RPL23,RPL24,RPL27,RPL28,RPL3,RPL30,RPL32,RPL35,RPL35A,RPL38,RPL39,RPL7,RPL7A,RPL8,RPL9,RPLP0,RPS11,RPS15,RPS15A,RPS17,RPS18,RPS2,RPS24,RPS26,RPS27A,RPS3,RPS4X,RPS5,RPS7,RPS8,RPS9,RPSA,SOS1,TRIB3,UBA52"

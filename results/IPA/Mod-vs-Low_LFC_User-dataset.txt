@@ -1,0 +1,256 @@
+© 2000-2022 QIAGEN. All rights reserved.
+
+Analysis Details for My Projects->Spencer - RKC pH->ipa_upload.p1 - 2022-04-11 02:49 PM - LFC, User Dataset->Mod_vs_Low
+Workspace	My Projects
+Project	Spencer - RKC pH
+Analysis	Mod_vs_Low
+Date	Mon Apr 11 14:50:28 PDT 2022
+Analysis ID	39401805
+
+Analysis Settings
+Cutoff before duplicate resolution	true
+Resolve duplicate on	Expression logfoldchange
+Color using	Expression logfoldchange
+Cutoff for Expression logfoldchange	--
+Cutoff for Expression pvalue	0.05
+Reference set	User Dataset
+Relationship to include	Direct and Indirect
+Includes Endogenous Chemicals	Yes
+Optional Analyses	My Pathways My List
+Filter Summary	
+Consider only molecules and/or relationships where
+(confidence = Experimentally Observed) AND
+(mol. types = biologic drug OR canonical pathway OR chemical - endogenous mammalian OR chemical - endogenous non-mammalian OR chemical - kinase inhibitor OR chemical - other OR chemical - protease inhibitor OR chemical drug OR chemical reagent OR chemical toxicant OR complex OR cytokine OR disease OR enzyme OR function OR fusion gene/product OR G-protein coupled receptor OR group OR growth factor OR ion channel OR kinase OR ligand-dependent nuclear receptor OR mature microRNA OR microRNA OR other OR peptidase OR phosphatase OR transcription regulator OR translation regulator OR transmembrane receptor OR transporter)
+
+Canonical Pathways for My Projects->Spencer - RKC pH->ipa_upload.p1 - 2022-04-11 02:49 PM - LFC, User Dataset->Mod_vs_Low
+Ingenuity Canonical Pathways	 -log(p-value)	zScore	Ratio	Molecules
+G-Protein Coupled Receptor Signaling	7.73E-01		5.10E-03	GRK6	
+Molecular Mechanisms of Cancer	8.53E-01		6.21E-03	LRP6	
+Hepatic Fibrosis Signaling Pathway	9.64E-01		8.13E-03	LRP6	
+Opioid Signaling Pathway	1.04E00		9.71E-03	GRK6	
+Colorectal Cancer Metastasis Signaling	1.12E00		1.18E-02	LRP6	
+Role of Macrophages, Fibroblasts and Endothelial Cells in Rheumatoid Arthritis	1.14E00		1.25E-02	LRP6	
+WNT/β-catenin Signaling	1.27E00		1.69E-02	LRP6	
+Role of Osteoblasts, Osteoclasts and Chondrocytes in Rheumatoid Arthritis	1.29E00		1.79E-02	LRP6	
+Factors Promoting Cardiogenesis in Vertebrates	1.31E00		1.85E-02	LRP6	
+Salvage Pathways of Pyrimidine Ribonucleotides	1.47E00		2.70E-02	GRK6	
+Pyridoxal 5'-phosphate Salvage Pathway	1.59E00		3.57E-02	GRK6	
+
+Upstream Regulators for My Projects->Spencer - RKC pH->ipa_upload.p1 - 2022-04-11 02:49 PM - LFC, User Dataset->Mod_vs_Low
+Analysis	ID	Upstream Regulator	Expr Log Ratio	Molecule Type	Predicted Activation State	Activation z-score	Notes	Bias Term	Bias-corrected z-score	p-value of overlap	Target molecules in dataset	Mechanistic Network	
+Mod_vs_Low	 	MIR17-92	 	group	 	 	 	 	 	1.86E-03	LRP6	 	
+Mod_vs_Low	 	SLC18A3	 	transporter	 	 	 	 	 	3.71E-03	GRK6	 	
+Mod_vs_Low	 	huaier extract granule	 	chemical drug	 	 	 	 	 	3.71E-03	LRP6	 	
+Mod_vs_Low	 	salinomycin	 	chemical - endogenous non-mammalian	 	 	 	 	 	3.71E-03	LRP6	 	
+Mod_vs_Low	 	PTCSC3	 	other	 	 	 	 	 	4.64E-03	LRP6	 	
+Mod_vs_Low	 	ethosuximide	 	chemical drug	 	 	 	 	 	4.64E-03	LRP6	 	
+Mod_vs_Low	 	DRAP1	 	transcription regulator	 	 	 	 	 	5.56E-03	GRK6	 	
+Mod_vs_Low	 	BGN	 	other	 	 	 	 	 	6.49E-03	LRP6	 	
+Mod_vs_Low	 	SERPINF1	 	other	 	 	 	 	 	1.11E-02	LRP6	 	
+Mod_vs_Low	 	SRC (family)	 	group	 	 	 	 	 	1.29E-02	GRK6	 	
+Mod_vs_Low	 	mir-19	 	microrna	 	 	 	 	 	1.39E-02	LRP6	 	
+Mod_vs_Low	 	daidzein	 	chemical drug	 	 	 	 	 	1.66E-02	GRK6	 	
+Mod_vs_Low	 	miR-182-5p (and other miRNAs w/seed UUGGCAA)	 	mature microrna	 	 	 	 	 	1.84E-02	LRP6	 	
+Mod_vs_Low	 	Hsp90	 	group	 	 	 	 	 	1.94E-02	GRK6	 	
+Mod_vs_Low	 	azoxymethane	 	chemical toxicant	 	 	 	 	 	2.03E-02	LRP6	 	
+Mod_vs_Low	 	lysophosphatidic acid	 	chemical - other	 	 	 	 	 	2.03E-02	LRP6	 	
+Mod_vs_Low	 	miR-122-5p (miRNAs w/seed GGAGUGU)	 	mature microrna	 	 	 	 	 	2.12E-02	XPO6	 	
+Mod_vs_Low	 	mir-182	 	microrna	 	 	 	 	 	2.21E-02	LRP6	 	
+Mod_vs_Low	 	SOX9	0.049	transcription regulator	 	 	 	 	 	2.76E-02	LRP6	 	
+Mod_vs_Low	 	ITGB1	0.207	transmembrane receptor	 	 	 	 	 	3.21E-02	LRP6	 	
+Mod_vs_Low	 	RBL2	0.053	other	 	 	 	 	 	3.84E-02	GRK6	 	
+Mod_vs_Low	 	MAPK14	-0.173	kinase	 	 	 	 	 	3.93E-02	LRP6	 	
+Mod_vs_Low	 	mir-1	 	microrna	 	 	 	 	 	4.11E-02	XPO6	 	
+Mod_vs_Low	 	CAV1	 	transmembrane receptor	 	 	 	 	 	4.29E-02	LRP6	 	
+Mod_vs_Low	 	ADIPOQ	 	other	 	 	 	 	 	4.56E-02	LRP6	 	
+Mod_vs_Low	 	MIR17HG	 	other	 	 	 	 	 	4.83E-02	LRP6	 	
+
+Causal Networks for My Projects->Spencer - RKC pH->ipa_upload.p1 - 2022-04-11 02:49 PM - LFC, User Dataset->Mod_vs_Low
+Master Regulator	Molecule Type	Expr Log Ratio	Depth	Predicted Activation State	Notes	Activation z-score	p-value of overlap	Network bias-corrected p-value	Participating regulators	Target molecules in dataset	Causal network	Target-connected regulators	Relationships Between Master Regulators(Increases/Downstream)	Relationships Between Master Regulators(Decreases/Downstream)	Relationships Between Master Regulators(Affects/Downstream)	Relationships Between Master Regulators(Increases/Upstream)	Relationships Between Master Regulators(Decreases/Upstream)	Relationships Between Master Regulators(Affects/Upstream)	Relationships Between Master Regulators(Increases/Both)	Relationships Between Master Regulators(Decreases/Both)	Relationships Between Master Regulators(Affects/Both)	
+MIR17-92	group	 	1	 	biased	1.000	1.86E-03	2.30E-03	MIR17-92	LRP6	1 (1)	1	 	 	 	 	 	 	 	 	 	
+SLC18A3	transporter	 	1	 	biased	1.000	3.71E-03	5.10E-03	SLC18A3	GRK6	1 (1)	1	MAPK14	 	 	 	 	 	 	 	 	
+huaier extract granule	chemical drug	 	1	 	biased	1.000	3.71E-03	3.20E-03	huaier extract granule	LRP6	1 (1)	1	 	 	 	 	CAV1	 	 	 	 	
+salinomycin	chemical - endogenous non-mammalian	 	1	 	biased	1.000	3.71E-03	2.30E-03	salinomycin	LRP6	1 (1)	1	 	 	 	 	MAPK14	 	 	 	 	
+BGN	other	 	1	 	biased	-1.000	4.64E-03	4.30E-03	BGN	LRP6	1 (1)	1	 	 	 	 	 	 	 	 	 	
+PTCSC3	other	 	1	 	 	1.000	4.64E-03	5.70E-03	PTCSC3	LRP6	1 (1)	1	 	 	 	 	 	 	 	 	 	
+ethosuximide	chemical drug	 	1	 	biased	-1.000	4.64E-03	7.80E-03	ethosuximide	LRP6	1 (1)	1	 	 	 	 	 	 	 	 	 	
+SRC (family)	group	 	1	 	biased	-1.000	7.41E-03	6.30E-03	SRC (family)	GRK6	1 (1)	1	daidzein	 	 	CAV1	 	 	 	 	 	
+SERPINF1	other	 	1	 	 	1.000	9.25E-03	4.20E-03	SERPINF1	LRP6	1 (1)	1	 	 	 	 	ADIPOQ	 	 	 	 	
+mir-19	microRNA	 	1	 	biased	1.000	1.39E-02	9.00E-03	mir-19	LRP6	1 (1)	1	DICER1	 	 	 	CCND2,MAPK14	 	 	 	 	
+CCND2	other	-0.052	2	 	 	0.000	1.61E-02	5.30E-03	CCND2,MAPK14,RBL2	GRK6,LRP6	2 (3)	2	Hsp90	DICER1,mir-1,mir-19	 	MAPK14,RBL2	 	 	 	 	 	
+daidzein	chemical drug	 	1	 	biased	1.000	1.66E-02	9.90E-03	daidzein	GRK6	1 (1)	1	 	 	 	ADIPOQ,SRC (family)	CAV1	 	 	 	 	
+Hsp90	group	 	1	 	biased	1.000	1.75E-02	1.09E-02	Hsp90	GRK6	1 (1)	1	 	 	 	CCND2	 	 	 	 	 	
+miR-182-5p (and other miRNAs w/seed UUGGCAA)	mature microRNA	 	1	 	biased	1.000	1.84E-02	2.00E-02	miR-182-5p (and other miRNAs w/seed UUGGCAA)	LRP6	1 (1)	1	DICER1	 	 	 	ITGB1	 	 	 	 	
+CAV1	transmembrane receptor	 	1	 	 	-1.000	1.94E-02	3.40E-03	CAV1	LRP6	1 (1)	1	MAPK14,SRC (family),thapsigargin	daidzein,huaier extract granule,ITGB1	 	 	 	 	 	 	 	
+dextran sulfate	chemical drug	 	1	 	biased	-1.000	1.94E-02	6.80E-03	dextran sulfate	LRP6	1 (1)	1	 	 	 	 	 	 	 	 	 	
+lysophosphatidic acid	chemical - other	 	1	 	biased	-1.000	2.03E-02	5.00E-03	lysophosphatidic acid	LRP6	1 (1)	1	ITGB1	 	 	MAPK14	 	 	 	 	 	
+miR-122-5p (miRNAs w/seed GGAGUGU)	mature microRNA	 	1	 	biased	-1.000	2.12E-02	1.56E-02	miR-122-5p (miRNAs w/seed GGAGUGU)	XPO6	1 (1)	1	DICER1	 	 	 	 	 	 	 	 	
+mir-182	microRNA	 	1	 	biased	1.000	2.21E-02	2.41E-02	mir-182	LRP6	1 (1)	1	DICER1	 	 	 	 	 	 	 	 	
+ARID1A	transcription regulator	 	1	 	 	-1.000	2.48E-02	1.88E-02	ARID1A	LRP6	1 (1)	1	 	 	 	SOX9	 	 	 	 	 	
+SOX9	transcription regulator	0.049	1	 	biased	-1.000	2.66E-02	2.48E-02	SOX9	LRP6	1 (1)	1	ARID1A,MAPK14	mir-1	 	 	 	 	 	 	 	
+RBL2	other	0.053	1	 	biased	-1.000	2.76E-02	1.92E-02	RBL2	GRK6	1 (1)	1	CCND2	 	 	 	 	 	 	 	 	
+ITGB1	transmembrane receptor	0.207	1	 	 	-1.000	2.94E-02	2.28E-02	ITGB1	LRP6	1 (1)	1	 	DICER1,miR-182-5p (and other miRNAs w/seed UUGGCAA)	 	lysophosphatidic acid,MAPK14	CAV1	 	 	 	 	
+MAPK14	kinase	-0.173	1	 	 	1.000	3.48E-02	2.33E-02	MAPK14	LRP6	1 (1)	1	ADIPOQ,CCND2,ITGB1,lysophosphatidic acid,thapsigargin	mir-19,salinomycin	 	CAV1,mir-1,SLC18A3,SOX9	 	 	 	 	 	
+mir-1	microRNA	 	1	 	biased	-1.000	3.48E-02	2.20E-02	mir-1	XPO6	1 (1)	1	DICER1,MAPK14	 	 	 	CCND2,SOX9	 	 	 	 	
+ADIPOQ	other	 	1	 	 	1.000	3.93E-02	2.38E-02	ADIPOQ	LRP6	1 (1)	1	daidzein	SERPINF1,thapsigargin	 	MAPK14	 	 	 	 	 	
+MIR17HG	other	 	1	 	biased	1.000	4.83E-02	4.55E-02	MIR17HG	LRP6	1 (1)	1	 	 	 	 	 	 	 	 	 	
+DICER1	enzyme	0.478	1	 	 	-1.000	5.01E-02	3.66E-02	DICER1	LRP6	1 (1)	1	 	 	 	mir-1,miR-122-5p (miRNAs w/seed GGAGUGU),mir-182,miR-182-5p (and other miRNAs w/seed UUGGCAA),mir-19	CCND2,ITGB1	 	 	 	 	
+thapsigargin	chemical toxicant	 	1	 	biased	1.000	5.18E-02	3.49E-02	thapsigargin	LRP6	1 (1)	1	 	 	 	CAV1,MAPK14	ADIPOQ	 	 	 	 	
+
+Diseases and Bio Functions for My Projects->Spencer - RKC pH->ipa_upload.p1 - 2022-04-11 02:49 PM - LFC, User Dataset->Mod_vs_Low
+Categories	Functions	Diseases or Functions Annotation	p-Value	Predicted Activation State	Activation z-score	Notes	Bias-corrected z-score	Molecules	# Molecules	
+Cell-To-Cell Signaling and Interaction, Skeletal and Muscular System Development and Function	activation	Activation of HAoSMC cells	9.25E-04	 	 	 	 	LRP6	1	
+Connective Tissue Development and Function	adiposity	Adiposity of liver	9.25E-04	 	 	 	 	LRP6	1	
+Developmental Disorder, Hereditary Disorder, Neurological Disease, Organismal Injury and Abnormalities	Alkuraya-Kucinskas syndrome	Alkuraya-Kucinskas syndrome	9.25E-04	 	 	 	 	KIAA1109	1	
+Cardiovascular Disease, Hereditary Disorder, Organismal Injury and Abnormalities	autosomal dominant coronary artery disease type 2	Autosomal dominant coronary artery disease type 2	9.25E-04	 	 	 	 	LRP6	1	
+Cancer, Cell Death and Survival, Organismal Injury and Abnormalities, Tumor Morphology	cell viability	Cell viability of myeloma cells	9.25E-04	 	 	 	 	GRK6	1	
+Cellular Movement, Hematological System Development and Function, Immune Cell Trafficking, Inflammatory Response	chemotaxis	Chemotaxis of peritoneal neutrophils	9.25E-04	 	 	 	 	GRK6	1	
+Developmental Disorder, Ophthalmic Disease, Organismal Injury and Abnormalities	coloboma	Coloboma of retina	9.25E-04	 	 	 	 	LRP6	1	
+Embryonic Development, Organismal Development	duplication	Duplication of dorsal-ventral axis	9.25E-04	 	 	 	 	LRP6	1	
+Embryonic Development, Nervous System Development and Function, Organismal Development, Tissue Development	formation	Formation of neural crest	9.25E-04	 	 	 	 	LRP6	1	
+Cell Death and Survival	killing	Killing of macrophage cancer cell lines	9.25E-04	 	 	 	 	LRP6	1	
+Cell Death and Survival	killing	Killing of prostate cell lines	9.25E-04	 	 	 	 	LRP6	1	
+Embryonic Development, Organismal Development, Tissue Morphology	morphology	Morphology of dermamyotome	9.25E-04	 	 	 	 	LRP6	1	
+Dental Disease, Digestive System Development and Function, Gastrointestinal Disease, Hereditary Disorder, Organismal Development, Organismal Injury and Abnormalities	selective tooth agenesis type 7	Selective tooth agenesis type 7	9.25E-04	 	 	 	 	LRP6	1	
+Developmental Disorder, Hereditary Disorder, Neurological Disease, Organismal Injury and Abnormalities	sirenomelia	Sirenomelia	9.25E-04	 	 	 	 	LRP6	1	
+Organ Morphology, Organismal Injury and Abnormalities, Reproductive System Development and Function, Reproductive System Disease	abnormal morphology	Abnormal morphology of male genital organ	1.85E-03	 	 	 	 	LRP6	1	
+Digestive System Development and Function, Gastrointestinal Disease, Organ Morphology, Organismal Development, Organismal Injury and Abnormalities	abnormal morphology	Abnormal morphology of protruding tongue	1.85E-03	 	 	 	 	LRP6	1	
+Connective Tissue Development and Function, Connective Tissue Disorders, Nervous System Development and Function, Organ Morphology, Organismal Development, Organismal Injury and Abnormalities, Skeletal and Muscular Disorders, Skeletal and Muscular System Development and Function, Tissue Development	elongation	Elongation of axis	1.85E-03	 	 	 	 	LRP6	1	
+Embryonic Development, Organismal Development, Tissue Development, Tissue Morphology	expansion	Expansion of neuroectoderm	1.85E-03	 	 	 	 	LRP6	1	
+Embryonic Development, Organismal Development, Tissue Development, Tissue Morphology	expansion	Expansion of primitive streak	1.85E-03	 	 	 	 	LRP6	1	
+Cell-mediated Immune Response, Lymphoid Tissue Structure and Development	frequency	Frequency of Tr1 cells	1.85E-03	 	 	 	 	LRP6	1	
+Cancer, Organismal Injury and Abnormalities, Respiratory Disease	growth	Growth of murine Lewis lung carcinoma	1.85E-03	 	 	 	 	GRK6	1	
+Developmental Disorder, Embryonic Development, Organismal Development, Tissue Morphology	loss	Loss of paraxial mesoderm	1.85E-03	 	 	 	 	LRP6	1	
+Cellular Development, Cellular Growth and Proliferation, Embryonic Development, Nervous System Development and Function, Organismal Development, Tissue Development	neurogenesis	Neurogenesis of granule neuron progenitor cells	1.85E-03	 	 	 	 	LRP6	1	
+Tissue Morphology	quantity	Quantity of segmented filamentous bacterium	1.85E-03	 	 	 	 	LRP6	1	
+Cell-mediated Immune Response, Lymphoid Tissue Structure and Development	frequency	Frequency of Th1 cells	2.77E-03	 	 	 	 	LRP6	1	
+Cell-mediated Immune Response, Lymphoid Tissue Structure and Development	frequency	Frequency of Th17 cells	2.77E-03	 	 	 	 	LRP6	1	
+Cell Death and Survival, Cell Morphology, Digestive System Development and Function, Gastrointestinal Disease, Organ Morphology, Organismal Development, Organismal Injury and Abnormalities	loss	Loss of crypt cells	2.77E-03	 	 	 	 	LRP6	1	
+Embryonic Development, Organismal Development	specification	Specification of dorsal-ventral axis	2.77E-03	 	 	 	 	LRP6	1	
+Embryonic Development, Organismal Development, Tissue Development	development	Development of primitive streak	3.69E-03	 	 	 	 	LRP6	1	
+Cardiovascular System Development and Function, Connective Tissue Development and Function, Embryonic Development, Organ Development, Organ Morphology, Organismal Development, Tissue Development	morphogenesis	Morphogenesis of pericardium	3.69E-03	 	 	 	 	LRP6	1	
+Cellular Development, Cellular Growth and Proliferation, Embryonic Development, Organismal Development, Tissue Development	proliferation	Proliferation of cytotrophoblastic cells	3.69E-03	 	 	 	 	LRP6	1	
+Ophthalmic Disease, Organismal Injury and Abnormalities	keratoconus	Keratoconus	4.62E-03	 	 	 	 	LRP6	1	
+Cell Death and Survival	cell death	Cell death of prostate cell lines	5.54E-03	 	 	 	 	LRP6	1	
+Cell Death and Survival, Cellular Compromise, Neurological Disease, Tissue Morphology	neurodegeneration	Neurodegeneration of dopaminergic neurons	5.54E-03	 	 	 	 	GRK6	1	
+Cellular Development, Cellular Growth and Proliferation	proliferation	Proliferation of fibrosarcoma cell lines	5.54E-03	 	 	 	 	LRP6	1	
+Organ Morphology, Organismal Development, Organismal Injury and Abnormalities, Renal and Urological Disease, Renal and Urological System Development and Function	abnormal morphology	Abnormal morphology of mesangium	6.46E-03	 	 	 	 	GRK6	1	
+Gastrointestinal Disease, Immunological Disease, Organismal Injury and Abnormalities	celiac disease	Celiac disease	6.46E-03	 	 	 	 	KIAA1109	1	
+Embryonic Development, Nervous System Development and Function, Organ Development, Organismal Development, Tissue Development	development	Development of thalamus	6.46E-03	 	 	 	 	LRP6	1	
+Connective Tissue Disorders, Developmental Disorder, Gastrointestinal Disease, Hereditary Disorder, Organismal Injury and Abnormalities, Skeletal and Muscular Disorders	familial orofacial cleft	Familial orofacial cleft	6.46E-03	 	 	 	 	LRP6	1	
+Cancer, Organismal Injury and Abnormalities, Reproductive System Disease	hyperplasia	Hyperplasia of mammary gland	6.46E-03	 	 	 	 	LRP6	1	
+Cardiovascular System Development and Function, Cellular Development, Cellular Growth and Proliferation, Organ Development, Organismal Development, Skeletal and Muscular System Development and Function, Tissue Development	proliferation	Proliferation of HAoSMC cells	6.46E-03	 	 	 	 	LRP6	1	
+Cell-To-Cell Signaling and Interaction, Cellular Function and Maintenance, Inflammatory Response	phagocytosis	Phagocytosis of cells	6.96E-03	 	 	 	 	KIAA1109,GRK6	2	
+Cellular Development, Embryonic Development, Nervous System Development and Function, Organismal Development, Tissue Development	differentiation	Differentiation of neural crest cells	7.38E-03	 	 	 	 	LRP6	1	
+Cellular Movement, Hematological System Development and Function, Immune Cell Trafficking	influx	Influx of granulocytes	7.38E-03	 	 	 	 	GRK6	1	
+Embryonic Development, Nervous System Development and Function, Organ Development, Organ Morphology, Organismal Development, Tissue Development	morphogenesis	Morphogenesis of cerebellum	7.38E-03	 	 	 	 	LRP6	1	
+Behavior	addiction behavior	Addiction behavior	8.30E-03	 	 	 	 	GRK6	1	
+Metabolic Disease, Neurological Disease, Organismal Injury and Abnormalities, Psychological Disorders	late-onset Alzheimer disease	Late-onset late-onset Alzheimer disease	8.30E-03	 	 	 	 	LRP6	1	
+Developmental Disorder, Hereditary Disorder, Organismal Injury and Abnormalities, Skeletal and Muscular Disorders	oligodactyly	Oligodactyly	8.30E-03	 	 	 	 	LRP6	1	
+Cell-To-Cell Signaling and Interaction, Drug Metabolism, Molecular Transport, Small Molecule Biochemistry	uptake	Uptake of dopamine	8.30E-03	 	 	 	 	GRK6	1	
+Organismal Development, Skeletal and Muscular Disorders, Skeletal and Muscular System Development and Function	abnormal morphology	Abnormal morphology of forelimb	9.22E-03	 	 	 	 	LRP6	1	
+Cell-To-Cell Signaling and Interaction	adhesion	Adhesion of prostate cancer cell lines	9.22E-03	 	 	 	 	GRK6	1	
+Cell-To-Cell Signaling and Interaction	binding	Binding of cell surface	9.22E-03	 	 	 	 	LRP6	1	
+Cell Cycle	ploidy	Ploidy of megakaryocytes	9.22E-03	 	 	 	 	LRP6	1	
+Lymphoid Tissue Structure and Development, Organ Morphology, Tissue Morphology	quantity	Quantity of white pulp	1.01E-02	 	 	 	 	GRK6	1	
+Cell Death and Survival	cell death	Cell death of macrophage cancer cell lines	1.11E-02	 	 	 	 	LRP6	1	
+Embryonic Development, Organismal Development, Tissue Development	formation	Formation of primitive streak	1.11E-02	 	 	 	 	LRP6	1	
+Hematological System Development and Function, Lymphoid Tissue Structure and Development, Tissue Morphology	quantity	Quantity of memory T lymphocytes	1.11E-02	 	 	 	 	GRK6	1	
+Cardiovascular System Development and Function, Organismal Development, Tissue Morphology	density	Density of microvessel	1.20E-02	 	 	 	 	GRK6	1	
+Embryonic Development, Organismal Development, Skeletal and Muscular System Development and Function	morphogenesis	Morphogenesis of embryonic forelimb	1.20E-02	 	 	 	 	LRP6	1	
+Embryonic Development, Organismal Development, Skeletal and Muscular System Development and Function	morphogenesis	Morphogenesis of embryonic hindlimb	1.20E-02	 	 	 	 	LRP6	1	
+Embryonic Development, Organismal Development	morphogenesis	Morphogenesis of face	1.20E-02	 	 	 	 	LRP6	1	
+Cell-To-Cell Signaling and Interaction	adhesion	Adhesion of cervical cancer cell lines	1.29E-02	 	 	 	 	GRK6	1	
+Molecular Transport, Protein Trafficking	nuclear export	Nuclear export of protein	1.29E-02	 	 	 	 	XPO6	1	
+Cellular Assembly and Organization	quantity	Quantity of amyloid fibrils	1.29E-02	 	 	 	 	LRP6	1	
+Organismal Development, Skeletal and Muscular Disorders, Skeletal and Muscular System Development and Function	abnormal morphology	Abnormal morphology of digit	1.38E-02	 	 	 	 	LRP6	1	
+Carbohydrate Metabolism, Molecular Transport, Small Molecule Biochemistry	accumulation	Accumulation of inositol phosphate	1.38E-02	 	 	 	 	GRK6	1	
+Cellular Development, Nervous System Development and Function, Tissue Development	differentiation	Differentiation of dopaminergic neurons	1.38E-02	 	 	 	 	LRP6	1	
+Connective Tissue Disorders, Developmental Disorder, Neurological Disease, Organismal Injury and Abnormalities, Skeletal and Muscular Disorders	spina bifida	Spina bifida	1.38E-02	 	 	 	 	LRP6	1	
+Hematological System Development and Function, Lymphoid Tissue Structure and Development, Tissue Morphology	quantity	Quantity of T lymphocytes	1.40E-02	 	 	 	 	LRP6,GRK6	2	
+Hematological System Development and Function, Tissue Morphology	quantity	Quantity of myeloid cells	1.44E-02	 	 	 	 	LRP6,GRK6	2	
+Hematological System Development and Function, Hematopoiesis, Lymphoid Tissue Structure and Development, Tissue Morphology	quantity	Quantity of megakaryocytes	1.47E-02	 	 	 	 	LRP6	1	
+Cell Death and Survival, Hematological System Development and Function	cell viability	Cell viability of B-lymphocyte derived cell lines	1.65E-02	 	 	 	 	GRK6	1	
+Carbohydrate Metabolism, Lipid Metabolism, Small Molecule Biochemistry	hydrolysis	Hydrolysis of phosphoinositide	1.65E-02	 	 	 	 	GRK6	1	
+Organismal Development, Skeletal and Muscular Disorders, Skeletal and Muscular System Development and Function	abnormal morphology	Abnormal morphology of hindlimb	1.75E-02	 	 	 	 	LRP6	1	
+Organismal Functions, Organismal Injury and Abnormalities, Tissue Morphology	closure	Closure of wound	1.84E-02	 	 	 	 	GRK6	1	
+Embryonic Development, Organismal Development	somitogenesis	Somitogenesis	1.84E-02	 	 	 	 	LRP6	1	
+Lymphoid Tissue Structure and Development, Organ Morphology, Tissue Morphology	quantity	Quantity of splenocytes	2.02E-02	 	 	 	 	GRK6	1	
+Embryonic Development, Organismal Development, Skeletal and Muscular System Development and Function	morphogenesis	Morphogenesis of embryonic digit	2.11E-02	 	 	 	 	LRP6	1	
+Cellular Compromise, Hematological Disease, Immunological Disease, Organismal Injury and Abnormalities	function	Abnormal function of B lymphocytes	2.20E-02	 	 	 	 	GRK6	1	
+Post-Translational Modification	activation	Activation of protein	2.20E-02	 	 	 	 	GRK6	1	
+Embryonic Development, Nervous System Development and Function, Organ Development, Organismal Development, Tissue Development	formation	Formation of mesencephalon	2.20E-02	 	 	 	 	LRP6	1	
+Cellular Compromise, Inflammatory Response	degranulation	Degranulation of leukocyte cell lines	2.38E-02	 	 	 	 	GRK6	1	
+Cellular Development, Cellular Growth and Proliferation, Embryonic Development, Organismal Development, Tissue Development	proliferation	Proliferation of mesenchymal cells	2.38E-02	 	 	 	 	LRP6	1	
+Embryonic Development, Organismal Development	patterning	Patterning of embryo	2.65E-02	 	 	 	 	LRP6	1	
+Cancer, Organismal Injury and Abnormalities	tumor burden	Tumor burden	2.65E-02	 	 	 	 	LRP6	1	
+Embryonic Development, Organismal Development, Tissue Morphology	morphology	Morphology of neural tube	2.74E-02	 	 	 	 	LRP6	1	
+Cellular Movement, Hematological System Development and Function, Immune Cell Trafficking	cell movement	Cell movement of leukocytes	2.83E-02	 	 	 	 	LRP6,GRK6	2	
+Cell Signaling, Cellular Function and Maintenance, Vitamin and Mineral Metabolism	elevation	Elevation of Ca2+ in cytosol	2.84E-02	 	 	 	 	LRP6	1	
+Cell-To-Cell Signaling and Interaction	adhesion	Adhesion of breast cancer cell lines	2.93E-02	 	 	 	 	GRK6	1	
+Connective Tissue Disorders, Developmental Disorder, Gastrointestinal Disease, Organismal Injury and Abnormalities, Skeletal and Muscular Disorders	cleft lip	Cleft lip	2.93E-02	 	 	 	 	LRP6	1	
+Carbohydrate Metabolism, Cellular Function and Maintenance	glycolysis	Glycolysis of tumor cell lines	2.93E-02	 	 	 	 	LRP6	1	
+Embryonic Development, Organismal Development	patterning	Patterning of rostrocaudal axis	3.02E-02	 	 	 	 	LRP6	1	
+Digestive System Development and Function, Gastrointestinal Disease, Hepatic System Development and Function, Hepatic System Disease, Inflammatory Disease, Inflammatory Response, Metabolic Disease, Organ Development, Organismal Injury and Abnormalities	steatohepatitis	Steatohepatitis	3.02E-02	 	 	 	 	LRP6	1	
+Cancer, Neurological Disease, Organismal Injury and Abnormalities	grade II astrocytoma	Grade II astrocytoma	3.11E-02	 	 	 	 	KIAA1109	1	
+Cell-To-Cell Signaling and Interaction, Cellular Movement, Hematological System Development and Function, Immune Cell Trafficking, Inflammatory Response	recruitment	Recruitment of neutrophils	3.20E-02	 	 	 	 	GRK6	1	
+Gene Expression	transcription	Transcription of mRNA	3.20E-02	 	 	 	 	LRP6	1	
+Cardiovascular System Development and Function, Embryonic Development, Organ Development, Organ Morphology, Organismal Development, Tissue Development	looping morphogenesis	Looping morphogenesis of heart	3.29E-02	 	 	 	 	LRP6	1	
+Developmental Disorder, Organismal Injury and Abnormalities, Skeletal and Muscular Disorders	polydactyly	Polydactyly	3.29E-02	 	 	 	 	LRP6	1	
+Carbohydrate Metabolism, Small Molecule Biochemistry	synthesis	Synthesis of D-glucose	3.38E-02	 	 	 	 	LRP6	1	
+Molecular Transport	quantity	Quantity of heavy metal	3.47E-02	 	 	 	 	GRK6	1	
+Post-Translational Modification	phosphorylation	Phosphorylation of protein	3.51E-02	 	 	 	 	LRP6,GRK6	2	
+Hematological System Development and Function, Lymphoid Tissue Structure and Development, Organ Morphology, Organismal Development, Tissue Morphology	mass	Mass of spleen	3.56E-02	 	 	 	 	GRK6	1	
+Cellular Assembly and Organization	transport	Transport of endosomes	3.56E-02	 	 	 	 	KIAA1109	1	
+Organismal Development	abnormal morphology	Abnormal morphology of tail	3.65E-02	 	 	 	 	LRP6	1	
+Digestive System Development and Function, Embryonic Development, Organismal Development	development	Development of palate	3.65E-02	 	 	 	 	LRP6	1	
+Cellular Movement	migration	Migration of cervical cancer cell lines	3.65E-02	 	 	 	 	GRK6	1	
+Humoral Immune Response, Protein Synthesis	quantity	Quantity of IgG	3.74E-02	 	 	 	 	GRK6	1	
+Hematological System Development and Function, Lymphoid Tissue Structure and Development, Tissue Morphology	quantity	Quantity of CD8+ T lymphocyte	3.83E-02	 	 	 	 	GRK6	1	
+Cancer, Neurological Disease, Organismal Injury and Abnormalities	glioma cancer	Grade 3-4 glioma cancer	3.85E-02	 	 	 	 	KIAA1109,LRP6,GRK6,XPO6,ZC3H12B	5	
+Embryonic Development, Organismal Development, Tissue Development	development	Development of somites	3.92E-02	 	 	 	 	LRP6	1	
+Developmental Disorder, Ophthalmic Disease, Organismal Injury and Abnormalities	microphthalmia	Microphthalmia	3.92E-02	 	 	 	 	LRP6	1	
+Cell-To-Cell Signaling and Interaction, Cellular Function and Maintenance, Hematological System Development and Function, Inflammatory Response	phagocytosis	Phagocytosis by macrophages	3.92E-02	 	 	 	 	GRK6	1	
+Cellular Compromise, Hypersensitivity Response, Inflammatory Response	degranulation	Degranulation of mast cells	4.00E-02	 	 	 	 	GRK6	1	
+Cancer, Organismal Injury and Abnormalities, Reproductive System Disease	metastasis	Metastasis of breast cancer cell lines	4.00E-02	 	 	 	 	LRP6	1	
+Cardiovascular System Development and Function, Organismal Development	vasculogenesis	Vasculogenesis	4.09E-02	 	 	 	 	LRP6,GRK6	2	
+Cell Signaling, Molecular Transport, Nucleic Acid Metabolism, Small Molecule Biochemistry	accumulation	Accumulation of cyclic AMP	4.18E-02	 	 	 	 	GRK6	1	
+Neurological Disease, Organismal Injury and Abnormalities	memory deficits	Memory deficits	4.45E-02	 	 	 	 	LRP6	1	
+Cellular Movement	migration	Migration of prostate cancer cell lines	4.45E-02	 	 	 	 	GRK6	1	
+Cellular Function and Maintenance, Hematological System Development and Function	function	Function of T lymphocytes	4.81E-02	 	 	 	 	GRK6	1	
+Hematological System Development and Function, Lymphoid Tissue Structure and Development, Tissue Morphology	quantity	Quantity of CD4+ T-lymphocytes	4.90E-02	 	 	 	 	LRP6	1	
+
+Tox Functions for My Projects->Spencer - RKC pH->ipa_upload.p1 - 2022-04-11 02:49 PM - LFC, User Dataset->Mod_vs_Low
+Categories	Functions	Diseases or Functions Annotation	p-Value	Predicted Activation State	Activation z-score	Notes	Bias-corrected z-score	Molecules	# Molecules	
+Cardiac Arteriopathy	autosomal dominant coronary artery disease type 2	Autosomal dominant coronary artery disease type 2	9.25E-04	 	 	 	 	LRP6	1	
+Glomerular Injury	abnormal morphology	Abnormal morphology of mesangium	6.46E-03	 	 	 	 	GRK6	1	
+Liver Inflammation/Hepatitis, Liver Steatosis	steatohepatitis	Steatohepatitis	3.02E-02	 	 	 	 	LRP6	1	
+Glomerular Injury, Renal Inflammation, Renal Nephritis	glomerulonephritis	Glomerulonephritis	6.75E-02	 	 	 	 	GRK6	1	
+Renal Necrosis/Cell Death	apoptosis	Apoptosis of kidney cell lines	9.00E-02	 	 	 	 	LRP6	1	
+Liver Fibrosis	fibrosis	Fibrosis of liver	9.43E-02	 	 	 	 	LRP6	1	
+Liver Hyperplasia/Hyperproliferation	liver carcinoma	Liver carcinoma	1.00E00	 	 	 	 	KIAA1109,LRP6	2	
+
+Regulator Effects for My Projects->Spencer - RKC pH->ipa_upload.p1 - 2022-04-11 02:49 PM - LFC, User Dataset->Mod_vs_Low
+
+Networks for My Projects->Spencer - RKC pH->ipa_upload.p1 - 2022-04-11 02:49 PM - LFC, User Dataset->Mod_vs_Low
+ID	Analysis	Molecules in Network	Score	Focus Molecules	Top Diseases and Functions	
+1	Mod_vs_Low	AMMECR1,ANTXR2,B3GALNT2,BAMBI,BCL9,C1q,CAPRIN2,COG5,CTNNB1,Cops2,DKK2,EGFR,Frizzled,GPBAR1,GRK6,Gbp,IL6,KIAA1109,KREMEN1,KREMEN2,LRP6,MIR17-92,Macf1,PTCSC3,RSPO1,SLC52A1,SOSTDC1,TK2,WNT10B,WNT9B,XPO6,ZC3H12B,ZNRF3,chondroitin sulfate E,mir-19	15	5	Cell Morphology, Connective Tissue Development and Function, Tissue Morphology	
+
+My Lists for My Projects->Spencer - RKC pH->ipa_upload.p1 - 2022-04-11 02:49 PM - LFC, User Dataset->Mod_vs_Low
+My Lists	 -log(p-value)	Molecules 
+
+Tox Lists for My Projects->Spencer - RKC pH->ipa_upload.p1 - 2022-04-11 02:49 PM - LFC, User Dataset->Mod_vs_Low
+Ingenuity Toxicity Lists	 -log(p-value)	Molecules 
+Renal Necrosis/Cell Death	7.3E-01	4.59E-03	LRP6
+
+My Pathways for My Projects->Spencer - RKC pH->ipa_upload.p1 - 2022-04-11 02:49 PM - LFC, User Dataset->Mod_vs_Low
+My Pathways	 -log(p-value)	Molecules 
+
+Analysis Ready Molecules for My Projects->Spencer - RKC pH->ipa_upload.p1 - 2022-04-11 02:49 PM - LFC, User Dataset->Mod_vs_Low
+ID	Symbol	Expr Log Ratio	Expr p-value
+ENSDART00000027459	GRK6	0.486605425466798	0.00944255103831652
+A0A0R4IES7	KIAA1109	0.312514541029588	0.0468909505312816
+O75581	LRP6	-0.711542032412605	0.00203917198078249
+ENSDART00000186039	XPO6	0.375613744593655	0.0445554997209054
+ENSDART00000192059	ZC3H12B	1.13557652542208	0.00830366034149851
+
