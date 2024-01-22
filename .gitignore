@@ -8,14 +8,14 @@
 *fasta.tar
 ./references/archive/GCA_013283005.1_ASM1328300v1_genomic-AKCSL2051-LS21.gbff
 ./references/archive/GCA_013283005.1_ASM1328300v1_genomic.gbff
+./references/archive/genome_assemblies_genome_fasta-AKCSL2051-LS21.tar
+./references/archive/ncbi-genomes-2021-12-22/GCA_013283005.1_ASM1328300v1_genomic.fna.gz
 ./references/archive/P.platypus.gene_blastx_1e5.tab
 ./references/archive/P.platypus.genome_blastx.tab
 ./references/archive/Paralithodes_platypus_genome.fasta
 ./references/archive/Paralithodes_platypus_genome.fasta-AKCSL2051-LS21.gz
 ./references/archive/Paralithodes_platypus_genome.fasta.gz
-./references/genome_assemblies_genome_fasta-AKCSL2051-LS21.tar
 ./references/genome_assemblies_genome_fasta.tar
-./references/ncbi-genomes-2021-12-22/GCA_013283005.1_ASM1328300v1_genomic.fna.gz
 ./references/Paralithodes.camtschaticus.genome.fasta.gz
 ./references/Paralithodes.camtschaticus_genes_blastx.tab
 ./results/bowtie/Tank_10_Crab_1.sorted-AKCSL2051-LS21.bam
