@@ -1,0 +1,54 @@
+[2022-05-09 10:12:47.886] [jointLog] [info] setting maxHashResizeThreads to 20
+[2022-05-09 10:12:47.886] [jointLog] [info] Fragment incompatibility prior below threshold.  Incompatible fragments will be ignored.
+[2022-05-09 10:12:47.886] [jointLog] [info] Usage of --validateMappings implies use of minScoreFraction. Since not explicitly specified, it is being set to 0.65
+[2022-05-09 10:12:47.886] [jointLog] [info] Setting consensusSlack to selective-alignment default of 0.35.
+[2022-05-09 10:12:47.886] [jointLog] [info] parsing read library format
+[2022-05-09 10:12:47.886] [jointLog] [info] There is 1 library.
+[2022-05-09 10:12:47.937] [jointLog] [info] Loading pufferfish index
+[2022-05-09 10:12:47.937] [jointLog] [info] Loading dense pufferfish index.
+[2022-05-09 10:12:48.067] [jointLog] [info] done
+[2022-05-09 10:12:48.067] [jointLog] [info] Index contained 28,097 targets
+[2022-05-09 10:12:48.262] [jointLog] [info] Number of decoys : 0
+[2022-05-09 10:12:50.084] [jointLog] [info] Automatically detected most likely library type as IU
+
+[2022-05-09 10:16:55.210] [jointLog] [info] Computed 38,471 rich equivalence classes for further processing
+[2022-05-09 10:16:55.210] [jointLog] [info] Counted 12,360,774 total reads in the equivalence classes 
+[2022-05-09 10:16:55.214] [jointLog] [info] Number of mappings discarded because of alignment score : 45,524,024
+[2022-05-09 10:16:55.214] [jointLog] [info] Number of fragments entirely discarded because of alignment score : 6,390,881
+[2022-05-09 10:16:55.214] [jointLog] [info] Number of fragments discarded because they are best-mapped to decoys : 0
+[2022-05-09 10:16:55.214] [jointLog] [info] Number of fragments discarded because they have only dovetail (discordant) mappings to valid targets : 463,613
+[2022-05-09 10:16:55.214] [jointLog] [info] Mapping rate = 14.8187%
+
+[2022-05-09 10:16:55.214] [jointLog] [info] finished quantifyLibrary()
+[2022-05-09 10:16:55.216] [jointLog] [info] Starting optimizer
+[2022-05-09 10:16:55.233] [jointLog] [info] Marked 0 weighted equivalence classes as degenerate
+[2022-05-09 10:16:55.235] [jointLog] [info] iteration = 0 | max rel diff. = 32195.5
+[2022-05-09 10:16:55.259] [jointLog] [info] iteration 11, adjusting effective lengths to account for biases
+[2022-05-09 10:16:55.210] [fileLog] [info] 
+At end of round 0
+==================
+Observed 83413383 total fragments (83413383 in most recent round)
+
+[2022-05-09 10:16:56.482] [jointLog] [info] Computed expected counts (for bias correction)
+[2022-05-09 10:16:56.482] [jointLog] [info] processed bias for 0.0% of the transcripts
+[2022-05-09 10:16:56.585] [jointLog] [info] processed bias for 10.0% of the transcripts
+[2022-05-09 10:16:56.700] [jointLog] [info] processed bias for 20.0% of the transcripts
+[2022-05-09 10:16:56.812] [jointLog] [info] processed bias for 30.0% of the transcripts
+[2022-05-09 10:16:56.928] [jointLog] [info] processed bias for 40.0% of the transcripts
+[2022-05-09 10:16:57.035] [jointLog] [info] processed bias for 50.0% of the transcripts
+[2022-05-09 10:16:57.150] [jointLog] [info] processed bias for 60.0% of the transcripts
+[2022-05-09 10:16:57.260] [jointLog] [info] processed bias for 70.0% of the transcripts
+[2022-05-09 10:16:57.375] [jointLog] [info] processed bias for 80.0% of the transcripts
+[2022-05-09 10:16:57.484] [jointLog] [info] processed bias for 90.0% of the transcripts
+[2022-05-09 10:16:57.605] [jointLog] [info] processed bias for 100.0% of the transcripts
+[2022-05-09 10:16:57.608] [jointLog] [info] processed bias for 100.0% of the transcripts
+[2022-05-09 10:16:57.816] [jointLog] [info] iteration = 100 | max rel diff. = 1.00186
+[2022-05-09 10:16:58.042] [jointLog] [info] iteration = 200 | max rel diff. = 0.266179
+[2022-05-09 10:16:58.089] [jointLog] [info] iteration = 222 | max rel diff. = 0.00420111
+[2022-05-09 10:16:58.096] [jointLog] [info] Finished optimizer
+[2022-05-09 10:16:58.096] [jointLog] [info] writing output 
+
+[2022-05-09 10:16:58.138] [jointLog] [warning] NOTE: Read Lib [[ /home/lspencer/2022-redking-OA/trimmed/v2/Tank_11_Crab_3.trimmed.R1.v2.fastq.gz, /home/lspencer/2022-redking-OA/trimmed/v2/Tank_11_Crab_3.trimmed.R2.v2.fastq.gz]] :
+
+Detected a *potential* strand bias > 1% in an unstranded protocol check the file: /scratch/lspencer/2022-redking-OA/aligned/salmon/Tank_11_Crab_3.salmon.counts/lib_format_counts.json for details
+

@@ -1,0 +1,8 @@
+	STAR --runThreadN 20 --genomeDir /home/lspencer/references/bluekingcrab/STAR/ --readFilesIn /scratch/lspencer/2022-redking-OA/trimmed/Tank_2_Crab_2.trimmed.R1.v2.fastq.gz /scratch/lspencer/2022-redking-OA/trimmed/Tank_2_Crab_2.trimmed.R2.v2.fastq.gz --readFilesCommand gunzip -c --outFilterMultimapNmax 50 --outFileNamePrefix /scratch/lspencer/2022-redking-OA/aligned/star/Tank_2_Crab_2. --outSAMtype BAM SortedByCoordinate --quantMode GeneCounts
+	STAR version: 2.7.10a   compiled: 2022-01-19T07:49:23-08:00 sedna.cluster:/opt/bioinformatics/build/STAR-2.7.10a/source
+Jan 29 04:35:57 ..... started STAR run
+Jan 29 04:35:57 ..... loading genome
+Jan 29 04:50:04 ..... started mapping
+Jan 29 05:03:08 ..... finished mapping
+Jan 29 05:03:12 ..... started sorting BAM
+Jan 29 05:05:00 ..... finished successfully
