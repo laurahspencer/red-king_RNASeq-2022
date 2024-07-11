@@ -2041,7 +2041,8 @@ te.perc %>%
 
 
 # Boxplot of the percent of each gene set that are TEs 
-pdf(file = "../../manuscript/Figures/Figure7.pdf", width = 3.5, height = 6.25)
+#pdf(file = "../../manuscript/Figures/Figure7.pdf", width = 3.5, height = 6.25)
+tiff(file = "../../manuscript/PLOS-Climate-submission/Revision/Final/Figures-correct-dims/Fig8.tiff", width = 2.35, height = 4.2, units = "in", res = 600)
 te.perc %>%
 #  filter(module %in% modules) %>%
   filter(module != "background") %>%
@@ -2059,12 +2060,10 @@ te.perc %>%
   ggplot(aes(x=change, y=100*te.perc)) + 
   geom_boxplot(outlier.size = NA) + 
   #geom_jitter(position=position_jitter(seed=10), aes(fill=type, size=n, shape=gene_set)) + 
-  geom_jitter(position=position_jitter(seed=4, width = 0.18), aes(fill=type, shape=type), size=6) +  #simplified figure
+  geom_jitter(position=position_jitter(seed=4, width = 0.18), aes(fill=type, shape=type), size=3) +  #simplified figure
   # geom_text(position=position_jitter(width = .2,seed = 10),
   #           aes(color=module, label=paste(100*round(te.perc, digits = 2), "%", sep=""))) +
   theme_minimal() + 
-  theme(axis.title=element_text(size=13), axis.text=element_text(size=12), 
-        legend.position="bottom", legend.text=element_text(size=10), legend.spacing.y = unit(.01, 'cm')) +
   scale_fill_manual(name = "Gene set", values = c("gray65", "gray30") , guide="none") +     
   # scale_shape_manual(name = "Gene set", values = c(21, 22, 23, 24), 
   #                    labels=c("Co-expression module", "Upregulated in Severe OA", "Upregulated in Moderate OA", "Downregulated in OA")) +
@@ -2072,9 +2071,13 @@ te.perc %>%
                      labels=c("Co-expressed gene modules", "Differentially expressed genes")) +
   # guides(shape = guide_legend(order=1, override.aes = list(size=4.25, fill=c("gray65", "gray30", "gray30", "gray30"))),
   #        size = guide_legend(order=0, override.aes = list(fill="white", shape=21))) +
-  guides(shape = guide_legend(nrow=2,byrow=TRUE, order=1, override.aes = list(size=4.25, fill=c("gray65", "gray30"))),
+  guides(shape = guide_legend(nrow=2,byrow=TRUE, order=1, override.aes = list(size=3.75, fill=c("gray65", "gray30"))),
          size = guide_legend(order=0, override.aes = list(fill="white", shape=21))) +
 #  scale_size(range = c(3,9), name = "Number of genes in set") +
+  theme(axis.title=element_text(size=8.5, colour = "gray10"), axis.text=element_text(size=8.5, colour = "gray10"), 
+        legend.position="bottom", legend.justification = c(0,1), 
+        legend.text=element_text(size=7.5, colour = "gray35"), legend.spacing.y = unit(0.05, 'lines'),
+        legend.margin = margin(t = 5, r = 0, b = 0, l = -15, unit = "pt")) +
   ylab("Percent Transposable Elements") + xlab(NULL) + ggtitle(NULL) + #ggtitle("Percent of genes that are TEs\nby gene set") +
   geom_hline(yintercept = 100*te.perc[te.perc$module=="background",]$te.perc, linetype="dashed", color="gray20") 
 dev.off()

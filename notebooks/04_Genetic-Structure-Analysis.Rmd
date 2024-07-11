@@ -222,11 +222,15 @@ tab.annot.gen %>% mutate(Treatment=factor(Treatment, levels=c("Ambient", "Modera
             aes(x=PC1.gen, y=PC2.gen, size=missingness)) +
   geom_point(aes(col=Treatment), alpha=0.75) + # 
   theme_minimal() + ggtitle("Genetic Structure, PC1xPC2") + 
-  xlab(paste("PC1 (", round(pc.percent[1], digits = 1), "%)", sep="")) + 
-  ylab(paste("PC2 (", round(pc.percent[2], digits = 1), "%)", sep="")) + 
-  theme(legend.position = "right") + 
+  xlab(paste("PC1 (8.7%)", sep="")) +
+  ylab(paste("PC2 (7.3%)", sep="")) +
+  # xlab(paste("PC1 (", round(pc.percent[1], digits = 1), "%)", sep="")) + 
+  # ylab(paste("PC2 (", round(pc.percent[2], digits = 1), "%)", sep="")) + 
+  theme(legend.position = "right", plot.title = element_text(size=9), axis.title = element_text(size=8), 
+        legend.title = element_text(size=8), legend.text = element_text(size=8)) + 
+  scale_size(range = c(1, 5)) + 
   scale_color_manual(values=c(`Ambient (pH 8.0)`="#2c7bb6", `Moderate (pH 7.8)`="#fdae61", `Severe (pH 7.6)`="#d7191c"), name="OA Treatment") +
-  guides(colour = guide_legend(order=1, override.aes = list(size=3.5))) + 
+  guides(colour = guide_legend(order=1, override.aes = list(size=3))) + 
   stat_ellipse(aes(col=Treatment), size=0.3))
 
 # PC1 X PC3
@@ -338,7 +342,7 @@ ggscatter(tab.annot.gen, x="PC3.gen", y="PC2.gen",
 Save Figure 1 
 
 ```{r}
-pdf(file = "../manuscript/Figures/Figure1.pdf", width = 7.5, height = 4.75)
+tiff(file = "../manuscript/PLOS-Climate-submission/Revision/Final/Figures-correct-dims/Fig1.tiff", width = 13.2, height = 8.36, units = "cm", res = 600)
 print(fig1)
 dev.off()
 ```

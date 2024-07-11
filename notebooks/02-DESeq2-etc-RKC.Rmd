@@ -321,17 +321,18 @@ tab.expr.annot <- left_join(tab.expr, sample.info, by=c("sample.id"="Sample")) %
             mutate(Treatment=str_replace(Treatment, "Ambient", "Ambient (pH 8.0)"),
                    Treatment=str_replace(Treatment, "Moderate", "Moderate (pH 7.8)"),
                    Treatment=str_replace(Treatment, "Low", "Severe (pH 7.6)")), 
-          x="EV1.all", y="EV2.all", col="Treatment", size=2.5, alpha=0.85, ellipse = TRUE, star.plot = TRUE, 
+          x="EV1.all", y="EV2.all", col="Treatment", size=2, alpha=0.85, ellipse = TRUE, star.plot = TRUE, 
            palette = c(`Ambient (pH 8.0)`="#2c7bb6", `Moderate (pH 7.8)`="#fdae61", `Severe (pH 7.6)`="#d7191c")) +
   theme_minimal() + ggtitle("Global gene expression, PC1xPC2") + 
   xlab(paste("PC1 (", round(pc.percent[1], digits = 1), "%)", sep="")) + 
   ylab(paste("PC2 (", round(pc.percent[2], digits = 1), "%)", sep="")) + 
   labs(color="OA Treatment") + 
   labs(fill="OA Treatment") + 
-  theme(legend.position = "right") + 
+  theme(legend.position = "right", plot.title = element_text(size=9), axis.title = element_text(size=8), 
+        legend.title = element_text(size=8), legend.text = element_text(size=8)) + 
   # scale_color_manual(name="pCO2 Treatment", labels=c("8.1", "7.8", "7.6"), values=c("8.1"="#2c7bb6", "7.8"="#fdae61", "7.6"="#d7191c")) +
   # scale_fill_manual(name="pCO2 Treatment", labels=c("8.1", "7.8", "7.6"), values=c("8.1"="#2c7bb6", "7.8"="#fdae61", "7.6"="#d7191c")) +
-  guides(colour = guide_legend(override.aes = list(size=3.5, linetype="blank")))) 
+  guides(colour = guide_legend(override.aes = list(size=3, linetype="blank")))) 
 
 # GGSCATTER with ellipses and stars - PC1 PC3
 ggscatter(tab.expr.annot, x="EV1.all", y="EV3.all",
@@ -374,7 +375,7 @@ ggscatter(tab.expr.annot, x="EV3.all", y="EV4.all",
 Save Figure 2
 
 ```{r}
-pdf(file = "../manuscript/Figures/Figure2.pdf", width = 7.5, height = 4.75)
+tiff(file = "../manuscript/PLOS-Climate-submission/Revision/Final/Figures-correct-dims/Fig2.tiff", width = 13.2, height = 8.36, units = "cm", res = 600)
 print(fig2)
 dev.off()
 ```
@@ -592,7 +593,8 @@ my_gradient <- colorRampPalette(my_colours)(length(breaksList))
 # NOTE, the row-wise scale produces Z-scores (x-mean/sd)
 
 # Draw heatmaps 
-pdf(file = "../results/heatmap-AM.pdf", width = 6.15, height = 3.15)
+#pdf(file = "../results/heatmap-AM.pdf", width = 6.15, height = 3.15)
+tiff(file = "../results/heatmap-AM.tiff", width = 6.15, height = 3.15, units = "in", res = 600)
 (heat.am <- pheatmap(diffex.AM.counts, cluster_cols = FALSE, cluster_rows=TRUE, 
          show_rownames=FALSE, show_colnames = FALSE, na.rm=TRUE, scale="row", 
          #main = "DEGs among pH 8.0 (ambient) & pH 7.8 (moderate), sorted by p-value",
@@ -606,7 +608,8 @@ pdf(file = "../results/heatmap-AM.pdf", width = 6.15, height = 3.15)
          breaks = breaksList))
 dev.off()
 
-pdf(file = "../results/heatmap-AL.pdf", width = 6.15, height = 3.15)
+#pdf(file = "../results/heatmap-AL.pdf", width = 6.15, height = 3.15)
+tiff(file = "../results/heatmap-AL.tiff", width = 6.15, height = 3.15, units = "in", res = 600)
 (heat.al <- pheatmap(diffex.AL.counts, cluster_cols = FALSE, cluster_rows=TRUE, 
          show_rownames=FALSE, show_colnames = FALSE, na.rm=TRUE, scale="row", 
          #main = "DEGs among pH 8.0 (ambient) & pH 7.5 (low), sorted by p-value",
@@ -620,7 +623,8 @@ pdf(file = "../results/heatmap-AL.pdf", width = 6.15, height = 3.15)
          breaks = breaksList))
 dev.off()
 
-pdf(file = "../results/heatmap-ML.pdf", width = 6.15, height = 3.15)
+#pdf(file = "../results/heatmap-ML.pdf", width = 6.15, height = 3.15)
+tiff(file = "../results/heatmap-ML.tiff", width = 6.15, height = 3.15, units = "in", res = 600)
 (heat.ml <- pheatmap(diffex.ML.counts, cluster_cols = FALSE, cluster_rows=TRUE, 
          show_rownames=FALSE, show_colnames = FALSE, na.rm=TRUE, scale="row", 
          #main = "DEGs among pH 7.8 (moderate) & pH 7.5 (low), sorted by p-value",
@@ -679,7 +683,11 @@ abline(v=0.5, col="black", lty=4, lwd=2.0)
 abline(h=-log10(max(topT$padj[topT$padj<0.05], na.rm=TRUE)), col="black", lty=4, lwd=2.0)
 volcano.am <- recordPlot()
 
-pdf(file = "../results/volcano-AM.pdf", width = 6.25, height = 3.75)
+# pdf(file = "../results/volcano-AM.pdf", width = 6.25, height = 3.75)
+# print(volcano.am)
+# dev.off()
+
+tiff(file = "../results/volcano-AM.tiff", width = 6.25, height = 3.75, units = "in", res = 600)
 print(volcano.am)
 dev.off()
 ```
@@ -715,10 +723,13 @@ abline(v=0.5, col="black", lty=4, lwd=1.9)
 abline(h=-log10(max(topT$padj[topT$padj<0.05], na.rm=TRUE)), col="black", lty=4, lwd=1.9)
 volcano.al <- recordPlot()
 
-pdf(file = "../results/volcano-AL.pdf", width = 6.25, height = 3.75)
+# pdf(file = "../results/volcano-AL.pdf", width = 6.25, height = 3.75)
+# print(volcano.al)
+# dev.off()
+
+tiff(file = "../results/volcano-AL.tiff", width = 6.25, height = 3.75, units = "in", res = 600)
 print(volcano.al)
 dev.off()
-
 ```
 
 ```{r}
@@ -751,7 +762,11 @@ abline(v=0.5, col="black", lty=4, lwd=2.0)
 abline(h=-log10(max(topT$padj[topT$padj<0.05], na.rm=TRUE)), col="black", lty=4, lwd=2.0)
 volcano.ml <- recordPlot()
 
-pdf(file = "../results/volcano-ML.pdf", width = 6.25, height = 3.85)
+# pdf(file = "../results/volcano-ML.pdf", width = 6.25, height = 3.85)
+# print(volcano.ml)
+# dev.off()
+# 
+tiff(file = "../results/volcano-ML.tiff", width = 6.25, height = 3.85, units = "in", res = 600)
 print(volcano.ml)
 dev.off()
 ```
